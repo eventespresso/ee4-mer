@@ -1,0 +1,16 @@
+{
+	"versionFile" : "eea-multi-event-registration.php",
+	"slug" : "eea-multi-event-registration",
+	"name" : "EE4 Multi Event Registration",
+	"archiveBaseUrl" : "http://build.eventespresso.com/",
+	"archiveBasePath" : "~/www/build/",
+	"releaseFilesRemove" : [
+		"src/tests/**",
+		"src/info.json",
+		"src/circle.yml",
+		"src/readme.txt"
+	],
+	"github" : true,
+	"awsbucket" : "",
+	"awsregion" : ""
+}
