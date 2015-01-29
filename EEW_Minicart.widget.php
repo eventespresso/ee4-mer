@@ -74,20 +74,8 @@ class EEW_Minicart extends WP_Widget {
 
 	<ul>';
 
-	$this->_cart->get_cart_types();
 
-
-
-		$cart_contents = array();
-		$cart_type = 'tickets';
-		//foreach ( $this->_cart->cart as $cart_type => $cart_contents ) {
-
-			$label = isset( $cart_contents['title'] ) ? $cart_contents['title'] : '' ;
-			$chk = 'display-'.$cart_type.'-chk';
-			$txt = 'cart-name-'.$cart_type.'-txt';
-			if ( ! isset( $instance[$chk] )) {
-				$instance[$chk] = FALSE;
-			}
+			$txt = 'cart-name-tickets-txt';
 			if ( ! isset( $instance[$txt] )) {
 				$instance[$txt] = 'Your Registrations:';
 			}
