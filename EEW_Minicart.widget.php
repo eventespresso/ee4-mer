@@ -23,8 +23,11 @@
  */
 class EEW_Minicart extends WP_Widget {
 
-	//  EE_Cart object passed by reference
-	var $mini = NULL;
+	/**
+	 * @access protected
+	 * @var \EE_Cart
+	 */
+	protected $_cart = NULL;
 
 
 
@@ -36,7 +39,7 @@ class EEW_Minicart extends WP_Widget {
 	*/
 	function EEW_Minicart() {
 		// if cart ( and sessions ) is not instantiated
-		$this->mini = EE_Registry::instance()->load_core( 'Cart' );
+		$this->_cart = EE_Registry::instance()->load_core( 'Cart' );
 		$widget_options = array(
 													'classname' => 'espresso-mini-cart  ui-widget',
 													'description' => __('A widget for displaying Event Espresso regsitrations and purchases.', 'event_espresso')
@@ -71,12 +74,12 @@ class EEW_Minicart extends WP_Widget {
 
 	<ul>';
 
-	$cart_types = $this->mini->get_cart_types();
+	$cart_types = $this->_cart->get_cart_types();
 
 	foreach ( $cart_types as $cart_type ) {
 
-		$cart_contents = $this->mini->whats_in_the_cart( $cart_type );
-		//foreach ( $this->mini->cart as $cart_type => $cart_contents ) {
+		$cart_contents = $this->_cart->whats_in_the_cart( $cart_type );
+		//foreach ( $this->_cart->cart as $cart_type => $cart_contents ) {
 
 			$label = isset( $cart_contents['title'] ) ? $cart_contents['title'] : $cart_type ;
 			$chk = 'display-'.$cart_type.'-chk';
@@ -152,12 +155,12 @@ class EEW_Minicart extends WP_Widget {
 		$instance = $old_instance;
 		$instance['title'] = strip_tags( $new_instance['title'] );
 
-		$cart_types = $this->mini->get_cart_types();
+		$cart_types = $this->_cart->get_cart_types();
 
 		foreach ( $cart_types as $cart_type ) {
 
-			$cart_contents = $this->mini->whats_in_the_cart( $cart_type );
-		//	foreach ( $this->mini->cart as $cart_type => $cart_contents ) {
+			$cart_contents = $this->_cart->whats_in_the_cart( $cart_type );
+		//	foreach ( $this->_cart->cart as $cart_type => $cart_contents ) {
 
 			$chk = 'display-'.$cart_type.'-chk';
 			$instance[$chk] = strip_tags( $new_instance[$chk] );
@@ -216,11 +219,11 @@ class EEW_Minicart extends WP_Widget {
 			$grand_total = 0;
 			$total_items = 0;
 
-			$cart_types = $this->mini->get_cart_types();
+			$cart_types = $this->_cart->get_cart_types();
 
 			foreach ( $cart_types as $cart_type ) {
 
-				$cart_contents = $this->mini->whats_in_the_cart( $cart_type );
+				$cart_contents = $this->_cart->whats_in_the_cart( $cart_type );
 
 				$chk = 'display-'.$cart_type.'-chk';
 				$txt = 'cart-name-'.$cart_type.'-txt';
