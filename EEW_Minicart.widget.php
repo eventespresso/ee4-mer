@@ -132,20 +132,11 @@ class EEW_Minicart extends WP_Widget {
 		$instance = $old_instance;
 		$instance['title'] = strip_tags( $new_instance['title'] );
 
-		$cart_types = $this->_cart->get_cart_types();
+		$chk = 'display-tickets-chk';
+		$instance[$chk] = strip_tags( $new_instance[$chk] );
 
-		foreach ( $cart_types as $cart_type ) {
-
-			$cart_contents = $this->_cart->whats_in_the_cart( $cart_type );
-		//	foreach ( $this->_cart->cart as $cart_type => $cart_contents ) {
-
-			$chk = 'display-'.$cart_type.'-chk';
-			$instance[$chk] = strip_tags( $new_instance[$chk] );
-
-			$txt = 'cart-name-'.$cart_type.'-txt';
-			$instance[$txt] = strip_tags( $new_instance[$txt] );
-
-		}
+		$txt = 'cart-name-tickets-txt';
+		$instance[$txt] = strip_tags( $new_instance[$txt] );
 
 		$instance['template'] = strip_tags( $new_instance['template'] );
 
