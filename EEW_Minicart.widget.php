@@ -74,14 +74,15 @@ class EEW_Minicart extends WP_Widget {
 
 	<ul>';
 
-	$cart_types = $this->_cart->get_cart_types();
+	$this->_cart->get_cart_types();
 
-	foreach ( $cart_types as $cart_type ) {
 
-		$cart_contents = $this->_cart->whats_in_the_cart( $cart_type );
+
+		$cart_contents = array();
+		$cart_type = 'tickets';
 		//foreach ( $this->_cart->cart as $cart_type => $cart_contents ) {
 
-			$label = isset( $cart_contents['title'] ) ? $cart_contents['title'] : $cart_type ;
+			$label = isset( $cart_contents['title'] ) ? $cart_contents['title'] : '' ;
 			$chk = 'display-'.$cart_type.'-chk';
 			$txt = 'cart-name-'.$cart_type.'-txt';
 			if ( ! isset( $instance[$chk] )) {
@@ -93,23 +94,11 @@ class EEW_Minicart extends WP_Widget {
 
 		echo '
 		<li>
-			<label>
-				<input  type="checkbox"
-					id="' . $this->get_field_id( $chk ) . '"
-					class="checkbox"
-					name="' . $this->get_field_name( $chk ) . '"
-					value="' . $cart_type . '"
-					' . checked( $instance[$chk], $cart_type, FALSE ) . '/>
-				' . __($label, 'event_espresso') . '
-			</label>
-		</li>
-		<li>
 			<label>Custom Title:
 				<input id="'.$this->get_field_id($txt).'" class="widefat" name="'.$this->get_field_name($txt).'"  type="text" value="'.esc_attr( $instance[$txt] ).'" />
 			</label>
 		</li>
 ';
-		}
 
 		$default_templates = glob( MER_DIR_PATH.'templates/widget_minicart*.template.php' );
 		$custom_templates = glob( MER_DIR_PATH.'widget_minicart*.template.php' );
