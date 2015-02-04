@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Event Espresso - MER - Multi Event Registration
+Plugin Name: Event Espresso - MER - Multi Event Registration (EE 4.6.0+)
 Plugin URI: http://www.eventespresso.com
 Description: Multi Events Registration addon for Event Espresso. - Lots of events to register for? Now you can add events to a registration Event Queue ( shopping cart ), then register for them all at once.
 Version: 2.0.0.rc.002
