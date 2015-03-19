@@ -51,6 +51,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public static function set_hooks() {
 		EED_Multi_Event_Registration::set_definitions();
 		EE_Config::register_route( 'view', 'Multi_Event_Registration', 'view_event_queue', 'event_queue' );
+		EE_Config::register_route( 'update', 'Multi_Event_Registration', 'update_event_queue', 'event_queue' );
 		EE_Config::register_route( 'add_ticket', 'Multi_Event_Registration', 'add_ticket', 'event_queue' );
 		EE_Config::register_route( 'remove_ticket', 'Multi_Event_Registration', 'remove_ticket', 'event_queue' );
 		EE_Config::register_route( 'delete_ticket', 'Multi_Event_Registration', 'delete_ticket', 'event_queue' );
@@ -72,25 +73,26 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public static function set_hooks_admin() {
 		EED_Multi_Event_Registration::set_definitions();
-		if ( isset( $_REQUEST[ 'event_queue_ajax' ] ) && absint( $_REQUEST[ 'event_queue_ajax' ] ) ) {
-		}
 		// don't empty cart
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__clear_session', '__return_false' );
 		// ajax add attendees
-		add_action( 'wp_ajax_espresso_add_attendee_to_event_queue', array( 'EED_Multi_Event_Registration', 'eq_add_attendee' ) );
-		add_action( 'wp_ajax_nopriv_espresso_add_attendee_to_event_queue', array( 'EED_Multi_Event_Registration', 'eq_add_attendee' ) );
+		add_action( 'wp_ajax_espresso_add_ticket_to_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_add_ticket' ) );
+		add_action( 'wp_ajax_nopriv_espresso_add_ticket_to_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_add_ticket' ) );
 		// ajax remove attendees
-		add_action( 'wp_ajax_espresso_remove_attendee_from_event_queue', array( 'EED_Multi_Event_Registration', 'eq_remove_attendee' ) );
-		add_action( 'wp_ajax_nopriv_espresso_remove_attendee_from_event_queue', array( 'EED_Multi_Event_Registration', 'eq_remove_attendee' ) );
+		add_action( 'wp_ajax_espresso_remove_ticket_from_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_remove_ticket' ) );
+		add_action( 'wp_ajax_nopriv_espresso_remove_ticket_from_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_remove_ticket' ) );
 		// ajax remove event
-		add_action( 'wp_ajax_espresso_remove_event_from_event_queue', array( 'EED_Multi_Event_Registration', 'eq_remove_event' ) );
-		add_action( 'wp_ajax_nopriv_espresso_remove_event_from_event_queue', array( 'EED_Multi_Event_Registration', 'eq_remove_event' ) );
+		add_action( 'wp_ajax_espresso_delete_ticket_from_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_delete_ticket' ) );
+		add_action( 'wp_ajax_nopriv_espresso_delete_ticket_from_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_delete_ticket' ) );
 		// ajax remove event
-		add_action( 'wp_ajax_espresso_empty_event_queue', array( 'EED_Multi_Event_Registration', 'eq_empty_event_queue' ) );
-		add_action( 'wp_ajax_nopriv_espresso_empty_event_queue', array( 'EED_Multi_Event_Registration', 'eq_empty_event_queue' ) );
+		add_action( 'wp_ajax_espresso_empty_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_empty_event_queue' ) );
+		add_action( 'wp_ajax_nopriv_espresso_empty_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_empty_event_queue' ) );
+		// ajax update event
+		add_action( 'wp_ajax_espresso_update_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_update_event_queue' ) );
+		add_action( 'wp_ajax_nopriv_espresso_update_event_queue', array( 'EED_Multi_Event_Registration', 'ajax_update_event_queue' ) );
 		// ajax available_spaces
-		add_action( 'wp_ajax_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'get_available_spaces_via_ajax' ) );
-		add_action( 'wp_ajax_nopriv_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'get_available_spaces_via_ajax' ) );
+		add_action( 'wp_ajax_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
+		add_action( 'wp_ajax_nopriv_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
 	}
 
 
@@ -132,10 +134,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 	protected function init() {
 		// stop SPCO from executing
 		add_filter( 'FHEE__EED_Single_Page_Checkout__run', '__return_false' );
-		define( 'MER_ACTIVE', TRUE );
+		if ( ! defined( 'MER_ACTIVE' )) {
+			define( 'MER_ACTIVE', true );
+		}
 		// set MER active to TRUE
 		add_filter( 'filter_hook_espresso_MER_active', '__return_true' );
 		$this->set_templates();
+		$this->_ajax = isset( $_REQUEST[ 'ee_front_ajax'] ) ? true : false;
 	}
 
 
@@ -174,7 +179,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return        void
 	 */
 	public static function translate_js_strings() {
-//		EE_Registry::$i18n_js_strings[ 'no_promotions_code' ] = __( 'Please enter a valid Promotion Code.', 'event_espresso' );
+		//EE_Registry::$i18n_js_strings[ 'no_promotions_code' ] = __( 'Please enter a valid Promotion Code.', 'event_espresso' );
 	}
 
 
@@ -195,16 +200,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 			wp_register_style( 'espresso_multi_event_registration', EE_MER_URL . 'css' . DS . 'multi_event_registration.css' );
 		}
 		// multi_event_registration script
-		wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'jquery' ), EE_MER_VERSION, TRUE );
+		wp_register_script( 'espresso_core', EE_GLOBAL_ASSETS_URL . 'scripts' . DS . 'espresso_core.js', array( 'jquery' ), EVENT_ESPRESSO_VERSION, true );
+		wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
 		// load JS
 		wp_enqueue_style( 'espresso_multi_event_registration' );
 		wp_enqueue_script( 'espresso_multi_event_registration' );
+		wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 	}
 
 
-	// *******************************************************************************************************
-	// ********************************************   ROUTING   *********************************************
-	// *******************************************************************************************************
+
 	/**
 	 *    run - initial module setup
 	 *
@@ -306,14 +311,14 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// autoload Line_Item_Display classes
 		$template_args[ 'event_queue_heading' ] = apply_filters( 'FHEE__EED_Multi_Event_Registration__view_event_queue__event_queue_heading', __( 'Event Queue', 'event_espresso' ));
 		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
-		$template_args[ 'event_queue' ] = $this->_get_event_queue( EE_Registry::instance()->CART->get_grand_total() );
+		$template_args[ 'event_queue' ] = $this->_get_event_queue();
 		$template_args[ 'reg_page_url' ] = EE_EVENT_QUEUE_BASE_URL;
 		$template_args[ 'events_list_url' ] = EE_EVENTS_LIST_URL;
 		$template_args[ 'add_ticket_url' ] = add_query_arg( array( 'event_queue' => 'add_ticket' ), EE_EVENT_QUEUE_BASE_URL );
 		$template_args[ 'remove_ticket_url' ] = add_query_arg( array( 'event_queue' => 'remove_ticket' ), EE_EVENT_QUEUE_BASE_URL );
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
+		$template_args[ 'update_queue_url' ] = add_query_arg( array( 'event_queue' => 'update_queue_url' ), EE_EVENT_QUEUE_BASE_URL );
 		$template_args[ 'empty_queue_url' ] = add_query_arg( array( 'event_queue' => 'empty' ), EE_EVENT_QUEUE_BASE_URL );
-		$template_args[ 'view_event_queue_url' ] = add_query_arg( array( 'event_queue' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
 		EE_Registry::instance()->REQ->add_output( EEH_Template::display_template( EE_MER_PATH . 'templates' . DS . 'event_queue.template.php', $template_args, true ) );
 	}
 
@@ -327,7 +332,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return string
 	 * @throws \EE_Error
 	 */
-	protected function _get_event_queue( EE_Line_Item $line_item ) {
+	protected function _get_event_queue( $line_item = null ) {
+		$line_item = $line_item instanceof EE_Line_Item ? $line_item : EE_Registry::instance()->CART->get_grand_total();
 		// autoload Line_Item_Display classes
 		EEH_Autoloader::register_line_item_display_autoloaders();
 		$Line_Item_Display = new EE_Line_Item_Display( 'event_queue', 'EE_Event_Queue_Line_Item_Display_Strategy' );
@@ -358,57 +364,141 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * 	increment or decrement a ticket's quantity in the event queue
 	 *
 	 * @access 	protected
-	 * @return bool
-	 * @throws \EE_Error
+	 * @return EE_Ticket|null
 	 */
 	protected function _validate_request() {
 		$this->init();
 		EED_Multi_Event_Registration::load_classes();
 		// check the request
 		if ( isset( $_REQUEST[ 'ticket' ], $_REQUEST[ 'line_item' ] ) ) {
-			$ticket  = EEM_Ticket::instance()->get_one_by_ID( absint( $_REQUEST[ 'ticket' ] ));
-			if ( $ticket instanceof EE_Ticket ) {
-				return $ticket;
-			} else {
-				// no ticket found
-				EE_Error::add_error( __( 'The Ticket information could not be retrieved from the database. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
-			}
+			return $this->get_ticket( $_REQUEST[ 'ticket' ] );
 		} else {
 			// no ticket or line item !?!?!
 			EE_Error::add_error( __( 'Either the ticket or Event Queue line item was not specified or invalid, therefore the Event Queue could not be updated. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 		}
-		return false;
+		return null;
 	}
 
 
 
 	/**
-	 * 	increment or decrement a ticket's quantity in the event queue
+	 *    retrieves a valid EE_Ticket from the db
+	 *
+	 * @access    protected
+	 * @param int $TKT_ID
+	 * @return EE_Ticket|null
+	 */
+	protected function get_ticket( $TKT_ID = 0 ) {
+		$ticket = EEM_Ticket::instance()->get_one_by_ID( absint( $TKT_ID ) );
+		if ( $ticket instanceof EE_Ticket ) {
+			return $ticket;
+		} else {
+			// no ticket found
+			EE_Error::add_error( __( 'The Ticket information could not be retrieved from the database. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+			return null;
+		}
+	}
+
+
+
+	/**
+	 * ajax_update_event_queue
+	 *    call update_event_queue() via AJAX
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public static function ajax_update_event_queue() {
+		EED_Multi_Event_Registration::instance()->update_event_queue();
+	}
+
+
+
+	/**
+	 * 	increment or decrement all ticket quantities in the event queue
 	 *
 	 * @access 	public
-	 * @param int $qty
 	 * @return void
 	 * @throws \EE_Error
 	 */
-	public function add_ticket( $qty = 1 ) {
+	public function update_event_queue() {
+		$this->init();
+		EED_Multi_Event_Registration::load_classes();
+		$ticket_quantities = EE_Registry::instance()->REQ->get( 'event_queue_update_txt_qty', array() );
+		foreach ( $ticket_quantities as $TKT_ID => $ticket_quantity ) {
+			$ticket = $this->get_ticket( $TKT_ID );
+			if ( $ticket instanceof EE_Ticket ) {
+				foreach ( $ticket_quantity as $line_item_id => $quantity ) {
+					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity ) ) {
+						$line_item = $this->get_line_item( $line_item_id );
+						$this->adjust_line_item_quantity( $line_item, $quantity, false );
+					}
+				}
+			}
+		}
+		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 * ajax_add_ticket
+	 * 	call add_ticket() via AJAX
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public static function ajax_add_ticket() {
+		EED_Multi_Event_Registration::instance()->add_ticket( 1, true );
+	}
+
+
+
+	/**
+	 *    increment or decrement a ticket's quantity in the event queue
+	 *
+	 * @access    public
+	 * @param int $quantity
+	 * @return array
+	 */
+	public function add_ticket( $quantity = 1 ) {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
+		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity ) ) {
+			// you can DO IT !!!
+			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
+			$this->adjust_line_item_quantity( $line_item, $quantity );
+		}
+		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 *    adjust_ticket_quantity
+	 *
+	 * @access    protected
+	 * @param EE_Ticket $ticket
+	 * @param int $quantity
+	 * @return bool
+	 */
+	protected function can_purchase_ticket_quantity( EE_Ticket $ticket, $quantity = 1 ) {
 		if ( $ticket instanceof EE_Ticket ) {
 			$event = $ticket->first_datetime()->event();
 			$additional_limit = $event->additional_limit();
 			$tickets_remaining = $ticket->remaining();
 			if ( $tickets_remaining ) {
-				$qty = absint( $qty );
-				if ( $tickets_remaining >= $qty ) {
-					// you can DO IT !!!
-					$line_item = $this->_adjust_line_item_quantity( $qty );
+				$quantity = absint( $quantity );
+				if ( $tickets_remaining >= $quantity ) {
+					// YEAH !!!
+					return true;
 				} else {
 					// can't register anymore attendees
 					$singular = 'You have attempted to purchase %s ticket.';
 					$plural = 'You have attempted to purchase %s tickets.';
 					// translate and possibly pluralize the error
-					$limit_error_1 = sprintf( _n( $singular, $plural, $qty, 'event_espresso' ), $qty, $qty );
+					$limit_error_1 = sprintf( _n( $singular, $plural, $quantity, 'event_espresso' ), $quantity, $quantity );
 					$singular = 'The registration limit for this event is %s ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %s.';
 					$plural = 'The registration limit for this event is %s tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %$s.';
 					// translate and possibly pluralize the error
@@ -420,26 +510,26 @@ class EED_Multi_Event_Registration extends EED_Module {
 				EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			}
 		}
-		$this->send_ajax_response( array( '#event-queue-item-row-' . $line_item->code() => $this->_get_event_queue( $line_item )));
+		return false;
 	}
 
 
 
 	/**
-	 * 	_adjust_line_item_quantity
+	 *    _adjust_line_item_quantity
 	 *
-	 * @access 	protected
-	 * @param 	int $qty
-	 * @return 	EE_Line_Item | null
-	 * @throws \EE_Error
+	 * @access    protected
+	 * @param EE_Line_Item $line_item
+	 * @param int $quantity
+	 * @param bool $add
+	 * @return EE_Line_Item|null
 	 */
-	protected function _adjust_line_item_quantity( $qty = 1 ) {
-		$line_item = $this->_get_line_item_from_request();
+	protected function adjust_line_item_quantity( EE_Line_Item $line_item, $quantity = 1, $add = true ) {
 		if ( $line_item instanceof EE_Line_Item ) {
-			if ( $qty > 0 ) {
+			if ( $quantity > 0 ) {
 				$additional = 'An additional';
 				$added_or_removed = 'added';
-			} else if ( $qty < 0 ) {
+			} else if ( $quantity < 0 ) {
 				if ( $line_item->quantity() < 2 ) {
 					EE_Error::add_attention(
 						sprintf( __( 'Ticket quantity must be at least one for each event.%1$sIf you wish to remove this ticket from the Event Queue, click on the trash can icon.', 'event_espresso' ), '<br />' ),
@@ -457,15 +547,23 @@ class EED_Multi_Event_Registration extends EED_Module {
 				// qty = 0 ?? just return the line item
 				return $line_item;
 			}
+			$quantity = $add ? $line_item->quantity() + $quantity : $quantity;
 			// update quantity
-			$line_item->set_quantity( $line_item->quantity() + $qty );
+			$line_item->set_quantity( $quantity );
 			if ( $line_item->save() ) {
+				if ( $add ) {
+					$msg = sprintf(
+						__( '%1$s ticket was successfully %2$s for this event.', 'event_espresso' ),
+						$additional, $added_or_removed
+					);
+				} else {
+					$msg = __( 'Ticket quantities were successfully updated for this event.', 'event_espresso' );
+				}
 				// something got added
-				EE_Error::add_success(
-					sprintf( __( '%1$s ticket was successfully %2$s for this event.', 'event_espresso' ), $additional, $added_or_removed ),
-					__FILE__, __FUNCTION__, __LINE__
-				);
-			} else {
+				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
+					EE_Error::add_success( $msg, __FILE__, __FUNCTION__, __LINE__ );
+				}
+			} else if ( $line_item->quantity() != $quantity ) {
 				// nothing added
 				EE_Error::add_error(
 					sprintf( __( '%1$s ticket was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
@@ -482,11 +580,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 	/**
 	 *        remove an attendee from event in the event queue
 	 *
-	 * @access 	protected
-	 * @return EE_Line_Item | null
+	 * @access    protected
+	 * @param int $line_item_id
+	 * @return \EE_Line_Item|null
 	 */
-	protected function _get_line_item_from_request() {
-		$line_item = EEM_Line_Item::instance()->get_one_by_ID( absint( $_REQUEST[ 'line_item' ] ));
+	protected function get_line_item( $line_item_id = 0 ) {
+		$line_item = EEM_Line_Item::instance()->get_one_by_ID( absint( $line_item_id ));
 		if ( $line_item instanceof EE_Line_Item ) {
 			return $line_item;
 		} else {
@@ -502,28 +601,55 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
+	 * ajax_remove_ticket
+	 *    call remove_ticket() via AJAX
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public static function ajax_remove_ticket() {
+		EED_Multi_Event_Registration::instance()->remove_ticket( 1, true );
+	}
+
+
+
+
+	/**
 	 *        remove an attendee from event in the event queue
 	 *
 	 * @access 	public
-	 * @param int $qty
+	 * @param int $quantity
 	 * @return TRUE on success and FALSE on fail
 	 */
-	public function remove_ticket( $qty = 1 ) {
+	public function remove_ticket( $quantity = 1 ) {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
 		if ( $ticket instanceof EE_Ticket ) {
-			$qty = absint( $qty );
-			// check the request
-			if ( $_REQUEST[ 'line_item' ] && $qty ) {
+			$quantity = absint( $quantity );
+			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
+			if ( $line_item instanceof EE_Line_Item  && $quantity ) {
 				// you can DO IT !!!
-				$line_item = $this->_adjust_line_item_quantity( $qty * -1 );
+				$this->adjust_line_item_quantity( $line_item, $quantity * -1 );
 			} else {
 				// no ticket or line item !?!?!
-				EE_Error::add_error( __( 'The cart line item was not specified, therefore a ticket could not be added. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+				EE_Error::add_error( __( 'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			}
 		}
-		$this->send_ajax_response( array( '#event-queue-item-row-' . $line_item->code() => $this->_get_event_queue( $line_item )));
+		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 * ajax_delete_ticket
+	 *    call delete_ticket() via AJAX
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public static function ajax_delete_ticket() {
+		EED_Multi_Event_Registration::instance()->delete_ticket();
 	}
 
 
@@ -539,23 +665,38 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// check the request
 		$ticket = $this->_validate_request();
 		if ( $ticket instanceof EE_Ticket ) {
-			$line_item = $this->_get_line_item_from_request();
+			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			if ( $line_item instanceof EE_Line_Item ) {
 				$removals = $line_item->quantity();
 				$line_item->delete_children_line_items();
 				if ( $line_item->delete() ) {
 					// then something got deleted
-					EE_Error::add_success(
-						sprintf( _n( '%s ticket was successfully removed from the Event Queue', '%s tickets were successfully removed from the Event Queue', $removals, 'event_espresso' ), $removals ),
-						__FILE__, __FUNCTION__, __LINE__
-					);
+					if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
+						EE_Error::add_success(
+							sprintf( _n( '%s ticket was successfully removed from the Event Queue', '%s tickets were successfully removed from the Event Queue', $removals, 'event_espresso' ), $removals ),
+							__FILE__, __FUNCTION__, __LINE__
+						);
+					}
 				} else {
 					// nothing removed
 					EE_Error::add_error( __( 'The ticket was not removed from the Event Queue', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 				}
 			}
 		}
-		$this->send_ajax_response( array( '#event-queue-tbl tbody' => EE_Registry::instance()->CART->get_grand_total() ));
+		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 * ajax_empty_event_queue
+	 *    call empty_event_queue() via AJAX
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public static function ajax_empty_event_queue() {
+		EED_Multi_Event_Registration::instance()->empty_event_queue();
 	}
 
 
@@ -569,13 +710,18 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public function empty_event_queue() {
 		$this->init();
 		EED_Multi_Event_Registration::load_classes();
-		if ( EE_Registry::instance()->CART->empty_cart() ) {
-			EE_Error::add_success( __( 'The Event Queue was successfully emptied!', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+		// remove all unwanted records from the db
+		if ( EE_Registry::instance()->CART->delete_cart() ) {
+			// and clear the session too
+			EE_Registry::instance()->SSN->clear_session( __CLASS__, __FUNCTION__ );
+			if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false )) {
+				EE_Error::add_success( __( 'The Event Queue was successfully emptied!', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+			}
 		} else {
 			EE_Error::add_error( __( 'The Event Queue could not be emptied!', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 		}
 		$this->send_ajax_response(
-			array( '#event-queue-tbl tbody' => EE_Registry::instance()->CART->get_grand_total() ),
+			true,
 			apply_filters( 'FHEE__EED_Multi_Event_Registration__empty_event_queue__redirect_url', EE_EVENTS_LIST_URL )
 		);
 	}
@@ -583,12 +729,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 *        get number of available spaces for event via ajax
+	 * 	ajax_get_available_spaces
+	 * 	get number of available spaces for event via ajax
 	 *
 	 * @access        public
 	 * @return        int
 	 */
-	public function get_available_spaces_via_ajax() {
+	public static function ajax_get_available_spaces() {
 		// has a line item been sent?
 		if ( isset( $_REQUEST[ 'event_id' ] ) ) {
 			$event = EEM_Event::instance()->get_one_by_ID( absint( $_REQUEST[ 'event_id' ] ) );
@@ -616,17 +763,30 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *   handle ajax message responses
 	 *
 	 * @access protected
-	 * @param array $line_item_html - 	an array containing the HTML element id
-	 * 															and the corresponding HTML for the line item(s) it represents
-	 * 															example: array( '#event-queue-item-row-' . $line_item->code(), $line_item )
+	 * @param bool $empty_cart
 	 * @param string  $redirect_url
 	 * @return void
 	 */
-	protected function send_ajax_response( $line_item_html = array(), $redirect_url = '' ) {
+	protected function send_ajax_response( $empty_cart = false, $redirect_url = '' ) {
+		EE_Registry::instance()->CART->recalculate_all_cart_totals();
+		$empty_cart = $empty_cart || EE_Registry::instance()->CART->all_ticket_quantity_count() == 0 ? true : false;
 		// if this is an ajax request AND a callback function exists
-		if ( $this->_ajax === 1 ) {
+		if ( $this->_ajax === true ) {
+			// grab updated html for the event queue
+			$new_html = array( 'tbody' => '<tbody>' . $this->_get_event_queue() . '</tbody>' );
+			if ( $empty_cart ) {
+				$new_html['.event-queue-grand-total'] = '';
+				$new_html['.event-queue-register-button'] = '';
+			}
 			// just send the ajax
-			echo json_encode( array_merge( EE_Error::get_notices(), $line_item_html ));
+			echo json_encode(
+				array_merge(
+					EE_Error::get_notices( false ),
+					array(
+						'new_html' => $new_html
+					)
+				)
+			);
 			// to be... or...
 			die();
 		}
