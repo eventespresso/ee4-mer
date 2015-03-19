@@ -316,11 +316,94 @@ jQuery( document ).ready( function( $ ) {
 				}
 			} );
 			return json_object;
+		},
+
+
+
+		/**
+		*        retrieve available spaces updates from the server on a timed interval
+		*/
+		poll_available_spaces :function( event_id, httpTimeout ) {
+
+			//alert( 'event_id : ' + event_id);
+
+			if ( httpTimeout == undefined ) {
+				httpTimeout = 30000;
+			}
+
+			if ( event_id ) {
+				$.ajax( {
+					type : "POST",
+					url : mer.ajax_url,
+					data : {
+						"action" : "espresso_get_available_spaces",
+						"event_id" : event_id,
+						"event_queue_ajax" : 1
+					},
+					dataType : "json",
+					success : function( response ) {
+
+						var availability = response.spaces + ' <span class="available-spaces-last-update-spn">( last update: ' + response.time + ' )</span>';
+						$( '#available-spaces-spn-' + response.id ).fadeOut( 500, function() {
+							$( '#available-spaces-spn-' + response.id ).html( availability ).fadeIn( 500 );
+						} );
+
+					},
+					error : function( response ) {
+
+						if ( response.error == undefined || response.error == '' ) {
+							response = new Object();
+							response.error = 'Available space polling failed. Please refresh the page and it try again and again.';
+						}
+						show_event_queue_ajax_error_msg( 0, response );
+
+					},
+					//						complete: function(response) {
+
+					//							setTimeout(function() {
+					//								poll_available_spaces( event_id );
+					//							}, httpTimeout );
+
+					//						},
+					timeout : httpTimeout
+				} );
+			}
+		},
+
+
+
+		/**
+		 *        loop thru events in event list and begin polling server re: available spaces
+		 */
+		begin_polling_available_spaces : function() {
+			var httpTimeout = 30000 * $( '.available-spaces-spn' ).size();
+			$( '.available-spaces-spn' ).each( function( index ) {
+				var event_id = $( this ).attr( 'id' );
+				event_id = event_id.replace( 'available-spaces-spn-', '' );
+				setTimeout( function() {
+					poll_available_spaces( event_id, httpTimeout );
+				}, 30000 * index );
+			} );
+			setTimeout( function() {
+				begin_polling_available_spaces();
+			}, httpTimeout );
+
+		},
+
+
+
+		/**
+		 *        loop thru events in event list and begin polling server re: available spaces
+		 */
+		event_list_polling : function( serialized_array ) {
+			if ( $( '#event-queue-poll-server' ).val() == 1 ) {
+				setTimeout( MER.begin_polling_available_spaces(), 30000 );
+			}
 		}
 
 
 
-	};
+};
 
 	MER.initialize();
 
