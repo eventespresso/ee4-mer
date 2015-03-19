@@ -15,23 +15,23 @@
 	text-align: center;
 }
 
-#event-queue-qty-frm .event-queue-update-qty-txt {
+#event-queue-qty-frm .event-queue-update-txt-qty {
 	box-sizing: border-box;
 	display : inline-block;
 	width : 40px;
 	height : 32px;
 	padding : 8px;
-	margin: 0px;
+	margin: 0;
 	vertical-align : middle;
 	line-height : 16px;
 	font-size:16px;
 	font-weight: normal;
 	border-radius:3px !important;
 	text-align: center !important;
-	cursor: pointer !important;
 	white-space: nowrap !important;
 }
 #event-queue-qty-frm .event-queue-update-buttons {
+	cursor: pointer !important;
 	display:inline-block !important;
 	white-space: nowrap !important;
 }
@@ -40,6 +40,13 @@
 .event-queue-button {
 	border:1px solid #ccc;
 	text-decoration: none;
+}
+
+.disabled-event-queue-btn,
+.disabled-event-queue-btn:hover {
+	border: 1px solid #CCCCCC !important;
+	background: #CCCCCC !important;
+	box-shadow: none !important;
 }
 
 #event-queue-qty-frm .event-queue-button {
@@ -89,5 +96,6 @@
 .minicart-empty-cart-lnk { margin:0 0 6em; font-size:.9em; font-weight:normal!important; }
 
 
-.striked { text-decoration:line-through; }
+
+
 
