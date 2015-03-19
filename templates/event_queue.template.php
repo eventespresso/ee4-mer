@@ -1,6 +1,7 @@
 <div id="event-queue">
 
-	<form id="event-queue-qty-frm" action="<?php echo $view_event_queue_url;?>">
+	<form id="event-queue-qty-frm" action="<?php echo $register_url; ?>" method="POST">
+		<input type="hidden" name="event_queue" value="update">
 
 		<h2 class=""><?php echo $event_queue_heading;?></h2>
 
@@ -10,8 +11,7 @@
 
 				<thead>
 					<tr id="event-queue-tbl-row-hdr" class="event-queue-tbl-row">
-						<td><?php echo __('Event', 'event_espresso');?></td>
-						<td><?php echo __('Item', 'event_espresso');?></td>
+						<td colspan="2"><?php echo __('Details', 'event_espresso');?></td>
 						<td class="jst-cntr"><?php echo __('Price', 'event_espresso');?></td>
 						<td class="jst-cntr"><?php echo __('Quantity', 'event_espresso');?></td>
 						<td class="jst-cntr"><?php echo __('Subtotal', 'event_espresso');?></td>
@@ -28,8 +28,14 @@
 		<div class="event-queue-grand-total">
 		<?php	if ( $total_items ) { ?>
 			<span class=" smaller-text">
-				<a class="event-queue-empty-cart-lnk empty-cart-lnk event-queue-button button" href="<?php echo $empty_queue_url;?>">
-					<span class="dashicons dashicons-trash"></span><?php echo __('remove all events from event queue', 'event_espresso'); ?>
+				<a class="event-queue-empty-cart-lnk empty-cart-lnk event-queue-button button" href="<?php echo $empty_queue_url; ?>">
+					<span class="dashicons dashicons-trash"></span><?php echo __( 'empty event queue',
+						'event_espresso' ); ?>
+				</a>
+			</span>
+			<span class=" smaller-text">
+				<a class="event-queue-update-cart-lnk update-cart-lnk event-queue-button button" href="<?php echo $update_queue_url; ?>">
+					<span class="dashicons dashicons-update"></span><?php echo __( 'update event queue', 'event_espresso' ); ?>
 				</a>
 			</span>
 		<?php } // if ( $total_items )  ?>
