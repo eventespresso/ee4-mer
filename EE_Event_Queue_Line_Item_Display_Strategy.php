@@ -418,5 +418,5 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
 }
-// End of file EE_SPCO_Line_Item_Display_Strategy.strategy.php
-// Location: /EE_SPCO_Line_Item_Display_Strategy.strategy.php
+// End of file EE_Event_Queue_Line_Item_Display_Strategy.php
+// Location: /EE_Event_Queue_Line_Item_Display_Strategy.php
