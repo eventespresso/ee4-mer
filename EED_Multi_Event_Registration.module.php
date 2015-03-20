@@ -166,7 +166,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public function set_templates() {
 		$this->_templates = array(
-			'event_queue' => plugin_dir_path( __FILE__ ) . 'templates/event_queue.template.php'
+			'event_queue' => EE_MER_PATH . 'templates' . DS . 'event_queue.template.php'
 		);
 	}
 
@@ -240,7 +240,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param 	EE_Event $event
 	 * @return 	string
 	 */
-	public static function filter_ticket_selector_submit_button( $btn_text = '', EE_Event $event ) {
+	public static function filter_ticket_selector_submit_button( $btn_text = '', $event = null ) {
 		// verify event
 		if ( ! $event instanceof EE_Event ) {
 			if ( WP_DEBUG ) {
