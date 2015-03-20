@@ -1,4 +1,4 @@
-<div id="event-queue">
+<div id="event-queue" class="small-text">
 
 	<form id="event-queue-qty-frm" action="<?php echo $register_url; ?>" method="POST">
 		<input type="hidden" name="event_queue" value="update">
