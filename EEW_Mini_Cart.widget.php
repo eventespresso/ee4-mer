@@ -57,45 +57,40 @@ class EEW_Mini_Cart extends WP_Widget {
 	 */
 	function form( $instance ) {
 
-		$defaults = array( 'title' => 'Event Queue', 'template' => 'widget_minicart' );
+		$defaults = array( 'title' => 'Your Registrations', 'template' => 'widget_minicart' );
 
 		$instance = wp_parse_args( (array)$instance, $defaults );
 
 		echo '
 	<p>' . __('Mini Cart Title:', 'event_espresso') . '
 		<input id="'.$this->get_field_id('title').'" class="widefat" name="'.$this->get_field_name('title').'"  type="text" value="'.esc_attr( $instance['title'] ).'" />
-	</p>
-	<p>' . __('Display content for the following carts:', 'event_espresso') . '
+	</p>';
 
-	<ul>';
-
-		$default_templates = glob( EE_MER_PATH.'templates/widget_minicart*.template.php' );
-		$custom_templates = glob( EE_MER_PATH.'widget_minicart*.template.php' );
-
-		$minicart_templates = array_merge( $default_templates, $custom_templates );
-		rsort( $minicart_templates, SORT_STRING );
-
-		$find = array ( EE_MER_PATH.'templates/widget', EE_MER_PATH.'widget', '.template.php', '-', '_' );
-		$replace = array( '', '', '', ' ', ' ' );
-
-		echo '
-	</ul>
-	</p>
-	<p>' . __('Mini Cart Template:', 'event_espresso') . '
-		<select name="'.$this->get_field_name( 'template' ).'">';
-
-		foreach ( $minicart_templates as $minicart_template ) {
-
-			$template = str_replace( $find, $replace, $minicart_template );
-
-			echo "\n\t\t\t".'<option value="'.$minicart_template.'" '.selected( $instance['template'], $minicart_template ).'>'.$template.'&nbsp;&nbsp;&nbsp;</option>';
-
-		}
-
-		echo '
-		</select>
-	</p>
-';
+//		$default_templates = glob( EE_MER_PATH.'templates/widget_minicart*.template.php' );
+//		$custom_templates = glob( EE_MER_PATH.'widget_minicart*.template.php' );
+//
+//		$minicart_templates = array_merge( $default_templates, $custom_templates );
+//		rsort( $minicart_templates, SORT_STRING );
+//
+//		$find = array ( EE_MER_PATH.'templates/widget', EE_MER_PATH.'widget', '.template.php', '-', '_' );
+//		$replace = array( '', '', '', ' ', ' ' );
+//
+//		echo '
+//	<p>' . __('Mini Cart Template:', 'event_espresso') . '<br />
+//		<select name="'.$this->get_field_name( 'template' ).'">';
+//
+//		foreach ( $minicart_templates as $minicart_template ) {
+//
+//			$template = str_replace( $find, $replace, $minicart_template );
+//
+//			echo "\n\t\t\t".'<option value="'.$minicart_template.'" '.selected( $instance['template'], $minicart_template ).'>'.$template.'&nbsp;&nbsp;&nbsp;</option>';
+//
+//		}
+//
+//		echo '
+//		</select>
+//	</p>
+//';
 	}
 
 
@@ -110,8 +105,8 @@ class EEW_Mini_Cart extends WP_Widget {
 	 */
 	function update( $new_instance, $old_instance ) {
 		$instance = $old_instance;
-		$instance['title'] = ! empty( $new_instance[ 'title' ] ) ? strip_tags( $new_instance['title'] ) : __( 'Your Registrations:', 'event_espresso' );
-		$instance['template'] = strip_tags( $new_instance['template'] );
+		$instance['title'] = strip_tags( $new_instance['title'] );
+		$instance['template'] = ! empty( $new_instance[ 'template' ] ) ? strip_tags( $new_instance['template'] ) : EE_MER_PATH . 'templates' . DS . 'widget_minicart_table.template.php';
 		return $instance;
 	}
 
@@ -126,6 +121,9 @@ class EEW_Mini_Cart extends WP_Widget {
 	 * @throws \EE_Error
 	 */
 	function widget( $args, $instance ) {
+		if ( isset( $_REQUEST[ 'event_queue' ] ) ) {
+			return;
+		}
 		EE_Registry::instance()->load_core( 'Cart' );
 		EE_Registry::instance()->load_helper( 'Line_Item' );
 
@@ -138,6 +136,8 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args = array();
 		$template_args['before_widget'] = $before_widget;
 		$template_args['after_widget'] = $after_widget;
+		$template_args['before_title'] = $before_title;
+		$template_args['after_title'] = $after_title;
 		$template_args['title'] = apply_filters( 'widget_title', $instance['title'] );
 
 		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
@@ -164,7 +164,34 @@ class EEW_Mini_Cart extends WP_Widget {
 			)
 		);
 		//espresso_display_template( $instance['template'], $template_args );
-		EEH_Template::display_template( $instance[ 'template' ], $template_args, true );
+		$mini_cart_css = '
+<style>
+.mini-cart-tbl-qty-th,
+.mini-cart-tbl-qty-td {
+	padding: 0 .25em;
+}
+#mini-cart-whats-next-buttons {
+	text-align: right;
+}
+.mini-cart-button {
+	box-sizing: border-box;
+	display: inline-block;
+	padding: 8px;
+	margin: 4px 0 4px 4px;
+	vertical-align: middle;
+	line-height: 8px;
+	font-size: 12px;
+	font-weight: normal;
+	-webkit-user-select: none;
+	border-radius: 2px !important;
+	text-align: center !important;
+	cursor: pointer !important;
+	white-space: nowrap !important;
+}
+</style>
+		';
+		echo apply_filters( 'FHEE__EEW_Mini_Cart__widget__mini_cart_css', $mini_cart_css );
+		echo EEH_Template::display_template( $instance[ 'template' ], $template_args, true );
 
 	}
 
