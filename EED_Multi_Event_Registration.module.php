@@ -358,6 +358,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		if ( EE_Registry::instance()->REQ->get( 'event_queue', '' ) == 'view' ) {
 			wp_safe_redirect( EED_Multi_Event_Registration::filter_ticket_selector_redirect_url() );
+			exit();
 		}
 	}
 
