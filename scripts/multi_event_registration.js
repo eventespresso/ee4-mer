@@ -124,7 +124,7 @@ jQuery( document ).ready( function( $ ) {
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var serialized_form_data = $( MER.container ).find( 'form' ).serializeArray();
 					MER.form_data = MER.convert_to_JSON( serialized_form_data );
-					console.log( MER.form_data );
+					//console.log( MER.form_data );
 					MER.form_data.action = 'espresso_update_event_queue';
 					MER.submit_ajax_request();
 					event.stopPropagation();
@@ -180,6 +180,8 @@ jQuery( document ).ready( function( $ ) {
 				},
 
 				error : function() {
+					var response = {};
+					response.error = eei18n.server_error;
 					MER.do_after_ajax( response );
 					//return SPCO.ajax_request_server_error();
 				}
@@ -218,15 +220,16 @@ jQuery( document ).ready( function( $ ) {
 		 * @param  {object} response
 		 */
 		process_response : function( response ) {
-			console.log( response );
+			//console.log( response );
 			if ( typeof response === 'object' && typeof response.new_html !== 'undefined' ) {
 				// loop thru tracked errors
 				$.each( response.new_html, function( index, html ) {
-					console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
+					//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
 					if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
 						var event_queue_element = $( MER.container ).find( index );
 						if ( event_queue_element.length ) {
 							event_queue_element.replaceWith( html )
+							//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
 						}
 					}
 				} );
