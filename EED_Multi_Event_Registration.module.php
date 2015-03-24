@@ -59,8 +59,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// don't empty cart
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__clear_session', '__return_false' );
 		// process registration links
+		add_filter( 'FHEE__EE_Ticket_Selector__ticket_selector_form_open__html', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_form_html' ), 10, 2 );
 		add_filter( 'FHEE__EE_Ticket_Selector__display_ticket_selector_submit__btn_text', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_submit_button' ), 10, 2 );
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__success_redirect_url', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_redirect_url' ), 10, 2 );
+		// redirect to event_queue
+		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_queue' ), 10 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
@@ -234,7 +237,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-
 	/**
 	 * filter_ticket_selector_submit_button
 	 * changes the default "Register Now" text based on event's inclusion in the cart
@@ -294,6 +296,20 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
+	 *    adds a hidden input to the Ticket Selector form
+	 *
+	 * @access    public
+	 * @param string $html
+	 * @return string
+	 */
+	public static function filter_ticket_selector_form_html( $html = '' ) {
+		$html .= '<input type="hidden" value="view" name="event_queue">';
+		return $html;
+	}
+
+
+
+	/**
 	 *    creates button for going to the Event Queue
 	 *
 	 * @access 	public
@@ -316,6 +332,33 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$template_args[ 'reg_href' ] = $this->_reg_btn[ 'reg_href' ];
 		$template_args[ 'sbmt_btn_text' ] = $this->_reg_btn[ 'text' ];
 		EEH_Template::display_template( $this->_templates[ 'view_event_queue_btn' ], $template_args );
+	}
+
+
+
+	/**
+	 *    redirect_to_event_queue
+	 *
+	 * @access 	public
+	 * @return 	void
+	 */
+	public function redirect_to_event_queue() {
+		// grab event ID from Ticket Selector
+		$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ));
+		if ( $EVT_ID ) {
+			// grab ticket quantity array
+			$ticket_quantities = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
+			$ticket_quantities = is_array( $ticket_quantities ) ? $ticket_quantities : array( $ticket_quantities );
+			foreach ( $ticket_quantities as $ticket_quantity ) {
+				// if ANY qty was set, then don't redirect
+				if ( absint( $ticket_quantity )) {
+					return;
+				}
+			}
+		}
+		if ( EE_Registry::instance()->REQ->get( 'event_queue', '' ) == 'view' ) {
+			wp_safe_redirect( EED_Multi_Event_Registration::filter_ticket_selector_redirect_url() );
+		}
 	}
 
 
