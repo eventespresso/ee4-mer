@@ -34,19 +34,19 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 			'odd' => FALSE
 		);
 		$options = array_merge( $default_options, (array)$options );
-		printr( $options, '$options', __FILE__, __LINE__ );
+
 		switch( $line_item->type() ) {
 
 			case EEM_Line_Item::type_line_item:
 				// item row
 				if ( $line_item->OBJ_type() == 'Ticket' ) {
-					$html .= $this->_ticket_row( $line_item, $options );
+					$html .= $this->_ticket_row( $line_item );
 				} else {
-					$html .= $this->_item_row( $line_item, $options );
+					$html .= $this->_item_row( $line_item );
 				}
 				// got any kids?
 				foreach( $line_item->children() as $child_line_item ) {
-					$this->display_line_item( $child_line_item, $options );
+					$this->display_line_item( $child_line_item );
 				}
 				break;
 
@@ -64,7 +64,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 				// loop thru children
 				foreach ( $line_item->children() as $child_line_item ) {
 					// recursively feed children back into this method
-					$html .= $this->display_line_item( $child_line_item, $options );
+					$html .= $this->display_line_item( $child_line_item );
 					$count++;
 				}
 				// only display subtotal if there are multiple child line items
@@ -73,7 +73,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 
 			case EEM_Line_Item::type_tax:
 				if ( $this->_show_taxes ) {
-					$html .= $this->_tax_row( $line_item, $options );
+					$html .= $this->_tax_row( $line_item );
 				}
 				break;
 
@@ -82,7 +82,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
-						$html .= $this->display_line_item( $child_line_item, $options );
+						$html .= $this->display_line_item( $child_line_item );
 					}
 					$html .= $this->_total_row( $line_item, __('Tax Total', 'event_espresso'), true );
 				}
@@ -91,11 +91,11 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 			case EEM_Line_Item::type_total:
 
 				if ( count( $line_item->get_items() ) ) {
-					$options['event_count'] = count( EEH_Line_Item::get_line_items_of_object_type( $line_item, 'Event' ) );
+					$options['event_count'] = count( $this->_events );
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
-						$html .= $this->display_line_item( $child_line_item, $options );
+						$html .= $this->display_line_item( $child_line_item );
 					}
 				} else {
 					$html .= $this->_empty_msg_row();
@@ -129,27 +129,22 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	 * 	_ticket_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _ticket_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _ticket_row( EE_Line_Item $line_item ) {
 		$ticket = EEM_Ticket::instance()->get_one_by_ID( $line_item->OBJ_ID() );
 		if ( $ticket instanceof EE_Ticket ) {
 			// start of row
-			$html = EEH_HTML::li();
-			$html .= EEH_HTML::ul( '', 'event-queue-ticket-list-' . $line_item->code() );
 			$content = $line_item->name();
+			$content .= '<div style="margin:0 0 0 2em; text-align: right;">';
 			$content .= ' ' . $line_item->quantity();
 			$content .= _x( ' x ', 'short form for times, for example: 2 x 4 = 8.', 'event_espresso' );
-			$content .= $line_item->unit_price_no_code();
-			$content .= ' ' . $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
-			$html .= EEH_HTML::li( $content );
+			$content .= $line_item->unit_price_no_code() . ' = ';
+			$content .= $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
+			$content .= '</div>';
 			// track taxes
 			$this->_show_taxes = $line_item->is_taxable() ? true : $this->_show_taxes;
-			// end of row
-			$html .= EEH_HTML::ulx();
-			$html .= EEH_HTML::lix();
-			return $html;
+			return EEH_HTML::li( $content, 'event-queue-ticket-list-' . $line_item->code() );
 		}
 		return null;
 	}
@@ -160,28 +155,21 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	 *    _item_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _item_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _item_row( EE_Line_Item $line_item ) {
 		// start of row
-		$html = EEH_HTML::li();
-		$html .= EEH_HTML::ul( '', 'event-queue-item-list-' . $line_item->code() );
 		$content = $line_item->name();
 		if ( $line_item->percent() ) {
 			$content .= ' ' . $line_item->percent() . ' %';
 		} else {
 			$content .= ' ' . $line_item->unit_price_no_code();
 		}
-		$content .= ' ' . $line_item->quantity();
-		$content .= ' ' . $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
-		$html .= EEH_HTML::li( $content );
+		$content .= ' ' . $line_item->quantity() . ' = ';
+		$content .= $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
 		// track taxes
 		$this->_show_taxes = $line_item->is_taxable() ? true : $this->_show_taxes;
-		// end of row
-		$html .= EEH_HTML::ulx();
-		$html .= EEH_HTML::lix();
-		return $html;
+		return EEH_HTML::li( $content, 'event-queue-item-list-' . $line_item->code() );
 	}
 
 
@@ -215,17 +203,17 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	private function _sub_item_row( EE_Line_Item $line_item ) {
 		// start of row
 		$html = EEH_HTML::li();
-		$html = EEH_HTML::ul( '', '', 'event-queue-sub-item-list item sub-item-list' );
+		$html .= EEH_HTML::ul( '', '', 'event-queue-sub-item-list sub-item-list' );
 		// name td
-		$html .= EEH_HTML::li( $line_item->name(), '',  'sub-item', '', ' colspan="2"' );
+		$content = $line_item->name();
 		// discount/surcharge td
 		if ( $line_item->is_percent() ) {
-			$html .= EEH_HTML::li( $line_item->percent() . '%', '', 'jst-rght' );
+			$content .= ' ' . $line_item->percent() . '%';
 		} else {
-			$html .= EEH_HTML::li( $line_item->unit_price_no_code(), '',  'jst-rght' );
+			$content .= ' ' . $line_item->unit_price_no_code();
 		}
-		// total td
-		$html .= EEH_HTML::li( $line_item->total_no_code(), '',  'jst-rght' );
+		$content .= ' ' . $line_item->total_no_code();
+		$html .= EEH_HTML::li( $content );
 		// end of row
 		$html .= EEH_HTML::ulx();
 		$html .= EEH_HTML::lix();
@@ -238,25 +226,18 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	 * 	_tax_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _tax_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _tax_row( EE_Line_Item $line_item ) {
 		$this->_tax_count++;
-		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-tax-row item sub-item tax-total' );
 		// name && desc
-		$name_and_desc = $line_item->name();
-		$name_and_desc .= '<span class="tiny-text" style="margin:0 0 0 2em;">' . __( ' * taxable items', 'event_espresso' ) . '</span>';
-		// name td
-		$html .= EEH_HTML::td( $name_and_desc, '',  'sub-item', '', ' colspan="2"' );
+		$content = $line_item->name();
+		$content .= '<span class="tiny-text" style="margin:0 0 0 2em;">' . __( ' * taxable items', 'event_espresso' ) . '</span>';
 		// percent td
-		$html .= EEH_HTML::td( $line_item->percent() . '%', '', 'mini-cart-tbl-qty-td jst-rght' );
+		$content .= ' ' . $line_item->percent() . '%';
 		// total td
-		$html .= EEH_HTML::td( $line_item->total_no_code(), '',  'jst-rght' );
-		// end of row
-		$html .= EEH_HTML::trx();
-		return $html;
+		$content .= ' ' . $line_item->total_no_code();
+		return EEH_HTML::li( $content, '', 'event-queue-tax-list tax-list', 'text-align:right; width:100%;' );
 	}
 
 
@@ -290,37 +271,12 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		if ( $tax_total && $this->_tax_count < 2 ) {
 			return '';
 		}
-		//EE_Registry::instance()->load_helper('Money');
-		//if ( )
-		// start of row
-		$html = EEH_HTML::tr( '', 'event-queue-total-row', 'total_tr odd' );
 		// total td
-		$html .= EEH_HTML::td(
-			EEH_HTML::strong( $line_item->desc() . ' ' . $text ), '',  'total_currency total jst-rght', '', ' colspan="2"'
-		);
-		// total qty
-		$total_qty = $tax_total ? '' : EE_Registry::instance()->CART->all_ticket_quantity_count();
-		$html .= EEH_HTML::td( EEH_HTML::strong( $total_qty ), '',  'mini-cart-tbl-qty-td total jst-rght' );
+		$content = EEH_HTML::strong( $line_item->desc() . ' ' . $text );
 		// total td
-		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->total_no_code() ), '',  'total jst-rght' );
-		// end of row
-		$html .= EEH_HTML::trx();
-		return $html;
+		$content .= ' ' . EEH_HTML::strong( $line_item->total_no_code() );
+		return EEH_HTML::li( $content, '', 'event-queue-total-list total-list', 'text-align:right; width:100%;' );
 	}
-
-
-
-	/**
-	 * 	_separator_row
-	 *
-	 * @param array        $options
-	 * @return mixed
-	 */
-//	private function _separator_row( $options = array() ) {
-//		// start of row
-//		$html = EEH_HTML::tr( EEH_HTML::td( '<hr>', '',  '',  '',  ' colspan="4"' ));
-//		return $html;
-//	}
 
 
 }
