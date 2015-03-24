@@ -183,7 +183,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return        void
 	 */
 	public static function translate_js_strings() {
-		//EE_Registry::$i18n_js_strings[ 'no_promotions_code' ] = __( 'Please enter a valid Promotion Code.', 'event_espresso' );
+		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
 	}
 
 
