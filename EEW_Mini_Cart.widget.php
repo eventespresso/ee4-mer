@@ -65,32 +65,23 @@ class EEW_Mini_Cart extends WP_Widget {
 	<p>' . __('Mini Cart Title:', 'event_espresso') . '
 		<input id="'.$this->get_field_id('title').'" class="widefat" name="'.$this->get_field_name('title').'"  type="text" value="'.esc_attr( $instance['title'] ).'" />
 	</p>';
-
-//		$default_templates = glob( EE_MER_PATH.'templates/widget_minicart*.template.php' );
-//		$custom_templates = glob( EE_MER_PATH.'widget_minicart*.template.php' );
-//
-//		$minicart_templates = array_merge( $default_templates, $custom_templates );
-//		rsort( $minicart_templates, SORT_STRING );
-//
-//		$find = array ( EE_MER_PATH.'templates/widget', EE_MER_PATH.'widget', '.template.php', '-', '_' );
-//		$replace = array( '', '', '', ' ', ' ' );
-//
-//		echo '
-//	<p>' . __('Mini Cart Template:', 'event_espresso') . '<br />
-//		<select name="'.$this->get_field_name( 'template' ).'">';
-//
-//		foreach ( $minicart_templates as $minicart_template ) {
-//
-//			$template = str_replace( $find, $replace, $minicart_template );
-//
-//			echo "\n\t\t\t".'<option value="'.$minicart_template.'" '.selected( $instance['template'], $minicart_template ).'>'.$template.'&nbsp;&nbsp;&nbsp;</option>';
-//
-//		}
-//
-//		echo '
-//		</select>
-//	</p>
-//';
+		$minicart_templates = glob( EE_MER_PATH.'templates' . DS . 'widget_minicart*.template.php' );
+		$minicart_templates = apply_filters( 'FHEE__EEW_Mini_Cart__form__minicart_templates', $minicart_templates, $instance );
+		rsort( $minicart_templates, SORT_STRING );
+		$find = array( '.template.php', '-', '_' );
+		$replace = array( '', ' ', ' ' );
+		echo '
+	<p>' . __('Mini Cart Template:', 'event_espresso') . '<br />
+		<select name="'.$this->get_field_name( 'template' ).'">';
+		foreach ( $minicart_templates as $minicart_template ) {
+			$selected = $minicart_template == $instance[ 'template' ] ? ' selected="selected"' : 'false';
+			$template = str_replace ( $find, $replace, basename( $minicart_template ));
+			echo "\n\t\t\t".'<option value="'.$minicart_template.'" ' . $selected . '>'. $template .'&nbsp;&nbsp;&nbsp;</option>';
+		}
+		echo '
+		</select>
+	</p>
+';
 	}
 
 
@@ -124,9 +115,9 @@ class EEW_Mini_Cart extends WP_Widget {
 		if ( isset( $_REQUEST[ 'event_queue' ] ) ) {
 			return;
 		}
+		// autoload Line_Item_Display classes
 		EE_Registry::instance()->load_core( 'Cart' );
 		EE_Registry::instance()->load_helper( 'Line_Item' );
-
 		extract($args);
 		/** @type string $before_widget */
 		/** @type string $after_widget */
@@ -147,24 +138,32 @@ class EEW_Mini_Cart extends WP_Widget {
 
 		switch ( $instance[ 'template' ] ) {
 
-			case '' :
-				$mini_cart_line_item_display_strategy = '';
+			case EE_MER_PATH . 'templates' . DS . 'widget_minicart_list.template.php' :
+			$minicart_line_item_display_strategy = 'EE_Mini_Cart_List_Line_Item_Display_Strategy';
 				break;
 
 			case EE_MER_PATH . 'templates' . DS . 'widget_minicart_table.template.php' :
 			default :
-			$mini_cart_line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy';
-				break;
+			$minicart_line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy';
+			break;
 
 		}
-		$template_args[ 'event_queue' ] = $this->_get_event_queue(
-			apply_filters(
-				'FHEE__EEW_Mini_Cart__widget__mini_cart_line_item_display_strategy',
-				$mini_cart_line_item_display_strategy
+		EEH_Autoloader::register_autoloader(
+			array(
+				$minicart_line_item_display_strategy => EE_MER_PATH . $minicart_line_item_display_strategy . '.php'
 			)
 		);
-		//espresso_display_template( $instance['template'], $template_args );
-		$mini_cart_css = '
+		$template_args[ 'event_queue' ] = $this->_get_event_queue(
+			apply_filters(
+				'FHEE__EEW_Mini_Cart__widget__minicart_line_item_display_strategy',
+				$minicart_line_item_display_strategy
+			)
+		);
+		// ugh... inline css... well... better than loading another stylesheet on every page
+		// and at least it's filterable...
+		echo apply_filters(
+			'FHEE__EEW_Mini_Cart__widget__minicart_css',
+'
 <style>
 .mini-cart-tbl-qty-th,
 .mini-cart-tbl-qty-td {
@@ -189,8 +188,8 @@ class EEW_Mini_Cart extends WP_Widget {
 	white-space: nowrap !important;
 }
 </style>
-		';
-		echo apply_filters( 'FHEE__EEW_Mini_Cart__widget__mini_cart_css', $mini_cart_css );
+'
+		);
 		echo EEH_Template::display_template( $instance[ 'template' ], $template_args, true );
 
 	}
@@ -206,14 +205,13 @@ class EEW_Mini_Cart extends WP_Widget {
 	 * @throws \EE_Error
 	 */
 	protected function _get_event_queue( $line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy' ) {
-		$line_item = EE_Registry::instance()->CART->get_grand_total();
 		// autoload Line_Item_Display classes
 		EEH_Autoloader::register_line_item_display_autoloaders();
 		$Line_Item_Display = new EE_Line_Item_Display( 'event_queue', $line_item_display_strategy );
 		if ( ! $Line_Item_Display instanceof EE_Line_Item_Display && WP_DEBUG ) {
 			throw new EE_Error( __( 'A valid instance of EE_Event_Queue_Line_Item_Display_Strategy could not be obtained.', 'event_espresso' ) );
 		}
-		return $Line_Item_Display->display_line_item( $line_item );
+		return $Line_Item_Display->display_line_item( EE_Registry::instance()->CART->get_grand_total() );
 	}
 
 }
