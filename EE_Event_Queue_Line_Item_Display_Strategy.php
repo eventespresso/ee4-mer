@@ -30,7 +30,8 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 		// set some default options and merge with incoming
 		$default_options = array(
 			'show_desc' => TRUE,  // 	TRUE 		FALSE
-			'odd' => FALSE
+			'odd' => FALSE,
+			'event_count' => 0,
 		);
 		$options = array_merge( $default_options, (array)$options );
 
@@ -90,7 +91,7 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 			case EEM_Line_Item::type_total:
 
 				if ( count( $line_item->get_items() ) ) {
-					$options['event_count'] = count( EEH_Line_Item::get_line_items_of_object_type( $line_item, 'Event' ) );
+					$options['event_count'] = count( $this->_events );
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
@@ -175,7 +176,7 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 			$disabled_class = '';
 			$disabled_style = '';
 			$disabled_title = __( 'add one ticket', 'event_espresso' );
-			$query_args = array( 'event_queue' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->ID() );
+			$query_args = array( 'event_queue' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
 		} else {
 			$disabled = ' disabled="disabled"';
 			$disabled_class = ' disabled';
@@ -188,7 +189,7 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 		<input type="text"
 					id="event-queue-update-txt-qty-' . $line_item->code() . '"
 					class="event-queue-update-txt-qty ' . $disabled_class . '"
-					name="event_queue_update_txt_qty[' . $ticket->ID() . '][' . $line_item->ID() . ']"
+					name="event_queue_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
 					rel="' . $line_item->code() . '"
 					value="' . $line_item->quantity() . '"
 					' . $disabled . '
@@ -209,7 +210,7 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 					href = "' . add_query_arg( array(
 			'event_queue' => 'remove_ticket',
 			'ticket'      => $ticket->ID(),
-			'line_item'   => $line_item->ID()
+			'line_item'   => $line_item->code()
 		), EE_EVENT_QUEUE_BASE_URL ) . '"
 						>
 				<span class="dashicons dashicons-minus" ></span >
@@ -220,7 +221,7 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 					href="' . add_query_arg( array(
 			'event_queue' => 'delete_ticket',
 			'ticket'      => $ticket->ID(),
-			'line_item'   => $line_item->ID()
+			'line_item'   => $line_item->code()
 		), EE_EVENT_QUEUE_BASE_URL ) . '"
 				>
 				<span class="dashicons dashicons-trash"></span>
