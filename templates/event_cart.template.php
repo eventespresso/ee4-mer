@@ -29,12 +29,12 @@
 		<?php	if ( $total_items ) { ?>
 			<span class=" smaller-text">
 				<a class="event-cart-empty-cart-lnk empty-cart-lnk event-cart-button button" href="<?php echo $empty_cart_url; ?>">
-					<span class="dashicons dashicons-trash"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__empty_event_cart_btn_txn', sprintf( __( 'empty %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name ) ); ?>
+					<span class="dashicons dashicons-trash"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__empty_event_cart_btn_txn', sprintf( __( 'empty %s', 'event_espresso' ), $event_cart_name ) ); ?>
 				</a>
 			</span>
 			<span class=" smaller-text">
 				<a class="event-cart-update-cart-lnk update-cart-lnk event-cart-button button" href="<?php echo $update_cart_url; ?>">
-					<span class="dashicons dashicons-update"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__update_event_cart_btn_txn', sprintf( __( 'update %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name ) ); ?>
+					<span class="dashicons dashicons-update"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__update_event_cart_btn_txn', sprintf( __( 'update %s', 'event_espresso' ), $event_cart_name ) ); ?>
 				</a>
 			</span>
 		<?php } // if ( $total_items )  ?>
