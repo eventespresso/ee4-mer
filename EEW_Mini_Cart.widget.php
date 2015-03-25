@@ -112,7 +112,11 @@ class EEW_Mini_Cart extends WP_Widget {
 	 * @throws \EE_Error
 	 */
 	function widget( $args, $instance ) {
-		if ( isset( $_REQUEST[ 'event_queue' ] ) ) {
+		// hide widget on checkout page
+		if (
+			EE_Registry::instance()->REQ->get_post_name_from_request() ==
+			basename( EE_Registry::instance()->CFG->core->reg_page_url() )
+		) {
 			return;
 		}
 		// autoload Line_Item_Display classes
