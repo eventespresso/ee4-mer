@@ -371,6 +371,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'FHEE__EED_Multi_Event_Registration__view_event_cart__event_cart_heading',
 			EED_Multi_Event_Registration::$_event_cart_name
 		);
+		$template_args[ 'event_cart_name' ] = EED_Multi_Event_Registration::$_event_cart_name;
 		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		$template_args[ 'event_cart' ] = $this->_get_event_cart( $grand_total );
 		$template_args[ 'reg_page_url' ] = EE_EVENT_QUEUE_BASE_URL;
