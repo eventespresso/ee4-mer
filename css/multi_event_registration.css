@@ -1,21 +1,21 @@
-/*****   Event Queue   *****/
+/*****   Event Cart   *****/
 
-#event-queue { margin:2em 0 0;}
+#event-cart { margin:2em 0 0;}
 
-#event-queue-qty-frm .ui-widget-header { padding:0 1em; }
-#event-queue-qty-frm .event-queue-wrap-dv { margin:0!important; }
+#event-cart-qty-frm .ui-widget-header { padding:0 1em; }
+#event-cart-qty-frm .event-cart-wrap-dv { margin:0!important; }
 
-#event-queue-qty-frm .event-queue-tbl { margin:0!important; }
-#event-queue-qty-frm .event-queue-tbl h6 { margin:.5em 0 0!important; }
+#event-cart-qty-frm .event-cart-tbl { margin:0!important; }
+#event-cart-qty-frm .event-cart-tbl h6 { margin:.5em 0 0!important; }
 
-#event-queue-qty-frm .event-queue-tbl-spacer { height:0; padding:0; border:none; }
-#event-queue-qty-frm .event-queue-tbl-spacer td { height:0; padding:0; }
+#event-cart-qty-frm .event-cart-tbl-spacer { height:0; padding:0; border:none; }
+#event-cart-qty-frm .event-cart-tbl-spacer td { height:0; padding:0; }
 
-#event-queue-qty-frm .event-queue-ticket-qty-dv {
+#event-cart-qty-frm .event-cart-ticket-qty-dv {
 	text-align: center;
 }
 
-#event-queue-qty-frm .event-queue-update-txt-qty {
+#event-cart-qty-frm .event-cart-update-txt-qty {
 	box-sizing: border-box;
 	display : inline-block;
 	width : 40px;
@@ -30,26 +30,26 @@
 	text-align: center !important;
 	white-space: nowrap !important;
 }
-#event-queue-qty-frm .event-queue-update-buttons {
+#event-cart-qty-frm .event-cart-update-buttons {
 	cursor: pointer !important;
 	display:inline-block !important;
 	white-space: nowrap !important;
 }
 
 
-.event-queue-button {
+.event-cart-button {
 	border:1px solid #ccc;
 	text-decoration: none;
 }
 
-.disabled-event-queue-btn,
-.disabled-event-queue-btn:hover {
+.disabled-event-cart-btn,
+.disabled-event-cart-btn:hover {
 	border: 1px solid #CCCCCC !important;
 	background: #CCCCCC !important;
 	box-shadow: none !important;
 }
 
-#event-queue-qty-frm .event-queue-button {
+#event-cart-qty-frm .event-cart-button {
 	box-sizing: border-box;
 	display : inline-block;
 	padding : 8px;
@@ -64,18 +64,18 @@
 	cursor: pointer !important;
 	white-space: nowrap !important;
 }
-#event-queue-qty-frm .event-queue-icon-button {
+#event-cart-qty-frm .event-cart-icon-button {
 	width : 32px;
 	height : 32px;
 }
 
-#event-queue-qty-frm .event-queue-icon-button img {
+#event-cart-qty-frm .event-cart-icon-button img {
 	background:none!important;
 	border:none!important;
 	box-shadow: none!important;
 }
 
-#event-queue-qty-frm .event-queue-icon-button span {
+#event-cart-qty-frm .event-cart-icon-button span {
 	display : inline-block;
 	float : none;
 	padding : 0;
@@ -84,10 +84,10 @@
 	line-height : 16px;
 }
 
-#event-queue-qty-frm .event-queue-grand-total { margin:1em 0; clear : both; text-align: right; }
-#event-queue-qty-frm .event-queue-whats-next-buttons { margin:2em 0; clear : both; text-align: right; }
-#event-queue-qty-frm .event-queue-whats-next-buttons .event-queue-go-back-button span { margin:0 .5em 0 0 !important; }
-#event-queue-qty-frm .event-queue-whats-next-buttons .event-queue-register-button span { margin:0 0 0 .5em !important; }
+#event-cart-qty-frm .event-cart-grand-total { margin:1em 0; clear : both; text-align: right; }
+#event-cart-qty-frm .event-cart-whats-next-buttons { margin:2em 0; clear : both; text-align: right; }
+#event-cart-qty-frm .event-cart-whats-next-buttons .event-cart-go-back-button span { margin:0 .5em 0 0 !important; }
+#event-cart-qty-frm .event-cart-whats-next-buttons .event-cart-register-button span { margin:0 0 0 .5em !important; }
 
 
 
