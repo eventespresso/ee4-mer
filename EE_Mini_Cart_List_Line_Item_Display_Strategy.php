@@ -119,7 +119,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		// event name
 		return EEH_HTML::li(
 			EEH_HTML::strong( $line_item->desc() ),
-			'', 'event-header event-queue-total'
+			'', 'event-header event-cart-total'
 		);
 	}
 
@@ -143,7 +143,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 			$content .= '</div>';
 			// track taxes
 			$this->_show_taxes = $line_item->is_taxable() ? true : $this->_show_taxes;
-			return EEH_HTML::li( $content, 'event-queue-ticket-list-' . $line_item->code() );
+			return EEH_HTML::li( $content, 'event-cart-ticket-list-' . $line_item->code() );
 		}
 		return null;
 	}
@@ -168,7 +168,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		$content .= $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
 		// track taxes
 		$this->_show_taxes = $line_item->is_taxable() ? true : $this->_show_taxes;
-		return EEH_HTML::li( $content, 'event-queue-item-list-' . $line_item->code() );
+		return EEH_HTML::li( $content, 'event-cart-item-list-' . $line_item->code() );
 	}
 
 
@@ -183,10 +183,10 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		// empty td
 		return EEH_HTML::li(
 			apply_filters(
-				'FHEE__EE_Event_Queue_Line_Item_Display_Strategy___empty_msg_row',
-				__('The Event Queue is empty', 'event_espresso' )
+				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___empty_msg_row',
+				__('The Event Cart is empty', 'event_espresso' )
 			),
-			'',  'event-queue-list-empty-msg item'
+			'',  'event-cart-list-empty-msg item'
 		);
 	}
 
@@ -202,7 +202,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	private function _sub_item_row( EE_Line_Item $line_item ) {
 		// start of row
 		$html = EEH_HTML::li();
-		$html .= EEH_HTML::ul( '', '', 'event-queue-sub-item-list sub-item-list' );
+		$html .= EEH_HTML::ul( '', '', 'event-cart-sub-item-list sub-item-list' );
 		// name td
 		$content = $line_item->name();
 		// discount/surcharge td
@@ -236,7 +236,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		$content .= ' ' . $line_item->percent() . '%';
 		// total td
 		$content .= ' ' . $line_item->total_no_code();
-		return EEH_HTML::li( $content, '', 'event-queue-tax-list tax-list', 'text-align:right; width:100%;' );
+		return EEH_HTML::li( $content, '', 'event-cart-tax-list tax-list', 'text-align:right; width:100%;' );
 	}
 
 
@@ -273,7 +273,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		$content = EEH_HTML::strong( $line_item->desc() . ' ' . $text );
 		// total td
 		$content .= ' ' . EEH_HTML::strong( $line_item->total_no_code() );
-		return EEH_HTML::li( $content, '', 'event-queue-total-list total-list', 'text-align:right; width:100%;' );
+		return EEH_HTML::li( $content, '', 'event-cart-total-list total-list', 'text-align:right; width:100%;' );
 	}
 
 
