@@ -118,7 +118,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	private function _event_row( EE_Line_Item $line_item ) {
 		$this->_events[ $line_item->OBJ_ID() ] = $line_item;
 		// start of row
-		$html = EEH_HTML::tr( '', 'event-queue-total-row', 'total_tr odd' );
+		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// event name td
 		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->desc() ), '', 'event-header', '', ' colspan="5"' );
 		// end of row
@@ -140,7 +140,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			// start of row
 			$html = '';
 			$row_class = $options['odd'] ? 'item odd' : 'item';
-			$html .= EEH_HTML::tr( '', 'event-queue-item-row-' . $line_item->code(), $row_class );
+			$html .= EEH_HTML::tr( '', 'event-cart-item-row-' . $line_item->code(), $row_class );
 			// name && desc
 			$name_and_desc = $line_item->name();
 			$name_and_desc .= $options['show_desc'] ? '<span class="line-item-desc-spn smaller-text"> : ' . $line_item->desc() . '</span>'  : '';
@@ -176,28 +176,28 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			$disabled_class = '';
 			$disabled_style = '';
 			$disabled_title = __( 'add one ticket', 'event_espresso' );
-			$query_args = array( 'event_queue' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
+			$query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
 		} else {
 			$disabled = ' disabled="disabled"';
 			$disabled_class = ' disabled';
 			$disabled_style = ' style="background-color:#e8e8e8;"';
 			$disabled_title = __( 'there are no more tickets available', 'event_espresso' );
-			$query_args = array( 'event_queue' => 'view' );
+			$query_args = array( 'event_cart' => 'view' );
 		}
 		return '
-	<div class="event-queue-ticket-qty-dv">
+	<div class="event-cart-ticket-qty-dv">
 		<input type="text"
-					id="event-queue-update-txt-qty-' . $line_item->code() . '"
-					class="event-queue-update-txt-qty ' . $disabled_class . '"
-					name="event_queue_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
+					id="event-cart-update-txt-qty-' . $line_item->code() . '"
+					class="event-cart-update-txt-qty ' . $disabled_class . '"
+					name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
 					rel="' . $line_item->code() . '"
 					value="' . $line_item->quantity() . '"
 					' . $disabled . '
 					size="3"
 		/>
-		<span class="event-queue-update-buttons" >
+		<span class="event-cart-update-buttons" >
 			<a	title = "' . $disabled_title . '"
-				class="event-queue-add-ticket-button event-queue-button event-queue-icon-button button' . $disabled_class . '"
+				class="event-cart-add-ticket-button event-cart-button event-cart-icon-button button' . $disabled_class . '"
 				rel = "' . $line_item->code() . '"
 				href = "' . add_query_arg( $query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
 				' . $disabled_style . '
@@ -205,21 +205,21 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				<span class="dashicons dashicons-plus" ></span >
 			</a >
 			<a	title = "' . __( 'remove one ticket', 'event_espresso' ) . '"
-					class="event-queue-remove-ticket-button event-queue-button event-queue-icon-button button"
+					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button"
 					rel = "' . $line_item->code() . '"
 					href = "' . add_query_arg( array(
-			'event_queue' => 'remove_ticket',
+			'event_cart' => 'remove_ticket',
 			'ticket'      => $ticket->ID(),
 			'line_item'   => $line_item->code()
 		), EE_EVENT_QUEUE_BASE_URL ) . '"
 						>
 				<span class="dashicons dashicons-minus" ></span >
 			</a >
-			<a	title="' . __( 'delete ticket from event queue', 'event_espresso' ) . '"
-					class="event-queue-delete-ticket-button event-queue-button event-queue-icon-button button"
+			<a	title="' . __( 'delete ticket from event cart', 'event_espresso' ) . '"
+					class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button"
 					rel="' . $line_item->code() . '"
 					href="' . add_query_arg( array(
-			'event_queue' => 'delete_ticket',
+			'event_cart' => 'delete_ticket',
 			'ticket'      => $ticket->ID(),
 			'line_item'   => $line_item->code()
 		), EE_EVENT_QUEUE_BASE_URL ) . '"
@@ -243,7 +243,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	private function _item_row( EE_Line_Item $line_item, $options = array() ) {
 		// start of row
 		$row_class = $options['odd'] ? 'item odd' : 'item';
-		$html = EEH_HTML::tr( '', 'event-queue-item-row-' . $line_item->code(), $row_class );
+		$html = EEH_HTML::tr( '', 'event-cart-item-row-' . $line_item->code(), $row_class );
 		// empty td
 		$html .= EEH_HTML::td( EEH_HTML::nbsp() );
 		// name && desc
@@ -279,7 +279,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 */
 	private function _empty_msg_row() {
 		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-tbl-row-empty-msg item' );
+		$html = EEH_HTML::tr( '', '', 'event-cart-tbl-row-empty-msg item' );
 		// empty td
 		$html .= EEH_HTML::td(
 			apply_filters(
@@ -305,7 +305,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 */
 	private function _sub_item_row( EE_Line_Item $line_item, $options = array() ) {
 		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-sub-item-row item sub-item-row' );
+		$html = EEH_HTML::tr( '', '', 'event-cart-sub-item-row item sub-item-row' );
 		// empty td
 		$html .= EEH_HTML::td( EEH_HTML::nbsp() );
 		// name && desc
@@ -339,7 +339,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 */
 	private function _tax_row( EE_Line_Item $line_item, $options = array() ) {
 		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-tax-row item sub-item tax-total' );
+		$html = EEH_HTML::tr( '', '', 'event-cart-tax-row item sub-item tax-total' );
 		// name && desc
 		$name_and_desc = $line_item->name();
 		$name_and_desc .= '<span class="tiny-text" style="margin:0 0 0 2em;">' . __( ' * taxable items', 'event_espresso' ) . '</span>';
@@ -387,7 +387,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		//EE_Registry::instance()->load_helper('Money');
 		//if ( )
 		// start of row
-		$html = EEH_HTML::tr( '', 'event-queue-total-row', 'total_tr odd' );
+		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// total td
 		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->desc() . ' ' . $text ), '',  'total_currency total jst-rght',
 			'', ' colspan="3"' );
