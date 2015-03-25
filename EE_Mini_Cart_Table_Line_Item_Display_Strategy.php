@@ -91,7 +91,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 			case EEM_Line_Item::type_total:
 
 				if ( count( $line_item->get_items() ) ) {
-					$options['event_count'] = count( EEH_Line_Item::get_line_items_of_object_type( $line_item, 'Event' ) );
+					$options['event_count'] = count( $this->_events );
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
