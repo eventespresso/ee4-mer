@@ -31,7 +31,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		// set some default options and merge with incoming
 		$default_options = array(
 			'show_desc' => TRUE,  // 	TRUE 		FALSE
-			'odd' => FALSE
+			'odd' => FALSE,
 		);
 		$options = array_merge( $default_options, (array)$options );
 
@@ -68,7 +68,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 					$count++;
 				}
 				// only display subtotal if there are multiple child line items
-				$html .= $count > 1 ? $this->_sub_total_row( $line_item, __( 'Subtotal', 'event_espresso' ), $options ) : '';
+				$html .= $count > 1 ? $this->_sub_total_row( $line_item, __( 'Subtotal', 'event_espresso' ) ) : '';
 				break;
 
 			case EEM_Line_Item::type_tax:
@@ -91,7 +91,6 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 			case EEM_Line_Item::type_total:
 
 				if ( count( $line_item->get_items() ) ) {
-					$options['event_count'] = count( $this->_events );
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
@@ -247,11 +246,10 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	 *
 	 * @param EE_Line_Item $line_item
 	 * @param string       $text
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _sub_total_row( EE_Line_Item $line_item, $text = '', $options = array() ) {
-		if ( $line_item->total() && $options['event_count'] > 1 ) {
+	private function _sub_total_row( EE_Line_Item $line_item, $text = '' ) {
+		if ( $line_item->total() && count( $this->_events ) > 1 ) {
 			return $this->_total_row( $line_item, $text );
 		}
 		return '';
