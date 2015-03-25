@@ -138,7 +138,7 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		$template_args[ 'events_list_url' ] = EE_EVENTS_LIST_URL;
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
-		$template_args[ 'view_event_queue_url' ] = add_query_arg( array( 'event_queue' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
+		$template_args[ 'view_event_cart_url' ] = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
 
 		switch ( $instance[ 'template' ] ) {
 
@@ -157,7 +157,7 @@ class EEW_Mini_Cart extends WP_Widget {
 				$minicart_line_item_display_strategy => EE_MER_PATH . $minicart_line_item_display_strategy . '.php'
 			)
 		);
-		$template_args[ 'event_queue' ] = $this->_get_event_queue(
+		$template_args[ 'event_cart' ] = $this->_get_event_cart(
 			apply_filters(
 				'FHEE__EEW_Mini_Cart__widget__minicart_line_item_display_strategy',
 				$minicart_line_item_display_strategy
@@ -201,19 +201,19 @@ class EEW_Mini_Cart extends WP_Widget {
 
 
 	/**
-	 *    _get_event_queue
+	 *    _get_event_cart
 	 *
 	 * @access        protected
 	 * @param string $line_item_display_strategy
 	 * @return string
 	 * @throws \EE_Error
 	 */
-	protected function _get_event_queue( $line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy' ) {
+	protected function _get_event_cart( $line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy' ) {
 		// autoload Line_Item_Display classes
 		EEH_Autoloader::register_line_item_display_autoloaders();
-		$Line_Item_Display = new EE_Line_Item_Display( 'event_queue', $line_item_display_strategy );
+		$Line_Item_Display = new EE_Line_Item_Display( 'event_cart', $line_item_display_strategy );
 		if ( ! $Line_Item_Display instanceof EE_Line_Item_Display && WP_DEBUG ) {
-			throw new EE_Error( __( 'A valid instance of EE_Event_Queue_Line_Item_Display_Strategy could not be obtained.', 'event_espresso' ) );
+			throw new EE_Error( __( 'A valid instance of EE_Event_Cart_Line_Item_Display_Strategy could not be obtained.', 'event_espresso' ) );
 		}
 		return $Line_Item_Display->display_line_item( EE_Registry::instance()->CART->get_grand_total() );
 	}
