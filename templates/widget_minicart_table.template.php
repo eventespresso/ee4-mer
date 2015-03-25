@@ -5,8 +5,8 @@
 /** @type string $after_title */
 /** @type string $title */
 /** @type string $register_url */
-/** @type string $event_queue */
-/** @type string $view_event_queue_url */
+/** @type string $event_cart */
+/** @type string $view_event_cart_url */
 /** @type string $events_list_url */
 /** @type int $total_items */
 
@@ -17,7 +17,7 @@ echo $before_title . $title . $after_title;
 <div id="mini-cart-widget-dv" class="small-text">
 
 	<form id="mini-cart-qty-frm" action="<?php echo $register_url; ?>" method="POST">
-		<input type="hidden" name="event_queue" value="update">
+		<input type="hidden" name="event_cart" value="update">
 
 		<div id="mini-cart-wrap-dv" class="mini-cart-wrap-dv">
 
@@ -34,7 +34,7 @@ echo $before_title . $title . $after_title;
 				</thead>
 
 				<tbody>
-				<?php echo $event_queue; ?>
+				<?php echo $event_cart; ?>
 				</tbody>
 
 			</table>
@@ -45,8 +45,8 @@ echo $before_title . $title . $after_title;
 		<?php if ( $total_items ) { ?>
 
 			<span class="tiny-text">
-				<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href="<?php echo $view_event_queue_url; ?>">
-					<span class="dashicons dashicons-cart"></span><?php echo __( 'view event queue', 'event_espresso' )
+				<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href="<?php echo $view_event_cart_url; ?>">
+					<span class="dashicons dashicons-cart"></span><?php echo __( 'view event cart', 'event_espresso' )
 					; ?>
 				</a>
 			</span>
