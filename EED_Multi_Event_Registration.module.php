@@ -45,6 +45,15 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
+	 * @return string
+	 */
+	public static function event_cart_name() {
+		return self::$_event_cart_name;
+	}
+
+
+
+	/**
 	 *    set_hooks - for hooking into EE Core, other modules, etc
 	 *
 	 * @access    public
