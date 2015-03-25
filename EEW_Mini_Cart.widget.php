@@ -134,6 +134,7 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args['before_title'] = $before_title;
 		$template_args['after_title'] = $after_title;
 		$template_args['title'] = apply_filters( 'widget_title', $instance['title'] );
+		$template_args['event_cart_name'] = EED_Multi_Event_Registration::event_cart_name();
 
 		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		$template_args[ 'events_list_url' ] = EE_EVENTS_LIST_URL;
