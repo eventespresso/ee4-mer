@@ -117,7 +117,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	private function _event_row( EE_Line_Item $line_item ) {
 		$this->_events[ $line_item->OBJ_ID() ] = $line_item;
 		// start of row
-		$html = EEH_HTML::tr( '', 'event-queue-total-row', 'total_tr odd' );
+		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// event name td
 		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->desc() ), '', 'event-header', '', ' colspan="4"' );
 		// end of row
@@ -137,7 +137,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 		if ( $ticket instanceof EE_Ticket ) {
 			// start of row
 			$html = '';
-			$html .= EEH_HTML::tr( '', 'event-queue-item-row-' . $line_item->code() );
+			$html .= EEH_HTML::tr( '', 'event-cart-item-row-' . $line_item->code() );
 			// name td
 			$html .= EEH_HTML::td( $line_item->name(), '', 'ticket info' );
 			// price td
@@ -165,7 +165,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 */
 	private function _item_row( EE_Line_Item $line_item ) {
 		// start of row
-		$html = EEH_HTML::tr( '', 'event-queue-item-row-' . $line_item->code() );
+		$html = EEH_HTML::tr( '', 'event-cart-item-row-' . $line_item->code() );
 		// empty td
 		$html .= EEH_HTML::td( EEH_HTML::nbsp() );
 		// name td
@@ -198,12 +198,12 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 */
 	private function _empty_msg_row() {
 		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-tbl-row-empty-msg item' );
+		$html = EEH_HTML::tr( '', '', 'event-cart-tbl-row-empty-msg item' );
 		// empty td
 		$html .= EEH_HTML::td(
 			apply_filters(
-				'FHEE__EE_Event_Queue_Line_Item_Display_Strategy___empty_msg_row',
-				__('The Event Queue is empty', 'event_espresso' )
+				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___empty_msg_row',
+				__('The Event Cart is empty', 'event_espresso' )
 			),
 			'',  '', '', ' colspan="4"'
 		);
@@ -223,7 +223,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 */
 	private function _sub_item_row( EE_Line_Item $line_item ) {
 		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-sub-item-row item sub-item-row' );
+		$html = EEH_HTML::tr( '', '', 'event-cart-sub-item-row item sub-item-row' );
 		// name td
 		$html .= EEH_HTML::td( $line_item->name(), '',  'sub-item', '', ' colspan="2"' );
 		// discount/surcharge td
@@ -250,7 +250,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	private function _tax_row( EE_Line_Item $line_item ) {
 		$this->_tax_count++;
 		// start of row
-		$html = EEH_HTML::tr( '', '', 'event-queue-tax-row item sub-item tax-total' );
+		$html = EEH_HTML::tr( '', '', 'event-cart-tax-row item sub-item tax-total' );
 		// name && desc
 		$name_and_desc = $line_item->name();
 		$name_and_desc .= '<span class="tiny-text" style="margin:0 0 0 2em;">' . __( ' * taxable items', 'event_espresso' ) . '</span>';
@@ -298,7 +298,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 		//EE_Registry::instance()->load_helper('Money');
 		//if ( )
 		// start of row
-		$html = EEH_HTML::tr( '', 'event-queue-total-row', 'total_tr odd' );
+		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// total td
 		$html .= EEH_HTML::td(
 			EEH_HTML::strong( $line_item->desc() . ' ' . $text ), '',  'total_currency total jst-rght', '', ' colspan="2"'
