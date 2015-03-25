@@ -40,18 +40,18 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 			case EEM_Line_Item::type_line_item:
 				// item row
 				if ( $line_item->OBJ_type() == 'Ticket' ) {
-					$html .= $this->_ticket_row( $line_item, $options );
+					$html .= $this->_ticket_row( $line_item );
 				} else {
-					$html .= $this->_item_row( $line_item, $options );
+					$html .= $this->_item_row( $line_item );
 				}
 				// got any kids?
 				foreach( $line_item->children() as $child_line_item ) {
-					$this->display_line_item( $child_line_item, $options );
+					$this->display_line_item( $child_line_item );
 				}
 				break;
 
 			case EEM_Line_Item::type_sub_line_item:
-				$html .= $this->_sub_item_row( $line_item, $options );
+				$html .= $this->_sub_item_row( $line_item );
 				break;
 
 			case EEM_Line_Item::type_sub_total:
@@ -64,16 +64,16 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 				// loop thru children
 				foreach ( $line_item->children() as $child_line_item ) {
 					// recursively feed children back into this method
-					$html .= $this->display_line_item( $child_line_item, $options );
+					$html .= $this->display_line_item( $child_line_item );
 					$count++;
 				}
 				// only display subtotal if there are multiple child line items
-				$html .= $count > 1 ? $this->_sub_total_row( $line_item, __( 'Subtotal', 'event_espresso' ), $options ) : '';
+				$html .= $count > 1 ? $this->_sub_total_row( $line_item, __( 'Subtotal', 'event_espresso' ) ) : '';
 				break;
 
 			case EEM_Line_Item::type_tax:
 				if ( $this->_show_taxes ) {
-					$html .= $this->_tax_row( $line_item, $options );
+					$html .= $this->_tax_row( $line_item );
 				}
 				break;
 
@@ -82,7 +82,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
-						$html .= $this->display_line_item( $child_line_item, $options );
+						$html .= $this->display_line_item( $child_line_item );
 					}
 					$html .= $this->_total_row( $line_item, __('Tax Total', 'event_espresso'), true );
 				}
@@ -91,11 +91,10 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 			case EEM_Line_Item::type_total:
 
 				if ( count( $line_item->get_items() ) ) {
-					$options['event_count'] = count( $this->_events );
 					// loop thru children
 					foreach( $line_item->children() as $child_line_item ) {
 						// recursively feed children back into this method
-						$html .= $this->display_line_item( $child_line_item, $options );
+						$html .= $this->display_line_item( $child_line_item );
 					}
 				} else {
 					$html .= $this->_empty_msg_row();
@@ -131,10 +130,9 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 * 	_ticket_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _ticket_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _ticket_row( EE_Line_Item $line_item ) {
 		$ticket = EEM_Ticket::instance()->get_one_by_ID( $line_item->OBJ_ID() );
 		if ( $ticket instanceof EE_Ticket ) {
 			// start of row
@@ -163,10 +161,9 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 *    _item_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _item_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _item_row( EE_Line_Item $line_item ) {
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-queue-item-row-' . $line_item->code() );
 		// empty td
@@ -222,10 +219,9 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 * 	_sub_item_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _sub_item_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _sub_item_row( EE_Line_Item $line_item ) {
 		// start of row
 		$html = EEH_HTML::tr( '', '', 'event-queue-sub-item-row item sub-item-row' );
 		// name td
@@ -249,10 +245,9 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 * 	_tax_row
 	 *
 	 * @param EE_Line_Item $line_item
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _tax_row( EE_Line_Item $line_item, $options = array() ) {
+	private function _tax_row( EE_Line_Item $line_item ) {
 		$this->_tax_count++;
 		// start of row
 		$html = EEH_HTML::tr( '', '', 'event-queue-tax-row item sub-item tax-total' );
@@ -277,11 +272,10 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 	 *
 	 * @param EE_Line_Item $line_item
 	 * @param string       $text
-	 * @param array        $options
 	 * @return mixed
 	 */
-	private function _sub_total_row( EE_Line_Item $line_item, $text = '', $options = array() ) {
-		if ( $line_item->total() && $options['event_count'] > 1 ) {
+	private function _sub_total_row( EE_Line_Item $line_item, $text = '' ) {
+		if ( $line_item->total() && count( $this->_events ) > 1 ) {
 			return $this->_total_row( $line_item, $text );
 		}
 		return '';
