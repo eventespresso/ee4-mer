@@ -24,9 +24,9 @@ jQuery( document ).ready( function( $ ) {
 
 
 	MER = {
-		// main event queue container
+		// main event cart container
 		container : {},
-		// event queue text input field
+		// event cart text input field
 		form_input : {},
 		// array of form data
 		form_data : {},
@@ -40,14 +40,14 @@ jQuery( document ).ready( function( $ ) {
 		 * @function initialize
 		 */
 		initialize : function() {
-			var container = $( '#event-queue' );
+			var container = $( '#event-cart' );
 			if ( container.length ) {
 				MER.container = container;
 				MER.set_listener_for_add_ticket_button();
 				MER.set_listener_for_remove_ticket_button();
 				MER.set_listener_for_delete_ticket_button();
-				MER.set_listener_for_update_event_queue_button();
-				MER.set_listener_for_empty_event_queue_link();
+				MER.set_listener_for_update_event_cart_button();
+				MER.set_listener_for_empty_event_cart_link();
 			}
 		},
 
@@ -57,13 +57,13 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_add_ticket_button
 		 */
 		set_listener_for_add_ticket_button : function() {
-			MER.container.on( 'click', '.event-queue-add-ticket-button', function( event ) {
+			MER.container.on( 'click', '.event-cart-add-ticket-button', function( event ) {
 				event.preventDefault();
 				event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
-					MER.form_data.action = 'espresso_add_ticket_to_event_queue';
+					MER.form_data.action = 'espresso_add_ticket_to_event_cart';
 					MER.form_data.ticket = typeof( urlParams.ticket ) !== 'undefined' ? urlParams.ticket : '';
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
@@ -77,13 +77,13 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_remove_ticket_button
 		 */
 		set_listener_for_remove_ticket_button : function() {
-			MER.container.on( 'click', '.event-queue-remove-ticket-button', function( event ) {
+			MER.container.on( 'click', '.event-cart-remove-ticket-button', function( event ) {
 				event.preventDefault();
 				event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
-					MER.form_data.action = 'espresso_remove_ticket_from_event_queue';
+					MER.form_data.action = 'espresso_remove_ticket_from_event_cart';
 					MER.form_data.ticket = typeof( urlParams.ticket ) !== 'undefined' ? urlParams.ticket : '';
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
@@ -97,13 +97,13 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_delete_ticket_button
 		 */
 		set_listener_for_delete_ticket_button : function() {
-			MER.container.on( 'click', '.event-queue-delete-ticket-button', function( event ) {
+			MER.container.on( 'click', '.event-cart-delete-ticket-button', function( event ) {
 				event.preventDefault();
 				event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
-					MER.form_data.action = 'espresso_delete_ticket_from_event_queue';
+					MER.form_data.action = 'espresso_delete_ticket_from_event_cart';
 					MER.form_data.ticket = typeof( urlParams.ticket ) !== 'undefined' ? urlParams.ticket : '';
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
@@ -115,17 +115,17 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
-		 *  @function set_listener_for_update_event_queue_link
+		 *  @function set_listener_for_update_event_cart_link
 		 */
-		set_listener_for_update_event_queue_button : function() {
-			MER.container.on( 'click', '.event-queue-update-cart-lnk', function( event ) {
+		set_listener_for_update_event_cart_button : function() {
+			MER.container.on( 'click', '.event-cart-update-cart-lnk', function( event ) {
 				event.preventDefault();
 				event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var serialized_form_data = $( MER.container ).find( 'form' ).serializeArray();
 					MER.form_data = MER.convert_to_JSON( serialized_form_data );
 					//console.log( MER.form_data );
-					MER.form_data.action = 'espresso_update_event_queue';
+					MER.form_data.action = 'espresso_update_event_cart';
 					MER.submit_ajax_request();
 					event.stopPropagation();
 				}
@@ -135,15 +135,15 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
-		 *  @function set_listener_for_empty_event_queue_link
+		 *  @function set_listener_for_empty_event_cart_link
 		 */
-		set_listener_for_empty_event_queue_link : function() {
-			MER.container.on( 'click', '.event-queue-empty-cart-lnk', function( event ) {
+		set_listener_for_empty_event_cart_link : function() {
+			MER.container.on( 'click', '.event-cart-empty-cart-lnk', function( event ) {
 				event.preventDefault();
 				event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					MER.form_data = {};
-					MER.form_data.action = 'espresso_empty_event_queue';
+					MER.form_data.action = 'espresso_empty_event_cart';
 					MER.submit_ajax_request();
 					event.stopPropagation();
 				}
@@ -226,9 +226,9 @@ jQuery( document ).ready( function( $ ) {
 				$.each( response.new_html, function( index, html ) {
 					//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
 					if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
-						var event_queue_element = $( MER.container ).find( index );
-						if ( event_queue_element.length ) {
-							event_queue_element.replaceWith( html )
+						var event_cart_element = $( MER.container ).find( index );
+						if ( event_cart_element.length ) {
+							event_cart_element.replaceWith( html )
 							//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
 						}
 					}
@@ -242,8 +242,8 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function disable_buttons
 		 */
 		disable_buttons : function() {
-			$( '.event-queue-button' ).each( function() {
-				$( this ).addClass( 'disabled disabled-event-queue-btn' );
+			$( '.event-cart-button' ).each( function() {
+				$( this ).addClass( 'disabled disabled-event-cart-btn' );
 			} );
 		},
 
@@ -253,8 +253,8 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function enable_buttons
 		 */
 		enable_buttons : function() {
-			$( '.event-queue-button' ).each( function() {
-				$( this ).removeClass( 'disabled disabled-event-queue-btn' );
+			$( '.event-cart-button' ).each( function() {
+				$( this ).removeClass( 'disabled disabled-event-cart-btn' );
 			} );
 		},
 
@@ -266,23 +266,23 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		display_messages : function( msg ) {
 			if ( typeof msg.attention !== 'undefined' && msg.attention ) {
-				MER.show_event_queue_ajax_msg( 'attention', msg.attention, 10000 );
+				MER.show_event_cart_ajax_msg( 'attention', msg.attention, 10000 );
 			} else if ( typeof msg.errors !== 'undefined' && msg.errors ) {
-				MER.show_event_queue_ajax_msg( 'error', msg.errors, 10000 );
+				MER.show_event_cart_ajax_msg( 'error', msg.errors, 10000 );
 			} else if ( typeof msg.success !== 'undefined' && msg.success ) {
-				MER.show_event_queue_ajax_msg( 'success', msg.success, 6000 );
+				MER.show_event_cart_ajax_msg( 'success', msg.success, 6000 );
 			}
 		},
 
 
 
 		/**
-		 * @function show event queue ajax msg
+		 * @function show event cart ajax msg
 		 * @param  {string} type
 		 * @param  {string} msg
 		 * @param  {number} fadeOut
 		 */
-		show_event_queue_ajax_msg : function( type, msg, fadeOut ) {
+		show_event_cart_ajax_msg : function( type, msg, fadeOut ) {
 			// does an actual message exist ?
 			if ( typeof msg !== 'undefined' && msg !== '' ) {
 				// ensure message type is set
@@ -341,7 +341,7 @@ jQuery( document ).ready( function( $ ) {
 					data : {
 						"action" : "espresso_get_available_spaces",
 						"event_id" : event_id,
-						"event_queue_ajax" : 1
+						"event_cart_ajax" : 1
 					},
 					dataType : "json",
 					success : function( response ) {
@@ -358,7 +358,7 @@ jQuery( document ).ready( function( $ ) {
 							response = new Object();
 							response.error = 'Available space polling failed. Please refresh the page and it try again and again.';
 						}
-						show_event_queue_ajax_error_msg( 0, response );
+						show_event_cart_ajax_error_msg( 0, response );
 
 					},
 					//						complete: function(response) {
@@ -399,7 +399,7 @@ jQuery( document ).ready( function( $ ) {
 		 *        loop thru events in event list and begin polling server re: available spaces
 		 */
 		event_list_polling : function( serialized_array ) {
-			if ( $( '#event-queue-poll-server' ).val() == 1 ) {
+			if ( $( '#event-cart-poll-server' ).val() == 1 ) {
 				setTimeout( MER.begin_polling_available_spaces(), 30000 );
 			}
 		}
