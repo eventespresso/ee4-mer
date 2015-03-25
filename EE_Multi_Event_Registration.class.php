@@ -39,7 +39,7 @@ class EE_Multi_Event_Registration extends EE_Addon {
 				// register autoloaders
 				'autoloader_paths' => array(
 					'EE_Multi_Event_Registration_Config' 						=> EE_MER_PATH . 'EE_Multi_Event_Registration_Config.php',
-					'EE_Event_Queue_Line_Item_Display_Strategy' 		=> EE_MER_PATH . 'EE_Event_Queue_Line_Item_Display_Strategy.php',
+					'EE_Event_Cart_Line_Item_Display_Strategy' 		=> EE_MER_PATH . 'EE_Event_Cart_Line_Item_Display_Strategy.php',
 					'EE_Mini_Cart_Table_Line_Item_Display_Strategy' 	=> EE_MER_PATH . 'EE_Mini_Cart_Table_Line_Item_Display_Strategy.php',
 				),
 				'pue_options'			=> array(
