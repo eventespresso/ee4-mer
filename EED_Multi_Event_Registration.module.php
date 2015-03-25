@@ -322,27 +322,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 *    creates button for going to the Event Queue
-	 *
-	 * @access 	public
-	 * @return 	void
-	 */
-	public function view_event_queue_btn() {
-		$template_args = array();
-		$template_args[ 'reg_href' ] = $this->_reg_btn[ 'reg_href' ];
-		$template_args[ 'sbmt_btn_text' ] = $this->_reg_btn[ 'text' ];
-		EEH_Template::display_template( $this->_templates[ 'view_event_queue_btn' ], $template_args );
-	}
-
-
-
-	/**
 	 *    redirect_to_event_queue
 	 *
 	 * @access 	public
 	 * @return 	void
 	 */
-	public function redirect_to_event_queue() {
+	public static function redirect_to_event_queue() {
 		// grab event ID from Ticket Selector
 		$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ));
 		if ( $EVT_ID ) {
@@ -604,10 +589,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	protected function adjust_line_item_quantity( $line_item, $quantity = 1, $add = true ) {
 		if ( $line_item instanceof EE_Line_Item ) {
-			//printr( $line_item->code(), '$line_item->code()', __FILE__, __LINE__ );
-			//printr( $line_item->type(), '$line_item->type()', __FILE__, __LINE__ );
-			//printr( $line_item->OBJ_type(), '$line_item->OBJ_type()', __FILE__, __LINE__ );
-			//printr( $quantity, '$quantity', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( $line_item->code(), '$line_item->code()', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( $line_item->type(), '$line_item->type()', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( $line_item->OBJ_type(), '$line_item->OBJ_type()', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( $quantity, '$quantity', __FILE__, __LINE__ );
 			if ( $quantity > 0 ) {
 				$additional = 'An additional';
 				$added_or_removed = 'added';
@@ -632,7 +617,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$quantity = $add ? $line_item->quantity() + $quantity : $quantity;
 			// update quantity
 			$line_item->set_quantity( $quantity );
-			//printr( $line_item, '$line_item', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
 			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $quantity;
 			if ( $saved ) {
 				if ( $add ) {
@@ -670,18 +655,18 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	protected function get_line_item( $line_item_id = 0 ) {
 		$line_item = null;
-		//printr( $line_item_id, '$line_item_id', __FILE__, __LINE__ );
+		//EEH_Debug_Tools::printr( $line_item_id, '$line_item_id', __FILE__, __LINE__ );
 		if ( is_int( $line_item_id )) {
-			//printr( absint( $line_item_id ), 'absint( $line_item_id )', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( absint( $line_item_id ), 'absint( $line_item_id )', __FILE__, __LINE__ );
 			$line_item = EEM_Line_Item::instance()->get_one_by_ID( absint( $line_item_id ) );
 		}
 		// get line item from db
-		//printr( $line_item, '$line_item', __FILE__, __LINE__ );
+		//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
 		if ( $line_item instanceof EE_Line_Item ) {
 			return $line_item;
 		}
 		$line_item_id = sanitize_text_field( $line_item_id );
-		//printr( $line_item_id, '$line_item_id', __FILE__, __LINE__ );
+		//EEH_Debug_Tools::printr( $line_item_id, '$line_item_id', __FILE__, __LINE__ );
 		// or... search thru cart
 		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
 		foreach ( $tickets_in_cart as $ticket_in_cart ) {
@@ -775,19 +760,19 @@ class EED_Multi_Event_Registration extends EED_Module {
 				//$deleted = false;
 				$removals = $line_item->quantity();
 				$line_item->delete_children_line_items();
-				//printr( $line_item, '$line_item', __FILE__, __LINE__ );
+				//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
 				if ( $line_item->ID() ) {
 					//if ( $line_item->delete() ) {
 					$deleted = $line_item->delete();
-					//printr( $deleted, '$deleted', __FILE__, __LINE__ );
+					//EEH_Debug_Tools::printr( $deleted, '$deleted', __FILE__, __LINE__ );
 					//$deleted = true;
 					//}
 				} else {
 					$deleted = EE_Registry::instance()->CART->delete_items( $line_item->code() );
-					//printr( $deleted, '$deleted', __FILE__, __LINE__ );
+					//EEH_Debug_Tools::printr( $deleted, '$deleted', __FILE__, __LINE__ );
 					//$deleted = true;
 				}
-				//printr( $deleted, '$deleted', __FILE__, __LINE__ );
+				//EEH_Debug_Tools::printr( $deleted, '$deleted', __FILE__, __LINE__ );
 				// then something got deleted
 				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false )
 				) {
