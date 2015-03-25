@@ -1,7 +1,7 @@
 <?php if ( ! defined('EVENT_ESPRESSO_VERSION')) { exit('No direct script access allowed'); }
  /**
  *
- * Class EE_Event_Queue_Line_Item_Display_Strategy
+ * Class EE_Event_Cart_Line_Item_Display_Strategy
  *
  * Description
  *
@@ -12,7 +12,7 @@
  *
  */
 
-class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display {
+class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display {
 
 	private $_show_taxes = FALSE;
 	private $_events = array();
@@ -283,8 +283,8 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 		// empty td
 		$html .= EEH_HTML::td(
 			apply_filters(
-				'FHEE__EE_Event_Queue_Line_Item_Display_Strategy___empty_msg_row',
-				__('The Event Queue is empty', 'event_espresso' )
+				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___empty_msg_row',
+				__('The Event Cart is empty', 'event_espresso' )
 			),
 			'',  '', '', ' colspan="5"'
 		);
@@ -419,5 +419,5 @@ class EE_Event_Queue_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
 }
-// End of file EE_Event_Queue_Line_Item_Display_Strategy.php
-// Location: /EE_Event_Queue_Line_Item_Display_Strategy.php
+// End of file EE_Event_Cart_Line_Item_Display_Strategy.php
+// Location: /EE_Event_Cart_Line_Item_Display_Strategy.php
