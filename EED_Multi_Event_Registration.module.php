@@ -254,18 +254,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 			}
 			return $btn_text;
 		}
-		$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
-		$event_tickets = EED_Multi_Event_Registration::get_all_event_tickets( $event );
-		EED_Multi_Event_Registration::load_classes();
-		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
-		foreach ( $tickets_in_cart as $ticket_in_cart ) {
-			if (
-				$ticket_in_cart instanceof EE_Line_Item &&
-				$ticket_in_cart->OBJ_type() == 'Ticket' &&
-				isset( $event_tickets[ $ticket_in_cart->OBJ_ID() ] )
-			) {
-				$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
-			}
+		if ( EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
+			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
+		} else {
+			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
 		}
 		return $btn_text;
 	}
@@ -296,14 +288,42 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
+	 *    get_all_event_tickets
+	 *
+	 * @access    protected
+	 * @param \EE_Event $event
+	 * @return bool
+	 */
+	protected static function has_tickets_in_cart( EE_Event $event ) {
+		EED_Multi_Event_Registration::load_classes();
+		$event_tickets = EED_Multi_Event_Registration::get_all_event_tickets( $event );
+		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
+		foreach ( $tickets_in_cart as $ticket_in_cart ) {
+			if (
+				$ticket_in_cart instanceof EE_Line_Item &&
+				$ticket_in_cart->OBJ_type() == 'Ticket' &&
+				isset( $event_tickets[ $ticket_in_cart->OBJ_ID() ] )
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
+	/**
 	 *    adds a hidden input to the Ticket Selector form
 	 *
 	 * @access    public
 	 * @param string $html
+	 * @param    EE_Event $event
 	 * @return string
 	 */
-	public static function filter_ticket_selector_form_html( $html = '' ) {
-		$html .= '<input type="hidden" value="view" name="event_cart">';
+	public static function filter_ticket_selector_form_html( $html = '', $event = null ) {
+		if ( EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
+			$html .= '<input type="hidden" value="view" name="event_cart">';
+		}
 		return $html;
 	}
 
