@@ -73,8 +73,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_filter( 'FHEE__EE_Ticket_Selector__ticket_selector_form_open__html', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_form_html' ), 10, 2 );
 		add_filter( 'FHEE__EE_Ticket_Selector__display_ticket_selector_submit__btn_text', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_submit_button' ), 10, 2 );
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__success_redirect_url', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_redirect_url' ), 10, 2 );
+		// verify that SPCO registrations correspond to tickets in cart
+		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array('EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
 		// redirect to event_cart
 		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ), 10 );
+		add_filter( 'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html', array( 'EED_Multi_Event_Registration', 'return_to_event_cart_button'	), 10 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
@@ -91,6 +94,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 		EED_Multi_Event_Registration::set_definitions();
 		// don't empty cart
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__clear_session', '__return_false' );
+		// verify that SPCO registrations correspond to tickets in cart
+		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array( 'EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
 		// ajax add attendees
 		add_action( 'wp_ajax_espresso_add_ticket_to_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_add_ticket' ) );
 		add_action( 'wp_ajax_nopriv_espresso_add_ticket_to_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_add_ticket' ) );
@@ -330,7 +335,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 *    creates button for going to the Event Cart
+	 *    changes event list button URL based on tickets in cart
 	 *
 	 * @access 	public
 	 * @return 	string
@@ -341,6 +346,24 @@ class EED_Multi_Event_Registration extends EED_Module {
 		} else {
 			return EE_EVENTS_LIST_URL;
 		}
+	}
+
+
+
+	/**
+	 *    creates button for going back to the Event Cart
+	 *
+	 * @access    public
+	 * @param string $html
+	 * @return string
+	 */
+	public static function return_to_event_cart_button( $html = '' ) {
+		$html = '<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href = "' . add_query_arg(
+				array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) . '" ><span class="dashicons
+				dashicons-cart" ></span >' . apply_filters(
+				'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'return to %s',
+				'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name ) )  . '</a ><br />' . $html;
+		return $html;
 	}
 
 
@@ -971,9 +994,234 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 *   shutdown
+	 *   verify_tickets_in_cart
+	 * compares the current tickets in the cart with the current registrations for the checkout's transaction.
+	 * if any difference between the type of ticket or their associated quantities exist,
+	 * then registrations will be added or removed accordingly.
+	 *
+	 * @access public
+	 * @param \EE_Checkout $checkout
+	 * @return \EE_Checkout
+	 */
+	public static function verify_tickets_in_cart( EE_Checkout $checkout ) {
+		// verify transaction
+		if ( $checkout->transaction instanceof EE_Transaction ) {
+			$changes = false;
+			EED_Multi_Event_Registration::load_classes();
+			// first we need to get an accurate list of tickets in the cart
+			$cart_tickets = EED_Multi_Event_Registration::get_tickets_in_cart();
+			// then we need to get an accurate list of registration tickets
+			$reg_tickets = EED_Multi_Event_Registration::get_registration_tickets( $checkout->transaction );
+			// now delete registrations for any tickets that were completely removed
+			foreach ( $checkout->transaction->registrations() as $registration ) {
+				$reg_ticket = $registration->ticket();
+				if ( $reg_ticket instanceof EE_Ticket && ! isset( $cart_tickets[ $reg_ticket->ID() ]) ) {
+					$changes = EED_Multi_Event_Registration::remove_registration(
+						$checkout->transaction, $registration ) ? true : $changes;
+				}
+			}
+			// then add new tickets and/or adjust quantities for others
+			foreach ( $cart_tickets as $TKT_ID => $ticket_line_items ) {
+				$changes = EED_Multi_Event_Registration::adjust_registration_quantities(
+					$checkout->transaction,
+					$TKT_ID,
+					$ticket_line_items,
+					$reg_tickets
+				) ? true : $changes;
+			}
+			if ( $changes ) {
+				$checkout->total_ticket_count = count( $checkout->transaction->registrations() );
+				EED_Multi_Event_Registration::reset_registration_details(
+					$checkout->transaction,
+					$checkout->total_ticket_count
+				);
+				$checkout->generate_reg_form = true;
+			}
+		}
+		return $checkout;
+	}
+
+
+
+	/**
+	 *   get_tickets_in_cart
+	 * returns a multi array of EE_Ticket objects
+	 * indexed by:	[ ticket ID ][ auto-numerical ]
+	 * is an accurate representation of total tickets in cart
 	 *
 	 * @access protected
+	 * @return array
+	 */
+	protected static function get_tickets_in_cart() {
+		// arrays for tracking ticket counts
+		$cart_tickets = array();
+		// first we need to get an accurate count of tickets in the cart
+		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
+		foreach ( $tickets_in_cart as $ticket_line_item ) {
+			if ( $ticket_line_item instanceof EE_Line_Item && $ticket_line_item->OBJ_type() == 'Ticket' ) {
+				for ( $x = 1; $x <= $ticket_line_item->quantity(); $x++ ) {
+					$cart_tickets[ $ticket_line_item->OBJ_ID() ][] = $ticket_line_item;
+				}
+			}
+		}
+		return $cart_tickets;
+	}
+
+
+
+	/**
+	 *   get_registration_tickets
+	 * returns a multi array of EE_Ticket objects
+	 * indexed by:    [ ticket ID ][ registration ID ]
+	 * is an accurate representation of total tickets in checkout
+	 *
+	 * @access protected
+	 * @param \EE_Transaction $transaction
+	 * @return array
+	 */
+	protected static function get_registration_tickets( EE_Transaction $transaction ) {
+		$reg_tickets = array();
+		// now we need to get an accurate count of registration tickets
+		foreach ( $transaction->registrations() as $registration ) {
+			if ( $registration instanceof EE_Registration ) {
+				$reg_ticket = $registration->ticket();
+				if ( $reg_ticket instanceof EE_Ticket ) {
+					$reg_tickets[ $reg_ticket->ID() ][ $registration->ID() ] = $registration;
+				}
+			}
+		}
+		return $reg_tickets;
+	}
+
+
+
+	/**
+	 *   adjust_registration_quantities
+	 * will either add registrations for NEW tickets
+	 * or adjust quantities for existing tickets
+	 *
+	 * @access protected
+	 * @param \EE_Transaction $transaction
+	 * @param int $TKT_ID
+	 * @param array $ticket_line_items
+	 * @param array $reg_tickets
+	 * @return bool
+	 */
+	protected static function adjust_registration_quantities( EE_Transaction $transaction, $TKT_ID = 0, $ticket_line_items = array(), $reg_tickets = array() ) {
+		$changes = false;
+		// are there any corresponding registrations for this ticket?
+		if ( isset( $reg_tickets[ $TKT_ID ] ) ) {
+			// corresponding registrations exist, so let's compare counts...
+			$tkt_count = count( $ticket_line_items );
+			$reg_count = count( $reg_tickets[ $TKT_ID ] );
+			if ( $tkt_count > $reg_count ) {
+				// ticket(s) added = create registrations
+				for ( $x = 0; $x < ( $tkt_count - $reg_count ); $x++ ) {
+					$changes = EED_Multi_Event_Registration::add_registration(
+						$ticket_line_items[ $x ], $transaction ) ? true : $changes;
+				}
+			} else if ( $tkt_count < $reg_count ) {
+				// ticket(s) removed = remove registrations
+				for ( $x = $reg_count; $x > $tkt_count; $x-- ) {
+					// grab last registration that corresponds to this ticket type
+					$registration = array_pop( $reg_tickets[ $TKT_ID ] );
+					$changes = EED_Multi_Event_Registration::remove_registration(
+						$transaction, $registration ) ? true : $changes;
+				}
+			} else {
+				// tickets match registrations = no change
+				return false;
+			}
+		} else {
+			// no corresponding registrations????
+			// we need to create registrations for these tickets
+			$reg_count = 0;
+			foreach ( $ticket_line_items as $ticket_line_item ) {
+				$reg_count++;
+				$changes = EED_Multi_Event_Registration::add_registration(
+					$ticket_line_item, $transaction ) ? true : $changes;
+			}
+		}
+		return $changes;
+	}
+
+
+
+	/**
+	 *   add_registration
+	 *
+	 * @access protected
+	 * @param \EE_Line_Item $ticket_line_item
+	 * @param \EE_Transaction $transaction
+	 * @return bool
+	 */
+	protected static function add_registration( EE_Line_Item $ticket_line_item, EE_Transaction $transaction ) {
+		$registration = null;
+		if ( $ticket_line_item instanceof EE_Line_Item ) {
+			/** @type EE_Registration_Processor $registration_processor */
+			$registration_processor = EE_Registry::instance()->load_class( 'Registration_Processor' );
+			$registration = $registration_processor->generate_ONE_registration_from_line_item(
+				$ticket_line_item,
+				$transaction
+			);
+		}
+		return $registration instanceof EE_Registration ? true: false;
+	}
+
+
+
+	/**
+	 *   remove_registration
+	 *
+	 * @access protected
+	 * @param EE_Transaction $transaction
+	 * @param EE_Registration $registration
+	 * @return bool
+	 */
+	protected static function remove_registration( EE_Transaction $transaction, EE_Registration $registration ) {
+		if ( $registration instanceof EE_Registration ) {
+			$transaction->_remove_relation_to( $registration, 'Registration' );
+			$registration->delete();
+			return true;
+		}
+		return false;
+	}
+
+
+
+	/**
+	 *   reset_registration_reg_counts
+	 *
+	 * @access protected
+	 * @param EE_Transaction $transaction
+	 * @param int $total_ticket_count
+	 * @return void
+	 */
+	protected static function reset_registration_details( EE_Transaction $transaction, $total_ticket_count = 0 ) {
+		$att_nmbr = 0;
+		/** @type EE_Registration_Processor $registration_processor */
+		$registration_processor = EE_Registry::instance()->load_class( 'Registration_Processor' );
+		foreach ( $transaction->registrations() as $registration ) {
+			if ( $registration instanceof EE_Registration ) {
+				$att_nmbr++;
+				$registration->set_count( $att_nmbr );
+				$registration->set_group_size( $total_ticket_count );
+				$reg_url_bits = explode( '-', $registration->reg_url_link() );
+				$reg_url_link = $att_nmbr . '-' . end( $reg_url_bits );
+				$registration->set_reg_url_link( $reg_url_link );
+				$registration->set( 'REG_code', $registration_processor->generate_reg_code( $registration ) );
+				$registration->save();
+				$transaction->_add_relation_to( $registration, 'Registration' );
+			}
+		}
+	}
+
+
+
+	/**
+	 *   shutdown
+	 *
+	 * @access public
 	 * @return void
 	 */
 	public static function save_cart() {
@@ -981,6 +1229,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			EE_Registry::instance()->CART->save_cart();
 		}
 	}
+
+
 
 }
 /* End of file EE_Multi_Event_Registration.class.php */
