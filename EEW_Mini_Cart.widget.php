@@ -136,34 +136,12 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args['title'] = apply_filters( 'widget_title', $instance['title'] );
 		$template_args['event_cart_name'] = EED_Multi_Event_Registration::event_cart_name();
 
-		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		$template_args[ 'events_list_url' ] = EE_EVENTS_LIST_URL;
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
 		$template_args[ 'view_event_cart_url' ] = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
-
-		switch ( $instance[ 'template' ] ) {
-
-			case EE_MER_PATH . 'templates' . DS . 'widget_minicart_list.template.php' :
-			$minicart_line_item_display_strategy = 'EE_Mini_Cart_List_Line_Item_Display_Strategy';
-				break;
-
-			case EE_MER_PATH . 'templates' . DS . 'widget_minicart_table.template.php' :
-			default :
-			$minicart_line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy';
-			break;
-
-		}
-		EEH_Autoloader::register_autoloader(
-			array(
-				$minicart_line_item_display_strategy => EE_MER_PATH . $minicart_line_item_display_strategy . '.php'
-			)
-		);
-		$template_args[ 'event_cart' ] = $this->_get_event_cart(
-			apply_filters(
-				'FHEE__EEW_Mini_Cart__widget__minicart_line_item_display_strategy',
-				$minicart_line_item_display_strategy
-			)
-		);
+		//EEH_Debug_Tools::printr( EE_Registry::instance()->CART->all_ticket_quantity_count(), 'EE_Registry::instance()->CART->all_ticket_quantity_count()', __FILE__, __LINE__ );
+		$template_args[ 'mini_cart_display' ] = EE_Registry::instance()->CART->all_ticket_quantity_count() > 0 ? '' 	: ' 	style="display:none;"';
+		$template_args[ 'event_cart' ] = $this->get_mini_cart( $instance[ 'template' ] );
 		// ugh... inline css... well... better than loading another stylesheet on every page
 		// and at least it's filterable...
 		echo apply_filters(
@@ -202,17 +180,39 @@ class EEW_Mini_Cart extends WP_Widget {
 
 
 	/**
-	 *    _get_event_cart
+	 *    get_event_cart
 	 *
-	 * @access        protected
-	 * @param string $line_item_display_strategy
+	 * @access public
+	 * @param string $template
 	 * @return string
 	 * @throws \EE_Error
 	 */
-	protected function _get_event_cart( $line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy' ) {
+	public function get_mini_cart( $template = '' ) {
+
+		switch ( $template ) {
+			case EE_MER_PATH . 'templates' . DS . 'widget_minicart_list.template.php' :
+				$minicart_line_item_display_strategy = 'EE_Mini_Cart_List_Line_Item_Display_Strategy';
+				break;
+			case EE_MER_PATH . 'templates' . DS . 'widget_minicart_table.template.php' :
+			default :
+				$minicart_line_item_display_strategy = 'EE_Mini_Cart_Table_Line_Item_Display_Strategy';
+				break;
+
+		}
+		EEH_Autoloader::register_autoloader(
+			array(
+				$minicart_line_item_display_strategy => EE_MER_PATH . $minicart_line_item_display_strategy . '.php'
+			)
+		);
 		// autoload Line_Item_Display classes
 		EEH_Autoloader::register_line_item_display_autoloaders();
-		$Line_Item_Display = new EE_Line_Item_Display( 'event_cart', $line_item_display_strategy );
+		$Line_Item_Display = new EE_Line_Item_Display(
+			'event_cart',
+			apply_filters(
+				'FHEE__EEW_Mini_Cart__widget__minicart_line_item_display_strategy',
+				$minicart_line_item_display_strategy
+			)
+		);
 		if ( ! $Line_Item_Display instanceof EE_Line_Item_Display && WP_DEBUG ) {
 			throw new EE_Error( __( 'A valid instance of EE_Event_Cart_Line_Item_Display_Strategy could not be obtained.', 'event_espresso' ) );
 		}
