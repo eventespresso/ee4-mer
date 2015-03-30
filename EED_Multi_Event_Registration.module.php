@@ -31,7 +31,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	protected static $_event_cart_name = '';
 
-	private $_ajax = 0;
+	/**
+	 * @type bool $_ajax
+	 */
+	private $_ajax = false;
 
 
 
@@ -61,6 +64,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public static function set_hooks() {
 		EED_Multi_Event_Registration::set_definitions();
+		add_action( 'wp_enqueue_scripts', array( 'EED_Multi_Event_Registration', 'enqueue_styles_and_scripts' ), 10 );
+
 		EE_Config::register_route( 'view', 'Multi_Event_Registration', 'view_event_cart', 'event_cart' );
 		EE_Config::register_route( 'update', 'Multi_Event_Registration', 'update_event_cart', 'event_cart' );
 		EE_Config::register_route( 'add_ticket', 'Multi_Event_Registration', 'add_ticket', 'event_cart' );
@@ -92,10 +97,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public static function set_hooks_admin() {
 		EED_Multi_Event_Registration::set_definitions();
+		add_action(
+			'wp_ajax_espresso_process_ticket_selections',
+			array( 'EED_Multi_Event_Registration', 'process_ticket_selections' )
+		);
+		add_action(
+			'wp_ajax_nopriv_espresso_process_ticket_selections',
+			array( 'EED_Multi_Event_Registration', 'process_ticket_selections' )
+		);
 		// don't empty cart
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__clear_session', '__return_false' );
-		// verify that SPCO registrations correspond to tickets in cart
-		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array( 'EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
 		// ajax add attendees
 		add_action( 'wp_ajax_espresso_add_ticket_to_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_add_ticket' ) );
 		add_action( 'wp_ajax_nopriv_espresso_add_ticket_to_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_add_ticket' ) );
@@ -114,6 +125,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// ajax available_spaces
 		add_action( 'wp_ajax_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
 		add_action( 'wp_ajax_nopriv_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
+		// verify that SPCO registrations correspond to tickets in cart
+		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array(
+			'EED_Multi_Event_Registration',
+			'verify_tickets_in_cart'
+		), 10, 1 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
@@ -197,26 +213,40 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 *    enqueue_scripts - Load the scripts and css
+	 *    enqueue_styles_and_scripts - Load the scripts and css
 	 *
 	 * @access    public
 	 * @return    void
 	 */
-	public static function enqueue_scripts() {
-		//Check to see if the multi_event_registration css file exists in the '/uploads/espresso/' directory
-		if ( is_readable( EVENT_ESPRESSO_UPLOAD_DIR . 'css' . DS . 'multi_event_registration.css' ) ) {
-			//This is the url to the css file if available
-			wp_register_style( 'espresso_multi_event_registration', EVENT_ESPRESSO_UPLOAD_URL . 'css' . DS . 'multi_event_registration.css' );
-		} else {
-			// EE multi_event_registration style
-			wp_register_style( 'espresso_multi_event_registration', EE_MER_URL . 'css' . DS . 'multi_event_registration.css' );
-		}
+	public static function enqueue_styles_and_scripts() {
+
 		// multi_event_registration script
 		wp_register_script( 'espresso_core', EE_GLOBAL_ASSETS_URL . 'scripts' . DS . 'espresso_core.js', array( 'jquery' ), EVENT_ESPRESSO_VERSION, true );
-		wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
+
+		$page = EE_Registry::instance()->REQ->get_post_name_from_request();
+		$page = ! empty( $page ) && $page != '1' ? $page : '';
+		$page = empty( $page ) && isset( $_SERVER['REQUEST_URI'] ) ? basename( $_SERVER[ 'REQUEST_URI' ] ) : $page;
+		switch ( $page ) {
+
+			// event list
+			case basename( EE_EVENTS_LIST_URL ) :
+		// event cart / registration checkout
+			case basename( EE_EVENT_QUEUE_BASE_URL ) :
+			// styles
+				wp_register_style(
+					'espresso_multi_event_registration',
+					apply_filters(
+						'FHEE__EED_Multi_Event_Registration__enqueue_scripts__event_cart_css',
+						EE_MER_URL . 'css' . DS . 'multi_event_registration.css'
+					)
+				);
+				wp_enqueue_style( 'espresso_multi_event_registration' );
+				// scripts
+				wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
+				wp_enqueue_script( 'espresso_multi_event_registration' );
+
+		}
 		// load JS
-		wp_enqueue_style( 'espresso_multi_event_registration' );
-		wp_enqueue_script( 'espresso_multi_event_registration' );
 		wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 	}
 
@@ -239,27 +269,25 @@ class EED_Multi_Event_Registration extends EED_Module {
 	// *******************************************************************************************************
 	// *******************************************   EVENT LISTING   *******************************************
 	// *******************************************************************************************************
-
-
-
 	/**
 	 * filter_ticket_selector_submit_button
 	 * changes the default "Register Now" text based on event's inclusion in the cart
 	 *
-	 * @access 	public
-	 * @param 	string    $btn_text
-	 * @param 	EE_Event $event
-	 * @return 	string
+	 * @access    public
+	 * @param    string $btn_text
+	 * @param    EE_Event $event
+	 * @param bool $tickets_in_cart
+	 * @return string
 	 */
-	public static function filter_ticket_selector_submit_button( $btn_text = '', $event = null ) {
+	public static function filter_ticket_selector_submit_button( $btn_text = '', $event = null, $tickets_in_cart = false ) {
 		// verify event
-		if ( ! $event instanceof EE_Event ) {
+		if ( ! $event instanceof EE_Event && ! $tickets_in_cart ) {
 			if ( WP_DEBUG ) {
 				EE_Error::add_error( __( 'An invalid event object was received.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			}
 			return $btn_text;
 		}
-		if ( EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
+		if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
 			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
 		} else {
 			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
@@ -323,10 +351,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @access    public
 	 * @param string $html
 	 * @param    EE_Event $event
+	 * @param bool $tickets_in_cart
 	 * @return string
 	 */
-	public static function filter_ticket_selector_form_html( $html = '', $event = null ) {
-		if ( EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
+	public static function filter_ticket_selector_form_html( $html = '', $event = null, $tickets_in_cart = false ) {
+		if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
 			$html .= '<input type="hidden" value="view" name="event_cart">';
 		}
 		return $html;
@@ -392,6 +421,47 @@ class EED_Multi_Event_Registration extends EED_Module {
 			wp_safe_redirect( add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) );
 			exit();
 		}
+		exit();
+	}
+
+
+
+	/**
+	 *    process_ticket_selections
+	 *
+	 * @access 	public
+	 * @return 	void
+	 */
+	public static function process_ticket_selections() {
+		$response = array( 'tickets_added' => false );
+		if ( EED_Ticket_Selector::instance()->process_ticket_selections() ) {
+			$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ) );
+			$tickets = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, 0 ) );
+			$response = array(
+				'tickets_added' => true,
+				'btn_id' => "#ticket-selector-submit-$EVT_ID-btn",
+				'btn_txt' => EED_Multi_Event_Registration::filter_ticket_selector_submit_button( '', null, true ),
+				'form_html' => EED_Multi_Event_Registration::filter_ticket_selector_form_html( '', null, true ),
+				'ee_mini_cart_details' => EED_Multi_Event_Registration::get_mini_cart(),
+			);
+			EE_Error::add_success(
+				_n(
+					__( '1 ticket was successfully added for this event.' ),
+					sprintf( __( '%1$s tickets were successfully added for this event.' ), $tickets ),
+					$tickets
+				),
+				__FILE__, __FUNCTION__, __LINE__
+			);
+		}
+		// just send the ajax
+		echo json_encode(
+			array_merge(
+				EE_Error::get_notices( false ),
+				$response
+			)
+		);
+		// to be... or...
+		die();
 	}
 
 
@@ -412,7 +482,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$this->init();
 		// load classes
 		EED_Multi_Event_Registration::load_classes();
-		$this->enqueue_scripts();
 		EE_Registry::instance()->load_helper( 'Template' );
 		//EE_Registry::instance()->CART->recalculate_all_cart_totals();
 		$grand_total = EE_Registry::instance()->CART->get_grand_total();
@@ -978,7 +1047,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 				array_merge(
 					EE_Error::get_notices( false ),
 					array(
-						'new_html' => $new_html
+						'new_html' => $new_html,
+						'ee_mini_cart_details' => EED_Multi_Event_Registration::get_mini_cart(),
 					)
 				)
 			);
@@ -1214,6 +1284,29 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$transaction->_add_relation_to( $registration, 'Registration' );
 			}
 		}
+	}
+
+
+
+	/**
+	 *    get_mini_cart
+	 *
+	 * @access    public
+	 * @return    string
+	 */
+	public static function get_mini_cart() {
+		global $wp_widget_factory;
+		$mini_cart = $wp_widget_factory->widgets[ 'EEW_Mini_Cart' ];
+		if ( $mini_cart instanceof EEW_Mini_Cart ) {
+			$options = get_option( $mini_cart->option_name );
+			if ( isset( $options[ $mini_cart->number ], $options[ $mini_cart->number ][ 'template' ] ) ) {
+				$template = $options[ $mini_cart->number ][ 'template' ];
+			} else {
+				$template = '';
+			}
+			return $mini_cart->get_mini_cart( $template );
+		}
+		return '';
 	}
 
 
