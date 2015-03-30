@@ -8,7 +8,7 @@
 /** @type string $event_cart */
 /** @type string $view_event_cart_url */
 /** @type string $events_list_url */
-/** @type int $total_items */
+/** @type string $mini_cart_display */
 
 echo $before_widget;
 echo $before_title . $title . $after_title;
@@ -33,16 +33,14 @@ echo $before_title . $title . $after_title;
 				</tr>
 				</thead>
 
-				<tbody>
+				<tbody id="ee-mini-cart-details">
 				<?php echo $event_cart; ?>
 				</tbody>
 
 			</table>
 		</div>
 
-		<div id="mini-cart-whats-next-buttons" class="mini-cart-whats-next-buttons">
-
-		<?php if ( $total_items ) { ?>
+		<div id="mini-cart-whats-next-buttons" class="mini-cart-whats-next-buttons"<?php echo $mini_cart_display; ?>>
 
 			<span class="tiny-text">
 				<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href="<?php echo $view_event_cart_url; ?>">
@@ -56,8 +54,6 @@ echo $before_title . $title . $after_title;
 					<span class="dashicons dashicons-arrow-right-alt2"></span>
 				</a>
 			</span>
-
-		<?php } // if ( $total_items ) ?>
 
 		</div>
 
