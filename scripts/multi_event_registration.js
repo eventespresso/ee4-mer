@@ -4,7 +4,7 @@ jQuery( document ).ready( function( $ ) {
 	/**
 	 * @namespace MER
 	 * @type {{
-		 *     container: object,
+		 *     event_cart : object,
 		 *     form_input: object,
 		 *     form_data: object,
 		 *     display_debug: number,
@@ -18,14 +18,19 @@ jQuery( document ).ready( function( $ ) {
 		 *     errors: string,
 		 *     attention: string,
 		 *     success: string,
-		 *     new_html: object
+		 *     new_html: object,
+		 *     tickets_added: boolean,
+		 *     btn_id: string,
+		 *     btn_txt: string,
+		 *     form_html: string,
+		 *     ee_mini_cart_details: string,
 		 * }}
 	 */
 
 
 	MER = {
 		// main event cart container
-		container : {},
+		event_cart  : {},
 		// event cart text input field
 		form_input : {},
 		// array of form data
@@ -40,26 +45,26 @@ jQuery( document ).ready( function( $ ) {
 		 * @function initialize
 		 */
 		initialize : function() {
-			var container = $( '#event-cart' );
-			if ( container.length ) {
-				MER.container = container;
+			var event_cart  = $( '#event-cart' );
+			if ( event_cart .length ) {
+				MER.event_cart  = event_cart ;
 				MER.set_listener_for_add_ticket_button();
 				MER.set_listener_for_remove_ticket_button();
 				MER.set_listener_for_delete_ticket_button();
 				MER.set_listener_for_update_event_cart_button();
 				MER.set_listener_for_empty_event_cart_link();
+			} else {
+				MER.set_listener_for_ticket_selector_submit_btn();
 			}
 		},
 
 
 
-		/**
+	/**
 		 *  @function set_listener_for_add_ticket_button
 		 */
 		set_listener_for_add_ticket_button : function() {
-			MER.container.on( 'click', '.event-cart-add-ticket-button', function( event ) {
-				event.preventDefault();
-				event.stopPropagation();
+			MER.event_cart.on( 'click', '.event-cart-add-ticket-button', function( event ) {
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
@@ -68,6 +73,8 @@ jQuery( document ).ready( function( $ ) {
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
 				}
+				event.preventDefault();
+				event.stopPropagation();
 			});
 		},
 
@@ -77,9 +84,7 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_remove_ticket_button
 		 */
 		set_listener_for_remove_ticket_button : function() {
-			MER.container.on( 'click', '.event-cart-remove-ticket-button', function( event ) {
-				event.preventDefault();
-				event.stopPropagation();
+			MER.event_cart.on( 'click', '.event-cart-remove-ticket-button', function( event ) {
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
@@ -88,6 +93,8 @@ jQuery( document ).ready( function( $ ) {
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
 				}
+				event.preventDefault();
+				event.stopPropagation();
 			});
 		},
 
@@ -97,9 +104,7 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_delete_ticket_button
 		 */
 		set_listener_for_delete_ticket_button : function() {
-			MER.container.on( 'click', '.event-cart-delete-ticket-button', function( event ) {
-				event.preventDefault();
-				event.stopPropagation();
+			MER.event_cart.on( 'click', '.event-cart-delete-ticket-button', function( event ) {
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
@@ -107,8 +112,9 @@ jQuery( document ).ready( function( $ ) {
 					MER.form_data.ticket = typeof( urlParams.ticket ) !== 'undefined' ? urlParams.ticket : '';
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
-					event.stopPropagation();
 				}
+				event.preventDefault();
+				event.stopPropagation();
 			});
 		},
 
@@ -118,17 +124,17 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_update_event_cart_link
 		 */
 		set_listener_for_update_event_cart_button : function() {
-			MER.container.on( 'click', '.event-cart-update-cart-lnk', function( event ) {
-				event.preventDefault();
-				event.stopPropagation();
+			MER.event_cart.on( 'click', '.event-cart-update-cart-lnk', function( event ) {
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
-					var serialized_form_data = $( MER.container ).find( 'form' ).serializeArray();
-					MER.form_data = MER.convert_to_JSON( serialized_form_data );
-					//console.log( MER.form_data );
+					//var serialized_form_data = $( MER.event_cart  ).find( 'form' ).serializeArray();
+					//MER.form_data = MER.convert_to_JSON( serialized_form_data );
+					MER.form_data = MER.get_form_data( MER.event_cart, true );
+					console.log( MER.form_data );
 					MER.form_data.action = 'espresso_update_event_cart';
 					MER.submit_ajax_request();
-					event.stopPropagation();
 				}
+				event.preventDefault();
+				event.stopPropagation();
 			});
 		},
 
@@ -138,13 +144,30 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_empty_event_cart_link
 		 */
 		set_listener_for_empty_event_cart_link : function() {
-			MER.container.on( 'click', '.event-cart-empty-cart-lnk', function( event ) {
-				event.preventDefault();
-				event.stopPropagation();
+			MER.event_cart.on( 'click', '.event-cart-empty-cart-lnk', function( event ) {
 				if ( ! $( this ).hasClass( 'disabled' ) ) {
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_empty_event_cart';
 					MER.submit_ajax_request();
+				}
+				event.preventDefault();
+				event.stopPropagation();
+			} );
+		},
+
+
+
+		/**
+		 *  @function set_listener_for_ticket_selector_submit_btn
+		 */
+		set_listener_for_ticket_selector_submit_btn : function() {
+			$( 'body' ).on( 'click', '.ticket-selector-submit-btn', function( event ) {
+				MER.form_data = MER.get_form_data( $( this ), false );
+				//console.log( MER.form_data );
+				if ( ! ( typeof MER.form_data.event_cart !== 'undefined' && MER.form_data.event_cart === 'view'  )) {
+					MER.form_data.action = 'espresso_' + MER.form_data.ee;
+					MER.submit_ajax_request();
+					event.preventDefault();
 					event.stopPropagation();
 				}
 			} );
@@ -220,19 +243,67 @@ jQuery( document ).ready( function( $ ) {
 		 * @param  {object} response
 		 */
 		process_response : function( response ) {
-			//console.log( response );
-			if ( typeof response === 'object' && typeof response.new_html !== 'undefined' ) {
-				// loop thru tracked errors
-				$.each( response.new_html, function( index, html ) {
-					//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
-					if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
-						var event_cart_element = $( MER.container ).find( index );
-						if ( event_cart_element.length ) {
-							event_cart_element.replaceWith( html )
-							//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
+			console.log( response );
+			if ( typeof response === 'object' ) {
+				if ( typeof response.new_html !== 'undefined' ) {
+					// loop thru tracked errors
+					$.each( response.new_html, function( index, html ) {
+						//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
+						if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
+							var event_cart_element = $( MER.event_cart  ).find( index );
+							if ( event_cart_element.length ) {
+								event_cart_element.replaceWith( html );
+								//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
+							}
+						}
+					} );
+				}
+				if ( typeof response.tickets_added !== 'undefined' && response.tickets_added === true ) {
+					var btn_id = typeof response.btn_id !== 'undefined' ? response.btn_id : '';
+					var btn_txt = typeof response.btn_txt !== 'undefined' ? response.btn_txt : '';
+					var form_html = typeof response.form_html !== 'undefined' ? response.form_html : '';
+					var submit_button = $( btn_id );
+					if ( submit_button.length && btn_txt !== '' ) {
+						submit_button.val( btn_txt );
+						var ticket_form = submit_button.parents( 'form:first' );
+						if ( ticket_form.length && form_html !== '' ) {
+							ticket_form.append( form_html );
 						}
 					}
-				} );
+					$('.ticket-selector-tbl-qty-slct' ).each( function() {
+						$( this ).val( 0 );
+					} );
+				}
+				if ( typeof response.ee_mini_cart_details !== 'undefined' && response.ee_mini_cart_details !== '' ) {
+					var mini_cart = $( '#ee-mini-cart-details' );
+					console.log( mini_cart );
+					if ( mini_cart.length ) {
+						mini_cart.html( response.ee_mini_cart_details );
+						$('#mini-cart-whats-next-buttons' ).fadeIn();
+					}
+				}
+			}
+		},
+
+
+
+		/**
+		 *  @function get_form_data
+		 * @param  {object} form_container
+		 * @param  {bool} form_within - whether the form should be looked for above or within the indicated DOM element
+		 */
+		get_form_data : function( form_container, form_within ) {
+			if ( form_container.length ) {
+				form_within = typeof form_within === 'boolean' ? form_within : false;
+				var serialized_form_data;
+				if ( form_within ) {
+					serialized_form_data = form_container.find( 'form' ).serializeArray();
+				} else {
+					serialized_form_data = form_container.parents( 'form:first' ).serializeArray();
+				}
+				return MER.convert_to_JSON( serialized_form_data );
+			} else {
+				return {};
 			}
 		},
 
