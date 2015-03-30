@@ -46,13 +46,13 @@ echo $before_title . $title . $after_title;
 
 			<span class="tiny-text">
 				<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href="<?php echo $view_event_cart_url; ?>">
-					<span class="dashicons dashicons-cart"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txn', sprintf( __( 'view %s', 'event_espresso' ), $event_cart_name ) ); ?>
+					<span class="dashicons dashicons-cart"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'view %s', 'event_espresso' ), $event_cart_name ) ); ?>
 				</a>
 			</span>
 			<br />
 			<span class="tiny-text">
 				<a class="mini-cart-register-button mini-cart-button button" href="<?php echo $register_url; ?>">
-					<?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__proceed_to_registration_btn_txn', __( 'Proceed to Registration', 'event_espresso' ) ); ?>
+					<?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__proceed_to_registration_btn_txt', __( 'Proceed to Registration', 'event_espresso' ) ); ?>
 					<span class="dashicons dashicons-arrow-right-alt2"></span>
 				</a>
 			</span>
