@@ -113,12 +113,12 @@ class EEW_Mini_Cart extends WP_Widget {
 	 */
 	function widget( $args, $instance ) {
 		// hide widget on checkout page
-		if (
-			EE_Registry::instance()->REQ->get_post_name_from_request() ==
-			basename( EE_Registry::instance()->CFG->core->reg_page_url() )
-		) {
-			return;
-		}
+		//if (
+			//EE_Registry::instance()->REQ->get_post_name_from_request() ==
+			//basename( EE_Registry::instance()->CFG->core->reg_page_url() )
+		//) {
+		//	return;
+		//}
 		// autoload Line_Item_Display classes
 		EE_Registry::instance()->load_core( 'Cart' );
 		EE_Registry::instance()->load_helper( 'Line_Item' );
