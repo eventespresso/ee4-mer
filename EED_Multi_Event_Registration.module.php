@@ -83,6 +83,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// redirect to event_cart
 		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ), 10 );
 		add_filter( 'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html', array( 'EED_Multi_Event_Registration', 'return_to_event_cart_button'	), 10 );
+		// toggling reg status
+		add_filter( 'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing', array(
+			'EED_Multi_Event_Registration',
+			'toggle_registration_status_if_no_monies_owing'
+		), 10, 2 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
@@ -130,6 +135,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'EED_Multi_Event_Registration',
 			'verify_tickets_in_cart'
 		), 10, 1 );
+		// toggling reg status
+		add_filter( 'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing', array(
+			'EED_Multi_Event_Registration',
+			'toggle_registration_status_if_no_monies_owing'
+		), 10, 2 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
@@ -1300,6 +1310,39 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return $mini_cart->get_mini_cart( $template );
 		}
 		return '';
+	}
+
+
+
+	/**
+	 *   toggle_registration_status_if_no_monies_owing
+	 * determine whether to toggle free tickets to "Approved" based on payment status (kinda sorta) of other tickets for
+	 * the same event. So if more than one ticket for the same event is in the cart, and one or more tickets are NOT
+	 * free, then free tickets will NOT be automatically toggled to "Approved"
+	 *
+	 * @access public
+	 * @param bool $toggle_registration_status
+	 * @param \EE_Registration $registration
+	 * @return bool
+	 */
+	public static function toggle_registration_status_if_no_monies_owing( $toggle_registration_status = false, EE_Registration $registration ) {
+		$reg_tickets = array();
+		if ( $registration instanceof EE_Registration && $registration->transaction() instanceof EE_Transaction ) {
+			// now we need to get an accurate count of registration tickets
+			foreach ( $registration->transaction()->registrations() as $reg ) {
+				if ( $reg instanceof EE_Registration ) {
+					if ( $reg->event() instanceof EE_Event && $reg->ticket() instanceof EE_Ticket ) {
+						$reg_tickets[ $reg->event()->ID() ][ $reg->ticket()->ID() ] = $reg->ticket()->is_free();
+					}
+				}
+			}
+		}
+		if ( $registration->event() instanceof EE_Event && isset( $reg_tickets[ $registration->event()->ID() ] ) ) {
+			foreach ( $reg_tickets[ $registration->event()->ID() ] as $free_ticket ) {
+				$toggle_registration_status = $free_ticket ? true : $toggle_registration_status;
+			}
+		}
+		return $toggle_registration_status;
 	}
 
 
