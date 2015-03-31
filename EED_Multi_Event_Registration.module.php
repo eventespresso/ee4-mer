@@ -1337,9 +1337,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 				}
 			}
 		}
-		if ( $registration->event() instanceof EE_Event && isset( $reg_tickets[ $registration->event()->ID() ] ) ) {
-			foreach ( $reg_tickets[ $registration->event()->ID() ] as $free_ticket ) {
-				$toggle_registration_status = $free_ticket ? true : $toggle_registration_status;
+		if ( $registration->ticket() instanceof EE_Ticket && $registration->ticket()->is_free() ) {
+			$toggle_registration_status = true;
+			if ( $registration->event() instanceof EE_Event && isset( $reg_tickets[ $registration->event()->ID() ] ) ) {
+				foreach ( $reg_tickets[ $registration->event()->ID() ] as $free_ticket ) {
+					$toggle_registration_status = $free_ticket ? $toggle_registration_status : false;
+				}
 			}
 		}
 		return $toggle_registration_status;
