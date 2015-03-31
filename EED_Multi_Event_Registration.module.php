@@ -436,7 +436,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$response = array( 'tickets_added' => false );
 		if ( EED_Ticket_Selector::instance()->process_ticket_selections() ) {
 			$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ) );
-			$tickets = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, 0 ) );
+			$tickets = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
+			$ticket_count = 0;
+			foreach ( $tickets as $quantity ) {
+				$ticket_count += $quantity;
+			}
 			$response = array(
 				'tickets_added' => true,
 				'btn_id' => "#ticket-selector-submit-$EVT_ID-btn",
@@ -447,8 +451,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			EE_Error::add_success(
 				_n(
 					__( '1 ticket was successfully added for this event.' ),
-					sprintf( __( '%1$s tickets were successfully added for this event.' ), $tickets ),
-					$tickets
+					sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
+					$ticket_count
 				),
 				__FILE__, __FUNCTION__, __LINE__
 			);
