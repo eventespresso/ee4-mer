@@ -219,35 +219,24 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return    void
 	 */
 	public static function enqueue_styles_and_scripts() {
-
-		// multi_event_registration script
+		// just in case core js isn't registered
 		wp_register_script( 'espresso_core', EE_GLOBAL_ASSETS_URL . 'scripts' . DS . 'espresso_core.js', array( 'jquery' ), EVENT_ESPRESSO_VERSION, true );
-
-		$page = EE_Registry::instance()->REQ->get_post_name_from_request();
-		$page = ! empty( $page ) && $page != '1' ? $page : '';
-		$page = empty( $page ) && isset( $_SERVER['REQUEST_URI'] ) ? basename( $_SERVER[ 'REQUEST_URI' ] ) : $page;
-		switch ( $page ) {
-
-			// event list
-			case basename( EE_EVENTS_LIST_URL ) :
-		// event cart / registration checkout
-			case basename( EE_EVENT_QUEUE_BASE_URL ) :
+		// only load on our pages plz
+		if ( EE_Registry::instance()->REQ->is_espresso_page() ) {
 			// styles
-				wp_register_style(
-					'espresso_multi_event_registration',
-					apply_filters(
-						'FHEE__EED_Multi_Event_Registration__enqueue_scripts__event_cart_css',
-						EE_MER_URL . 'css' . DS . 'multi_event_registration.css'
-					)
-				);
-				wp_enqueue_style( 'espresso_multi_event_registration' );
-				// scripts
-				wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
-				wp_enqueue_script( 'espresso_multi_event_registration' );
-
+			wp_register_style(
+				'espresso_multi_event_registration',
+				apply_filters(
+					'FHEE__EED_Multi_Event_Registration__enqueue_scripts__event_cart_css',
+					EE_MER_URL . 'css' . DS . 'multi_event_registration.css'
+				)
+			);
+			wp_enqueue_style( 'espresso_multi_event_registration' );
+			// scripts
+			wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
+			wp_enqueue_script( 'espresso_multi_event_registration' );
+			wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 		}
-		// load JS
-		wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 	}
 
 
