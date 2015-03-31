@@ -25,6 +25,13 @@ jQuery( document ).ready( function( $ ) {
 		 *     form_html: string,
 		 *     ee_mini_cart_details: string,
 		 * }}
+	 * @namespace form_data
+	 * @type {{
+		 *     action: string,
+		 *     ticket: string,
+		 *     line_item: string,
+		 *     ee: string,
+		 * }}
 	 */
 
 
@@ -56,6 +63,7 @@ jQuery( document ).ready( function( $ ) {
 			} else {
 				MER.set_listener_for_ticket_selector_submit_btn();
 			}
+			//alert( 'initialized' );
 		},
 
 
@@ -163,8 +171,35 @@ jQuery( document ).ready( function( $ ) {
 		set_listener_for_ticket_selector_submit_btn : function() {
 			$( 'body' ).on( 'click', '.ticket-selector-submit-btn', function( event ) {
 				MER.form_data = MER.get_form_data( $( this ), false );
-				//console.log( MER.form_data );
-				if ( ! ( typeof MER.form_data.event_cart !== 'undefined' && MER.form_data.event_cart === 'view'  )) {
+				var ticket_count = 0;
+				if ( typeof MER.form_data[ 'tkt-slctr-event-id' ] !== 'undefined' && MER.form_data[ 'tkt-slctr-event-id' ] !== ''  ) {
+					var tkt_slctr_qty = 'tkt-slctr-qty-' + MER.form_data[ 'tkt-slctr-event-id' ] + '[]';
+					//console.log( tkt_slctr_qty );
+					//console.log( MER.form_data[ tkt_slctr_qty ] );
+					if ( typeof MER.form_data[ tkt_slctr_qty ] !== 'undefined' && MER.form_data[ tkt_slctr_qty ] !== '' ) {
+						var ticket_quantities =MER.form_data[ tkt_slctr_qty ];
+						//console.log( 'ticket_quantities' );
+						//console.log( ticket_quantities );
+						if ( typeof ticket_quantities === 'object' ) {
+							$.each( ticket_quantities, function( index, ticket_quantity ) {
+								//console.log( 'ticket_quantity' );
+								//console.log( ticket_quantity );
+								ticket_count = ticket_count + parseInt( ticket_quantity );
+								//alert( 'ticket_quantity = ' + parseInt( ticket_quantity ) );
+							} );
+						} else {
+							ticket_count = parseInt( ticket_quantities );
+						}
+					}
+				}
+				ticket_count = parseInt( ticket_count );
+				//console.log( JSON.stringify( 'ticket_count: ' + ticket_count, null, 4 ) );
+				//console.log( JSON.stringify( 'typeof ticket_count: ' + ( typeof ticket_count ), null, 4 ) );
+				//console.log( JSON.stringify( 'MER.form_data.event_cart: ' + MER.form_data.event_cart, null, 4 ) );
+				var view_cart = typeof MER.form_data.event_cart !== 'undefined' && MER.form_data.event_cart === 'view';
+				//console.log( JSON.stringify( 'view_cart: ' + view_cart, null, 4 ) );
+				//alert( 'MER.form_data.event_cart = ' + MER.form_data.event_cart + '\n' + 'ticket_count = ' + ticket_count );
+				if   ( ticket_count !== 0 || ( ticket_count === 0 && ! view_cart ) ) {
 					MER.form_data.action = 'espresso_' + MER.form_data.ee;
 					MER.submit_ajax_request();
 					event.preventDefault();
@@ -264,10 +299,13 @@ jQuery( document ).ready( function( $ ) {
 					var form_html = typeof response.form_html !== 'undefined' ? response.form_html : '';
 					var submit_button = $( btn_id );
 					if ( submit_button.length && btn_txt !== '' ) {
-						submit_button.val( btn_txt );
-						var ticket_form = submit_button.parents( 'form:first' );
-						if ( ticket_form.length && form_html !== '' ) {
-							ticket_form.append( form_html );
+						if ( submit_button.val() !== btn_txt ) {
+							submit_button.val( btn_txt );
+							var ticket_form = submit_button.parents( 'form:first' );
+							if ( ticket_form.length && form_html !== '' ) {
+								ticket_form.append( form_html );
+								//console.log( JSON.stringify( 'form_html: ' + form_html, null, 4 ) );
+							}
 						}
 					}
 					$('.ticket-selector-tbl-qty-slct' ).each( function() {
@@ -276,7 +314,7 @@ jQuery( document ).ready( function( $ ) {
 				}
 				if ( typeof response.ee_mini_cart_details !== 'undefined' && response.ee_mini_cart_details !== '' ) {
 					var mini_cart = $( '#ee-mini-cart-details' );
-					console.log( mini_cart );
+					//console.log( mini_cart );
 					if ( mini_cart.length ) {
 						mini_cart.html( response.ee_mini_cart_details );
 						$('#mini-cart-whats-next-buttons' ).fadeIn();
