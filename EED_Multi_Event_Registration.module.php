@@ -492,16 +492,24 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$close_modal = '';
 		}
 		$template_args = array(
-			'results' => _n(
-				__( '1 ticket was successfully added for this event.' ),
-				sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
+			'results' => apply_filters(
+				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
+				_n(
+					__( '1 ticket was successfully added for this event.' ),
+					sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
+					$ticket_count
+				),
 				$ticket_count
 			),
-			'current_cart' => _n(
-			sprintf( __( 'There is currently 1 ticket in the %1$s.' ), EED_Multi_Event_Registration::event_cart_name() ),
-			sprintf( __( 'There are currently %1$d ticket in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
-			$total_tickets
-		),
+			'current_cart' => apply_filters(
+				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
+				_n(
+					sprintf( __( 'There is currently 1 ticket in the %1$s.' ), EED_Multi_Event_Registration::event_cart_name() ),
+					sprintf( __( 'There are currently %1$d ticket in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
+					$total_tickets
+				),
+				$total_tickets
+			),
 			'event_cart_name' => EED_Multi_Event_Registration::event_cart_name(),
 			'events_list_url' => EE_EVENTS_LIST_URL,
 			'register_url' => EE_EVENT_QUEUE_BASE_URL,
