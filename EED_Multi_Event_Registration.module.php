@@ -506,7 +506,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'events_list_url' => EE_EVENTS_LIST_URL,
 			'register_url' => EE_EVENT_QUEUE_BASE_URL,
 			'view_event_cart_url' => add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ),
-			'close_modal' => $close_modal
+			'close_modal' => $close_modal,
+			'btn_class' => apply_filters( 'FHEE__EED_Multi_Event_Registration__event_cart_template__btn_class', '' ),
 		);
 		return EEH_Template::display_template( EE_MER_PATH . 'templates' . DS . 'cart_results_modal_dialog.template.php', $template_args, true );
 	}
@@ -585,6 +586,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
 		$template_args[ 'update_cart_url' ] = add_query_arg( array( 'event_cart' => 'update_cart_url' ), EE_EVENT_QUEUE_BASE_URL );
 		$template_args[ 'empty_cart_url' ] = add_query_arg( array( 'event_cart' => 'empty' ), EE_EVENT_QUEUE_BASE_URL );
+		$template_args[ 'btn_class' ] = apply_filters( 'FHEE__EED_Multi_Event_Registration__event_cart_template__btn_class', '' );
 		EE_Registry::instance()->REQ->add_output( EEH_Template::display_template( EE_MER_PATH . 'templates' . DS . 'event_cart.template.php', $template_args, true ) );
 	}
 
