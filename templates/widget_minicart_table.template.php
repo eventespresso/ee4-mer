@@ -6,6 +6,7 @@
 /** @type string $title */
 /** @type string $register_url */
 /** @type string $event_cart */
+/** @type string $event_cart_name */
 /** @type string $view_event_cart_url */
 /** @type string $events_list_url */
 /** @type string $mini_cart_display */
