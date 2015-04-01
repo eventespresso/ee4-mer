@@ -107,3 +107,6 @@
 #cart-results-view-cart-dv {
 	text-align: right;
 }
+.cart-results-button-spn + .cart-results-button-spn {
+	margin-left: 2em;
+}
