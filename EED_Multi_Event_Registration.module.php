@@ -372,7 +372,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__filter_ticket_selector_redirect_url__redirect_to_cart', false ) ) {
 			return add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
 		} else {
-			return EE_EVENTS_LIST_URL;
+			$referer_uri = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : '';
+			if ( $referer_uri === EE_EVENTS_LIST_URL ) {
+				return EE_EVENTS_LIST_URL;
+			}
+			$request_uri = isset( $_SERVER[ 'REQUEST_URI' ] ) ? $_SERVER[ 'REQUEST_URI' ] : '';
+			if ( basename( $request_uri ) != basename( EE_EVENTS_LIST_URL ) ) {
+				return EE_EVENTS_LIST_URL . basename( $request_uri );
+			} else {
+				return EE_EVENTS_LIST_URL;
+			}
 		}
 	}
 
