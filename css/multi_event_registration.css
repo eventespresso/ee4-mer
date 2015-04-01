@@ -107,6 +107,9 @@
 #cart-results-view-cart-dv {
 	text-align: right;
 }
+.mini-cart-button {
+	margin: 1em;
+}
 .cart-results-button-spn + .cart-results-button-spn {
-	margin-left: 2em;
+	/*margin-left: 2em;*/
 }
