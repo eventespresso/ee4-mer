@@ -306,7 +306,7 @@ jQuery( document ).ready( function( $ ) {
 							var event_cart_element = $( MER.event_cart  ).find( index );
 							if ( event_cart_element.length ) {
 								event_cart_element.replaceWith( html );
-								$('#espresso-notices').eeScrollTo( 200 );
+								$( MER.event_cart ).eeScrollTo( 200 );
 								//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
 							}
 						}
