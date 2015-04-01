@@ -139,7 +139,7 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args[ 'events_list_url' ] = EE_EVENTS_LIST_URL;
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
 		$template_args[ 'view_event_cart_url' ] = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
-		//EEH_Debug_Tools::printr( EE_Registry::instance()->CART->all_ticket_quantity_count(), 'EE_Registry::instance()->CART->all_ticket_quantity_count()', __FILE__, __LINE__ );
+		$template_args[ 'btn_class' ] = apply_filters( 'FHEE__EEW_Mini_Cart__event_cart_template__btn_class', '' );
 		$template_args[ 'mini_cart_display' ] = EE_Registry::instance()->CART->all_ticket_quantity_count() > 0 ? '' 	: ' 	style="display:none;"';
 		$template_args[ 'event_cart' ] = $this->get_mini_cart( $instance[ 'template' ] );
 		// ugh... inline css... well... better than loading another stylesheet on every page
