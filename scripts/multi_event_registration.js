@@ -23,7 +23,7 @@ jQuery( document ).ready( function( $ ) {
 		 *     btn_id: string,
 		 *     btn_txt: string,
 		 *     form_html: string,
-		 *     ee_mini_cart_details: string,
+		 *     mini_cart: string,
 		 * }}
 	 * @namespace form_data
 	 * @type {{
@@ -31,11 +31,13 @@ jQuery( document ).ready( function( $ ) {
 		 *     ticket: string,
 		 *     line_item: string,
 		 *     ee: string,
+		 *     cart_results: string,
 		 * }}
 	 */
 
 
 	MER = {
+
 		// main event cart container
 		event_cart  : {},
 		// event cart text input field
@@ -44,9 +46,8 @@ jQuery( document ).ready( function( $ ) {
 		form_data : {},
 		// display debugging info in console?
 		display_debug : eei18n.wp_debug,
+
 		/********** INITIAL SETUP **********/
-
-
 
 		/**
 		 * @function initialize
@@ -62,6 +63,7 @@ jQuery( document ).ready( function( $ ) {
 				MER.set_listener_for_empty_event_cart_link();
 			} else {
 				MER.set_listener_for_ticket_selector_submit_btn();
+				MER.set_listener_for_close_modal_btn();
 			}
 			//alert( 'initialized' );
 		},
@@ -211,6 +213,22 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
+		 *  @function set_listener_for_close_modal_btn
+		 */
+		set_listener_for_close_modal_btn : function() {
+			$( 'body' ).on( 'click', '.close-modal-js', function( event ) {
+				var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
+				if ( cart_results_wrapper.length ) {
+					cart_results_wrapper.eeRemoveOverlay().hide();
+					event.preventDefault();
+					event.stopPropagation();
+				}
+			} );
+		},
+
+
+
+		/**
 		 *  @function submit_promo_code
 		 */
 		submit_ajax_request : function() {
@@ -278,7 +296,7 @@ jQuery( document ).ready( function( $ ) {
 		 * @param  {object} response
 		 */
 		process_response : function( response ) {
-			console.log( response );
+			//console.log( response );
 			if ( typeof response === 'object' ) {
 				if ( typeof response.new_html !== 'undefined' ) {
 					// loop thru tracked errors
@@ -288,6 +306,7 @@ jQuery( document ).ready( function( $ ) {
 							var event_cart_element = $( MER.event_cart  ).find( index );
 							if ( event_cart_element.length ) {
 								event_cart_element.replaceWith( html );
+								$('#espresso-notices').eeScrollTo( 200 );
 								//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
 							}
 						}
@@ -312,12 +331,19 @@ jQuery( document ).ready( function( $ ) {
 						$( this ).val( 0 );
 					} );
 				}
-				if ( typeof response.ee_mini_cart_details !== 'undefined' && response.ee_mini_cart_details !== '' ) {
+				if ( typeof response.mini_cart !== 'undefined' && response.mini_cart !== '' ) {
 					var mini_cart = $( '#ee-mini-cart-details' );
 					//console.log( mini_cart );
 					if ( mini_cart.length ) {
-						mini_cart.html( response.ee_mini_cart_details );
+						mini_cart.html( response.mini_cart );
 						$('#mini-cart-whats-next-buttons' ).fadeIn();
+					}
+				}
+				if ( typeof response.cart_results !== 'undefined' && response.cart_results !== '' ) {
+					var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
+					//console.log( mini_cart );
+					if ( cart_results_wrapper.length ) {
+						cart_results_wrapper.html( response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
 					}
 				}
 			}
