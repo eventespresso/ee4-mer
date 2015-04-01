@@ -88,6 +88,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'EED_Multi_Event_Registration',
 			'toggle_registration_status_if_no_monies_owing'
 		), 10, 2 );
+		// display errors
+		add_action( 'wp_footer', array( 'EED_Multi_Event_Registration', 'cart_results_modal_div' ), 1 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
@@ -450,19 +452,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$ticket_count += $quantity;
 			}
 			$response = array(
-				'tickets_added' => true,
-				'btn_id' => "#ticket-selector-submit-$EVT_ID-btn",
-				'btn_txt' => EED_Multi_Event_Registration::filter_ticket_selector_submit_button( '', null, true ),
-				'form_html' => EED_Multi_Event_Registration::filter_ticket_selector_form_html( '', null, true ),
-				'ee_mini_cart_details' => EED_Multi_Event_Registration::get_mini_cart(),
-			);
-			EE_Error::add_success(
-				_n(
-					__( '1 ticket was successfully added for this event.' ),
-					sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
-					$ticket_count
-				),
-				__FILE__, __FUNCTION__, __LINE__
+				'tickets_added' 	=> true,
+				'ticket_count' 		=> $ticket_count,
+				'btn_id' 				=> "#ticket-selector-submit-$EVT_ID-btn",
+				'btn_txt' 				=> EED_Multi_Event_Registration::filter_ticket_selector_submit_button( '', null, true ),
+				'form_html' 		=> EED_Multi_Event_Registration::filter_ticket_selector_form_html( '', null, true ),
+				'mini_cart' 			=> EED_Multi_Event_Registration::get_mini_cart(),
+				'cart_results' 		=> EED_Multi_Event_Registration::get_cart_results( $ticket_count )
 			);
 		}
 		// just send the ajax
@@ -474,6 +470,81 @@ class EED_Multi_Event_Registration extends EED_Module {
 		);
 		// to be... or...
 		die();
+	}
+
+
+
+	/**
+	 *    get_cart_results
+	 *
+	 * @access    public
+	 * @param int $ticket_count
+	 * @return string
+	 */
+	public static function get_cart_results( $ticket_count = 0 ) {
+		// total tickets in cart
+		$total_tickets = EE_Registry::instance()->CART->all_ticket_quantity_count();
+		// what page the user is currently on
+		$referer_uri = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : '';
+		if ( basename( $referer_uri ) == basename( EE_EVENTS_LIST_URL ) ) {
+			$close_modal = ' close-modal-js';
+		} else {
+			$close_modal = '';
+		}
+		$template_args = array(
+			'results' => _n(
+				__( '1 ticket was successfully added for this event.' ),
+				sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
+				$ticket_count
+			),
+			'current_cart' => _n(
+			sprintf( __( 'There is currently 1 ticket in the %1$s.' ), EED_Multi_Event_Registration::event_cart_name() ),
+			sprintf( __( 'There are currently %1$d ticket in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
+			$total_tickets
+		),
+			'event_cart_name' => EED_Multi_Event_Registration::event_cart_name(),
+			'events_list_url' => EE_EVENTS_LIST_URL,
+			'register_url' => EE_EVENT_QUEUE_BASE_URL,
+			'view_event_cart_url' => add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ),
+			'close_modal' => $close_modal
+		);
+		return EEH_Template::display_template( EE_MER_PATH . 'templates' . DS . 'cart_results_modal_dialog.template.php', $template_args, true );
+	}
+
+
+
+	/**
+	 *    cart_results_modal_div
+	 *
+	 * @access    public
+	 * @return    void
+	 */
+	public static function cart_results_modal_div() {
+		echo '<div id="cart-results-modal-wrap-dv" style="display: none;"></div>';
+	}
+
+
+
+	/**
+	 *    get_mini_cart
+	 *
+	 * @access    public
+	 * @return    string
+	 */
+	public static function get_mini_cart() {
+		global /** @type WP_Widget_Factory $wp_widget_factory */
+		$wp_widget_factory;
+		$mini_cart = $wp_widget_factory->widgets[ 'EEW_Mini_Cart' ];
+		if ( $mini_cart instanceof EEW_Mini_Cart ) {
+			$options = get_option( $mini_cart->option_name );
+			if ( isset( $options[ $mini_cart->number ], $options[ $mini_cart->number ][ 'template' ] ) ) {
+				$template = $options[ $mini_cart->number ][ 'template' ];
+			} else {
+				$template = '';
+			}
+			return $mini_cart->get_mini_cart( $template );
+		}
+		return '';
 	}
 
 
@@ -1059,8 +1130,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 				array_merge(
 					EE_Error::get_notices( false ),
 					array(
-						'new_html' => $new_html,
-						'ee_mini_cart_details' => EED_Multi_Event_Registration::get_mini_cart(),
+						'new_html' 	=> $new_html,
+						'mini_cart' 	=> EED_Multi_Event_Registration::get_mini_cart(),
 					)
 				)
 			);
@@ -1296,29 +1367,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$transaction->_add_relation_to( $registration, 'Registration' );
 			}
 		}
-	}
-
-
-
-	/**
-	 *    get_mini_cart
-	 *
-	 * @access    public
-	 * @return    string
-	 */
-	public static function get_mini_cart() {
-		global $wp_widget_factory;
-		$mini_cart = $wp_widget_factory->widgets[ 'EEW_Mini_Cart' ];
-		if ( $mini_cart instanceof EEW_Mini_Cart ) {
-			$options = get_option( $mini_cart->option_name );
-			if ( isset( $options[ $mini_cart->number ], $options[ $mini_cart->number ][ 'template' ] ) ) {
-				$template = $options[ $mini_cart->number ][ 'template' ];
-			} else {
-				$template = '';
-			}
-			return $mini_cart->get_mini_cart( $template );
-		}
-		return '';
 	}
 
 
