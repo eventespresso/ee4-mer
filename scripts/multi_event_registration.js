@@ -171,7 +171,7 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_ticket_selector_submit_btn
 		 */
 		set_listener_for_ticket_selector_submit_btn : function() {
-			$( 'body' ).on( 'click', '.ticket-selector-submit-btn', function( event ) {
+			$( 'body' ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
 				MER.form_data = MER.get_form_data( $( this ), false );
 				var ticket_count = 0;
 				if ( typeof MER.form_data[ 'tkt-slctr-event-id' ] !== 'undefined' && MER.form_data[ 'tkt-slctr-event-id' ] !== ''  ) {
