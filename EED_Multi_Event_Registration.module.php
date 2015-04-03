@@ -511,7 +511,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				_n(
 					sprintf( __( 'There is currently 1 ticket in the %1$s.' ), EED_Multi_Event_Registration::event_cart_name() ),
-					sprintf( __( 'There are currently %1$d ticket in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
+					sprintf( __( 'There are currently %1$d tickets in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
 					$total_tickets
 				),
 				$total_tickets
