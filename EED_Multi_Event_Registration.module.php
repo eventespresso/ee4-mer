@@ -156,7 +156,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public static function set_definitions() {
 		// base url for the site's registration page - additional url params will be added to this
 		define( 'EE_EVENT_QUEUE_BASE_URL', EE_Registry::instance()->CFG->core->reg_page_url() );
-		define( 'EE_EVENTS_LIST_URL', get_post_type_archive_link( 'espresso_events' ) );
+		define(
+			'EE_EVENTS_LIST_URL',
+			apply_filters(
+				'FHEE__EED_Multi_Event_Registration__set_definitions__events_list_url',
+				get_post_type_archive_link( 'espresso_events' )
+			)
+		);
 		EED_Multi_Event_Registration::$_event_cart_name = apply_filters(
 			'FHEE__EED_Multi_Event_Registration__set_definitions__event_cart_name',
 			__( 'Event Cart', 'event_espresso' )
