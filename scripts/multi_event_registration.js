@@ -328,7 +328,10 @@ jQuery( document ).ready( function( $ ) {
 						}
 					}
 					$('.ticket-selector-tbl-qty-slct' ).each( function() {
-						$( this ).val( 0 );
+						//console.log( JSON.stringify( 'ticket-selector-tbl-qty-slct id: ' + $( this ).attr( 'id' ), null, 4 ) );
+						if ( $( this ).find( 'option[value="0"]' ).length > 0 ) {
+							$( this ).val( 0 );
+						}
 					} );
 				}
 				if ( typeof response.mini_cart !== 'undefined' && response.mini_cart !== '' ) {
