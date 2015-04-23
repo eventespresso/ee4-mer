@@ -15,9 +15,7 @@
 	</div>
 	<div id="cart-results-whats-next-buttons-dv">
 		<span class="cart-results-button-spn">
-			<a class="cart-results-go-back-button cart-results-button button<?php echo $close_modal . ' ' . $btn_class; ?>"
-			   href="<?php echo
-			$events_list_url; ?>">
+			<a class="cart-results-go-back-button cart-results-button button<?php echo $close_modal . ' ' . $btn_class; ?>" href="<?php echo $return_url; ?>">
 				<span class="dashicons dashicons-arrow-left-alt2"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__return_to_events_list_btn_txt', __( 'Return to Events List', 'event_espresso' ) ); ?>
 			</a>
 		</span>
