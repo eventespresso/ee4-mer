@@ -491,10 +491,17 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// total tickets in cart
 		$total_tickets = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		// what page the user is currently on
-		$referer_uri = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : '';
-		if ( basename( $referer_uri ) == basename( EE_EVENTS_LIST_URL ) ) {
+		$referer_uri = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? basename( $_SERVER[ 'HTTP_REFERER' ] ) : '';
+		$term_exists = term_exists( $referer_uri, 'espresso_event_categories' );
+		//EEH_Debug_Tools::printr( $term_exists, '$term_exists', __FILE__, __LINE__ );
+		if ( isset( $term_exists[ 'term_id' ] ) ) {
+			$return_url = get_category_link( $term_exists[ 'term_id' ] );
+			$close_modal = ' close-modal-js';
+		} else if ( $referer_uri == basename( EE_EVENTS_LIST_URL ) ) {
+			$return_url = EE_EVENTS_LIST_URL;
 			$close_modal = ' close-modal-js';
 		} else {
+			$return_url = EE_EVENTS_LIST_URL;
 			$close_modal = '';
 		}
 		$template_args = array(
@@ -517,7 +524,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$total_tickets
 			),
 			'event_cart_name' => EED_Multi_Event_Registration::event_cart_name(),
-			'events_list_url' => EE_EVENTS_LIST_URL,
+			'return_url' => $return_url,
 			'register_url' => EE_EVENT_QUEUE_BASE_URL,
 			'view_event_cart_url' => add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ),
 			'close_modal' => $close_modal,
