@@ -87,6 +87,8 @@
 	line-height : 16px;
 }
 
+.return-to-event-cart-mini-cart-lnk { float: left; }
+
 #event-cart-qty-frm .event-cart-grand-total { margin:1em 0; clear : both; text-align: right; }
 #event-cart-qty-frm .event-cart-whats-next-buttons { margin:2em 0; clear : both; text-align: right; }
 #event-cart-qty-frm .event-cart-whats-next-buttons .event-cart-go-back-button span { margin:0 .5em 0 0 !important; }
