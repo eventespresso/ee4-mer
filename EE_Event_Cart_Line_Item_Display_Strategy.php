@@ -34,7 +34,11 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			'event_count' => 0,
 		);
 		$options = array_merge( $default_options, (array)$options );
-
+		// determine whether to display taxes or not
+		if ( $line_item->is_total() ) {
+			$taxes = $line_item->get_total_tax();
+			$this->_show_taxes = $taxes > 0 ? true : false;
+		}
 		switch( $line_item->type() ) {
 
 			case EEM_Line_Item::type_line_item:
@@ -84,7 +88,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 						// recursively feed children back into this method
 						$html .= $this->display_line_item( $child_line_item, $options );
 					}
-					$html .= $this->_total_row( $line_item, __('Tax Total', 'event_espresso'), $options );
+					$html .= $this->_total_tax_row( $line_item, __('Tax Total', 'event_espresso'), $options );
 				}
 				break;
 
@@ -369,9 +373,36 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 */
 	private function _sub_total_row( EE_Line_Item $line_item, $text = '', $options = array() ) {
 		if ( $line_item->total() && $options['event_count'] > 1 ) {
-			return $this->_total_row( $line_item, $text, $options);
+			return $this->_total_row( $line_item, '!!!!' . $text, $options);
 		}
 		return '';
+	}
+
+
+
+	/**
+	 *    _total_row
+	 *
+	 * @param EE_Line_Item $line_item
+	 * @param string $text
+	 * @param array $options
+	 * @return mixed
+	 */
+	private function _total_tax_row( EE_Line_Item $line_item, $text = '', $options = array() ) {
+		$html = '';
+		if ( $line_item->total() ) {
+			// start of row
+			$html = EEH_HTML::tr( '', '', 'total_tr odd' );
+			// total td
+			$html .= EEH_HTML::td( $text, '', 'total_currency total jst-rght', '', ' colspan="3"' );
+			//$qty = sprintf(  _n( '%s ticket  ', '%s tickets ', $total_items, 'event_espresso' ), '<span class="total">' . $total_items. '</span>' );
+			$html .= EEH_HTML::td( '', '', 'total jst-cntr' );
+			// total td
+			$html .= EEH_HTML::td( $line_item->total_no_code(), '', 'total jst-rght' );
+			// end of row
+			$html .= EEH_HTML::trx();
+		}
+		return $html;
 	}
 
 
@@ -385,7 +416,6 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 */
 	private function _total_row( EE_Line_Item $line_item, $text = '' ) {
 		//EE_Registry::instance()->load_helper('Money');
-		//if ( )
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// total td
@@ -394,8 +424,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		// total qty
 		$total_items = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		//$qty = sprintf(  _n( '%s ticket  ', '%s tickets ', $total_items, 'event_espresso' ), '<span class="total">' . $total_items. '</span>' );
-		$html .= EEH_HTML::td( EEH_HTML::strong( '<span class="total">' . $total_items . '</span>' ), '',  'total
-		jst-cntr' );
+		$html .= EEH_HTML::td( EEH_HTML::strong( '<span class="total">' . $total_items . '</span>' ), '',  'total jst-cntr' );
 		// total td
 		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->total_no_code() ), '',  'total jst-rght' );
 		// end of row
