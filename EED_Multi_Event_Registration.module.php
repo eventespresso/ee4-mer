@@ -82,7 +82,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array('EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
 		// redirect to event_cart
 		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ), 10 );
-		add_filter( 'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html', array( 'EED_Multi_Event_Registration', 'return_to_event_cart_button'	), 10 );
+		add_filter( 'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html', array( 'EED_Multi_Event_Registration', 'return_to_event_cart_button'	), 10, 2 );
 		// toggling reg status
 		add_filter( 'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing', array(
 			'EED_Multi_Event_Registration',
@@ -400,9 +400,22 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *
 	 * @access    public
 	 * @param string $html
+	 * @param \EE_SPCO_Reg_Step $reg_step
 	 * @return string
 	 */
-	public static function return_to_event_cart_button( $html = '' ) {
+	public static function return_to_event_cart_button( $html = '', EE_SPCO_Reg_Step $reg_step ) {
+		// returning to SPCO ?
+		if ( $reg_step->checkout->revisit ) {
+			// no return to cart button for you!
+			return '';
+		}
+		// and if a payment has already been made
+		if ( $reg_step->checkout->transaction instanceof EE_Transaction ) {
+			$last_payment = $reg_step->checkout->transaction->last_payment();
+			if ( $last_payment instanceof EE_Payment ) {
+				return '';
+			}
+		}
 		$html = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href = "' . add_query_arg(
 				array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) . '" ><span class="dashicons
 				dashicons-cart" ></span >' . apply_filters(
