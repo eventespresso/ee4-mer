@@ -61,7 +61,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				}
 				// got any kids?
 				foreach( $line_item->children() as $child_line_item ) {
-					$html .= $this->display_line_item( $child_line_item, $options );
+					$this->display_line_item( $child_line_item, $options );
 				}
 				break;
 
@@ -94,12 +94,15 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 			case EEM_Line_Item::type_tax_sub_total:
 				if ( $this->_show_taxes ) {
+					$child_line_items = $line_item->children();
 					// loop thru children
-					foreach( $line_item->children() as $child_line_item ) {
+					foreach( $child_line_items as $child_line_item ) {
 						// recursively feed children back into this method
 						$html .= $this->display_line_item( $child_line_item, $options );
 					}
-					$this->_taxes_html .= $this->_total_tax_row( $line_item, __('Tax Total', 'event_espresso') );
+					if ( count( $child_line_items ) > 1 ) {
+						$this->_taxes_html .= $this->_total_tax_row( $line_item, __('Tax Total', 'event_espresso') );
+					}
 				}
 				break;
 
