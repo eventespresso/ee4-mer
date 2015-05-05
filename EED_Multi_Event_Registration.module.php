@@ -416,7 +416,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				return '';
 			}
 		}
-		$html = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button" href = "' . add_query_arg(
+		$html = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button hide-me-after-successful-payment-js button" href = "' . add_query_arg(
 				array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) . '" ><span class="dashicons
 				dashicons-cart" ></span >' . apply_filters(
 				'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'return to %s',
