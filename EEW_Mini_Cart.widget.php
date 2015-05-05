@@ -112,22 +112,23 @@ class EEW_Mini_Cart extends WP_Widget {
 	 * @throws \EE_Error
 	 */
 	function widget( $args, $instance ) {
-		// hide widget on checkout page
-		//if (
-			//EE_Registry::instance()->REQ->get_post_name_from_request() ==
-			//basename( EE_Registry::instance()->CFG->core->reg_page_url() )
-		//) {
-		//	return;
-		//}
 		// autoload Line_Item_Display classes
 		EE_Registry::instance()->load_core( 'Cart' );
 		EE_Registry::instance()->load_helper( 'Line_Item' );
+		EE_Registry::instance()->load_core( 'Request_Handler' );
 		extract($args);
 		/** @type string $before_widget */
 		/** @type string $after_widget */
 		/** @type string $before_title */
 		/** @type string $after_title */
 
+		$checkout_page = false;
+		if (
+			EE_Registry::instance()->REQ->get_post_name_from_request() == basename( EE_Registry::instance()->CFG->core->reg_page_url() )
+			&& EE_Registry::instance()->REQ->get( 'event_cart', '' ) !== 'view'
+		) {
+			$checkout_page = true;
+		}
 		$template_args = array();
 		$template_args['before_widget'] = $before_widget;
 		$template_args['after_widget'] = $after_widget;
@@ -135,7 +136,8 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args['after_title'] = $after_title;
 		$template_args['title'] = apply_filters( 'widget_title', $instance['title'] );
 		$template_args['event_cart_name'] = EED_Multi_Event_Registration::event_cart_name();
-
+		// hide "Proceed to Checkout" button on checkout page
+		$template_args[ 'checkout_page' ] = $checkout_page;
 		$template_args[ 'events_list_url' ] = EE_EVENTS_LIST_URL;
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
 		$template_args[ 'view_event_cart_url' ] = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
