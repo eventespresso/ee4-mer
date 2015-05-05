@@ -44,10 +44,11 @@ echo $before_title . $title . $after_title;
 		<div id="mini-cart-whats-next-buttons" class="mini-cart-whats-next-buttons"<?php echo $mini_cart_display; ?>>
 
 			<span class="tiny-text">
-				<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button button <?php echo $btn_class; ?>" href="<?php echo $view_event_cart_url; ?>">
+				<a class="mini-cart-view-cart-lnk view-cart-lnk mini-cart-button hide-me-after-successful-payment-js button <?php echo $btn_class; ?>" href="<?php echo $view_event_cart_url; ?>">
 					<span class="dashicons dashicons-cart"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'view %s', 'event_espresso' ), $event_cart_name ) ); ?>
 				</a>
 			</span>
+			<?php if ( ! $checkout_page) { ?>
 			<br />
 			<span class="tiny-text">
 				<a class="mini-cart-register-button mini-cart-button button <?php echo $btn_class; ?>" href="<?php echo $register_url; ?>">
@@ -55,6 +56,7 @@ echo $before_title . $title . $after_title;
 					<span class="dashicons dashicons-arrow-right-alt2"></span>
 				</a>
 			</span>
+			<?php } ?>
 
 		</div>
 
