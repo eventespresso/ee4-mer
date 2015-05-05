@@ -14,7 +14,22 @@
 
 class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display {
 
-	private $_show_taxes = FALSE;
+	/**
+	 * whether to display the taxes row or not
+	 * @type bool $_show_taxes
+	 */
+	private $_show_taxes = false;
+
+	/**
+	 * html for any tax rows
+	 * @type string $_show_taxes
+	 */
+	private $_taxes_html = '';
+
+	/**
+	 * array of  events
+	 * @type EE_Event[] $_events
+	 */
 	private $_events = array();
 
 	/**
@@ -34,11 +49,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			'event_count' => 0,
 		);
 		$options = array_merge( $default_options, (array)$options );
-		// determine whether to display taxes or not
-		if ( $line_item->is_total() ) {
-			$taxes = $line_item->get_total_tax();
-			$this->_show_taxes = $taxes > 0 ? true : false;
-		}
+
 		switch( $line_item->type() ) {
 
 			case EEM_Line_Item::type_line_item:
@@ -50,7 +61,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				}
 				// got any kids?
 				foreach( $line_item->children() as $child_line_item ) {
-					$this->display_line_item( $child_line_item, $options );
+					$html .= $this->display_line_item( $child_line_item, $options );
 				}
 				break;
 
@@ -77,7 +88,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 			case EEM_Line_Item::type_tax:
 				if ( $this->_show_taxes ) {
-					$html .= $this->_tax_row( $line_item, $options );
+					$this->_taxes_html .= $this->_tax_row( $line_item, $options );
 				}
 				break;
 
@@ -88,12 +99,13 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 						// recursively feed children back into this method
 						$html .= $this->display_line_item( $child_line_item, $options );
 					}
-					$html .= $this->_total_tax_row( $line_item, __('Tax Total', 'event_espresso'), $options );
+					$this->_taxes_html .= $this->_total_tax_row( $line_item, __('Tax Total', 'event_espresso') );
 				}
 				break;
 
 			case EEM_Line_Item::type_total:
-
+				// determine whether to display taxes or not
+				$this->_show_taxes = $line_item->get_total_tax() > 0 ? true : false;
 				if ( count( $line_item->get_items() ) ) {
 					$options['event_count'] = count( $this->_events );
 					// loop thru children
@@ -104,6 +116,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				} else {
 					$html .= $this->_empty_msg_row();
 				}
+				$html .= $this->_taxes_html;
 				$html .= $this->_total_row( $line_item, __('Total', 'event_espresso'), $options );
 				break;
 
@@ -156,7 +169,6 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			$html .= EEH_HTML::td( $this->_ticket_qty_input( $line_item, $ticket ), '',  'jst-rght' );
 			// total td
 			$total = $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
-			$this->_show_taxes = $line_item->is_taxable() ? TRUE : $this->_show_taxes;
 			$html .= EEH_HTML::td( $total, '',  'jst-rght' );
 			// end of row
 			$html .= EEH_HTML::trx();
@@ -266,7 +278,6 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		$html .= EEH_HTML::td( $line_item->quantity(), '',  'jst-rght' );
 		// total td
 		$total = $line_item->is_taxable() ? $line_item->total_no_code() . '*' : $line_item->total_no_code();
-		$this->_show_taxes = $line_item->is_taxable() ? TRUE : $this->_show_taxes;
 		$html .= EEH_HTML::td( $total, '',  'jst-rght' );
 		// end of row
 		$html .= EEH_HTML::trx();
@@ -385,10 +396,9 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 *
 	 * @param EE_Line_Item $line_item
 	 * @param string $text
-	 * @param array $options
 	 * @return mixed
 	 */
-	private function _total_tax_row( EE_Line_Item $line_item, $text = '', $options = array() ) {
+	private function _total_tax_row( EE_Line_Item $line_item, $text = '' ) {
 		$html = '';
 		if ( $line_item->total() ) {
 			// start of row
