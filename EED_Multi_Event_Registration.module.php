@@ -79,7 +79,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_filter( 'FHEE__EE_Ticket_Selector__display_ticket_selector_submit__btn_text', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_submit_button' ), 10, 2 );
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__success_redirect_url', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_redirect_url' ), 10, 2 );
 		// verify that SPCO registrations correspond to tickets in cart
-		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array('EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
+		add_filter( 'FHEE__EED_Single_Page_Checkout___initialize__checkout', array('EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
 		// redirect to event_cart
 		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ), 10 );
 		add_filter( 'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html', array( 'EED_Multi_Event_Registration', 'return_to_event_cart_button'	), 10, 2 );
@@ -133,7 +133,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_action( 'wp_ajax_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
 		add_action( 'wp_ajax_nopriv_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
 		// verify that SPCO registrations correspond to tickets in cart
-		add_filter( 'FHEE__EED_Single_Page_Checkout___final_verifications__checkout', array(
+		add_filter( 'FHEE__EED_Single_Page_Checkout___initialize__checkout', array(
 			'EED_Multi_Event_Registration',
 			'verify_tickets_in_cart'
 		), 10, 1 );
@@ -412,7 +412,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// and if a payment has already been made
 		if ( $reg_step->checkout->transaction instanceof EE_Transaction ) {
 			$last_payment = $reg_step->checkout->transaction->last_payment();
-			if ( $last_payment instanceof EE_Payment ) {
+			if ( $last_payment instanceof EE_Payment && $last_payment->status() !== EEM_Payment::status_id_failed && $reg_step->checkout->transaction->paid() > 0 ) {
 				return '';
 			}
 		}
@@ -1219,12 +1219,15 @@ class EED_Multi_Event_Registration extends EED_Module {
 				) ? true : $changes;
 			}
 			if ( $changes ) {
-				$checkout->total_ticket_count = count( $checkout->transaction->registrations() );
+				$new_ticket_count = count( $checkout->transaction->registrations() );
 				EED_Multi_Event_Registration::reset_registration_details(
 					$checkout->transaction,
-					$checkout->total_ticket_count
+					$new_ticket_count
 				);
-				$checkout->generate_reg_form = true;
+				EED_Multi_Event_Registration::update_checkout_and_transaction(
+					$checkout,
+					$new_ticket_count
+				);
 			}
 		}
 		return $checkout;
@@ -1403,6 +1406,36 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$transaction->_add_relation_to( $registration, 'Registration' );
 			}
 		}
+	}
+
+
+
+	/**
+	 *   update_checkout
+	 *
+	 * @access protected
+	 * @param EE_Checkout $checkout
+	 * @param int $new_ticket_count
+	 * @return void
+	 */
+	protected static function update_checkout_and_transaction( EE_Checkout $checkout, $new_ticket_count = 0 ) {
+		$checkout->total_ticket_count = $new_ticket_count;
+		$checkout->generate_reg_form = true;
+		$current_step = true;
+		foreach( $checkout->reg_steps as $reg_step ) {
+			if ( $reg_step instanceof EE_SPCO_Reg_Step ) {
+				// set first reg step as the current
+				$reg_step->set_is_current_step( $current_step );
+				$current_step = false;
+				$reg_step->set_not_completed();
+			}
+		}
+		// reset all reg step completion statuses to false
+		$reg_steps = $checkout->transaction->reg_steps();
+		foreach ( $reg_steps as $reg_step => $completed ) {
+			$reg_steps[ $reg_step ] = false;
+		}
+		$checkout->transaction->set_reg_steps( $reg_steps );
 	}
 
 
