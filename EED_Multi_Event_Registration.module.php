@@ -1350,11 +1350,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 	protected static function add_registration( EE_Line_Item $ticket_line_item, EE_Transaction $transaction ) {
 		$registration = null;
 		if ( $ticket_line_item instanceof EE_Line_Item ) {
+			$att_nmbr = count( $transaction->registrations() ) + 1;
 			/** @type EE_Registration_Processor $registration_processor */
 			$registration_processor = EE_Registry::instance()->load_class( 'Registration_Processor' );
 			$registration = $registration_processor->generate_ONE_registration_from_line_item(
 				$ticket_line_item,
-				$transaction
+				$transaction,
+				$att_nmbr
 			);
 		}
 		return $registration instanceof EE_Registration ? true: false;
@@ -1393,7 +1395,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$att_nmbr = 0;
 		/** @type EE_Registration_Processor $registration_processor */
 		$registration_processor = EE_Registry::instance()->load_class( 'Registration_Processor' );
-		foreach ( $transaction->registrations() as $registration ) {
+		$registrations = $transaction->registrations();
+		uasort( $registrations, array( 'EED_Multi_Event_Registration', 'sort_registrations_by_reg_count_callback' ) );
+		foreach ( $registrations as $registration ) {
 			if ( $registration instanceof EE_Registration ) {
 				$att_nmbr++;
 				$registration->set_count( $att_nmbr );
@@ -1406,6 +1410,27 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$transaction->_add_relation_to( $registration, 'Registration' );
 			}
 		}
+	}
+
+
+
+	/**
+	 * sort_registrations_by_reg_count_callback
+	 *
+	 * @access protected
+	 * @param \EE_Registration $registration_A
+	 * @param \EE_Registration $registration_B
+	 * @return int
+	 */
+	protected static function sort_registrations_by_reg_count_callback( EE_Registration $registration_A, EE_Registration $registration_B ) {
+		// send any registrations that don't already have the count set to the end of the array
+		if ( ! $registration_A->count() ) {
+			return 1;
+		}
+		if ( $registration_A->count() == $registration_B->count() ) {
+			return 0;
+		}
+		return ( $registration_A->count() > $registration_B->count() ) ? 1 : -1;
 	}
 
 
@@ -1437,6 +1462,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		$checkout->transaction->set_reg_steps( $reg_steps );
 	}
+
 
 
 
