@@ -407,13 +407,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// returning to SPCO ?
 		if ( $reg_step->checkout->revisit ) {
 			// no return to cart button for you!
-			return '';
+			return $html;
 		}
-		// and if a payment has already been made
-		if ( $reg_step->checkout->transaction instanceof EE_Transaction ) {
+		// and if a payment has already been made and this isn't a revisit
+		if ( $reg_step->checkout->transaction instanceof EE_Transaction && EE_Registry::instance()->REQ->get( 'e_reg_url_link', '' ) === '' ) {
 			$last_payment = $reg_step->checkout->transaction->last_payment();
 			if ( $last_payment instanceof EE_Payment && $last_payment->status() !== EEM_Payment::status_id_failed && $reg_step->checkout->transaction->paid() > 0 ) {
-				return '';
+				return $html;
 			}
 		}
 		$html = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button hide-me-after-successful-payment-js button" href = "' . add_query_arg(
