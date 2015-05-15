@@ -1,4 +1,4 @@
-#EE4 MER : Multi Event Registration addon for Event Espresso 4
+#EE4 MER : Multi Event Registration Addon for Event Espresso 4
 
 [![GitHub release](https://img.shields.io/badge/Release%20Candidate-v2.0.0.rc-orange.svg?style=plastic)](https://github.com/eventespresso/event-espresso-core)
 [![WordPress](https://img.shields.io/badge/WordPress-v4.2%20tested-brightgreen.svg?style=plastic)](http://eventespresso.com/)
@@ -18,7 +18,13 @@
 
 The premise behind this great add-on is that the easier it is for people to register for an event, the more events they are likely to attend. With the Multiple Event Registration add-on, attendees can register for several events at once by adding them to the Event Cart (shopping cart), then proceeding to the registration checkout when they are ready.
 
-This README.md file is targeted for display with our Github repo.
+This plugin/addon needs to be uploaded to the "/wp-content/plugins/" directory on your server or installed using the WordPress plugins installer. Once the plugin/addon is installed and activated visit your events listing page to see it in action. Please note that there is also a mini event cart widget that cna be found on the WordPress Widgets admin page.
+
+#####Currently the Multi Event Registration Addon requires the Event Espresso core FET-7438-MER-4.6 branch in order to operate.
+The FET-7438-MER-4.6 branch can be found at: https://github.com/eventespresso/event-espresso-core/tree/FET-7438-MER-4.6
+Once it is released, it will function with whatever the latest core version of Event Espresso is at that time.
+
+> This README.md file is targeted for display with our Github repo.
 
 > Extra:  The code structure and phpdoc parsed documentation can be found at http://code.eventespresso.com
 
