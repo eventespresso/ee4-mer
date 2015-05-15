@@ -8,7 +8,7 @@
 
 ###Release Candidate (Beta) Version: 2.0.x.rc
 
-> *Please Note that this is NOT a stable release and should NOT be used on a publically accessible server*
+> *Please Note that this is NOT a stable release and should NOT be used in a live/production setting or publicly accessible server*
 
 ## Lots of events to register for?
 
