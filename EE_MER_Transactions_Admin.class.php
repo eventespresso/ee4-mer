@@ -1,6 +1,6 @@
 <?php if ( ! defined('EVENT_ESPRESSO_VERSION')) { exit('No direct script access allowed'); }
 /**
- * Class EE_MER_Transaction_Admin
+ * Class EE_MER_Transactions_Admin
  *
  * Adds MER related functionality to the EE Transactions Admin page
  *
@@ -11,7 +11,7 @@
  *
  */
 
-class EE_MER_Transaction_Admin {
+class EE_MER_Transactions_Admin {
 
 	function __construct() {
 		//transaction list table event links and the corresponding filter of queries on event page.
