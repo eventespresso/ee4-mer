@@ -70,7 +70,7 @@ class EE_MER_Events_Admin {
 			EE_Registry::instance()->load_helper( 'URL' );
 			$url = EEH_URL::add_query_args_and_nonce( $query_args, admin_url( 'admin.php' ) );
 			$link_text = '<a href="' . $url . '">' . $transaction->ID() . '</a>';
-			$content .= '<h3>' . sprintf( __( 'Viewing Events that belong to Transaction: %s', 'event_espresso' ), $link_text ) . '</h3>';
+			$content .= '<h2>' . sprintf( __( 'Events Registered for in Transaction # %s', 'event_espresso' ), $link_text ) . '</h2>';
 		}
 		return $content;
 	}
