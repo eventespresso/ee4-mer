@@ -37,6 +37,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 	private $_ajax = false;
 
 
+	/**
+	 * @type array holds the array of instantiated Admin route object indexed by route.
+	 */
+	public static $admin_route_objects = array();
+
+
 
 	/**
 	 * @return EED_Multi_Event_Registration
@@ -53,6 +59,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public static function event_cart_name() {
 		return self::$_event_cart_name;
 	}
+
 
 
 
@@ -183,13 +190,14 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public static function route_admin_page_requests() {
 		if ( ! empty( $_REQUEST[ 'page' ] ) ) {
+			$sanitized_route = sanitize_title( $_REQUEST['page'] );
 			// convert page=espresso_transactions into "Transactions"
-			$page = ucwords( str_replace( 'espresso_', '', sanitize_title( $_REQUEST[ 'page' ] ) ) );
+			$page = ucwords( str_replace( 'espresso_', '', $sanitized_route ) );
 			// then into "EE_MER_Transactions_Admin"
 			$class_name = 'EE_MER_' . $page . '_Admin';
 			// and then load that class if it exists
 			if ( class_exists( $class_name ) ) {
-				new $class_name();
+				EED_Multi_Event_Registration::$admin_route_objects[$sanitized_route] = new $class_name();
 			}
 		}
 	}
