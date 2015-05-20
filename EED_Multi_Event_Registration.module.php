@@ -104,6 +104,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public static function set_hooks_admin() {
 		EED_Multi_Event_Registration::set_definitions();
+		// loads additional classes for modifying admin pages
+		add_action( 'admin_init', array( 'EED_Multi_Event_Registration', 'route_admin_page_requests' ), 10 );
+		// process ticket selections
 		add_action(
 			'wp_ajax_espresso_process_ticket_selections',
 			array( 'EED_Multi_Event_Registration', 'process_ticket_selections' )
@@ -144,6 +147,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		), 10, 2 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
+
 	}
 
 
@@ -167,6 +171,27 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'FHEE__EED_Multi_Event_Registration__set_definitions__event_cart_name',
 			__( 'Event Cart', 'event_espresso' )
 		);
+	}
+
+
+
+	/**
+	 * 	route_admin_page_requests
+	 * loads additional classes for modifying admin pages
+	 *
+	 * @return void
+	 */
+	public static function route_admin_page_requests() {
+		if ( ! empty( $_REQUEST[ 'page' ] ) ) {
+			// convert page=espresso_transactions into "Transactions"
+			$page = ucwords( str_replace( 'espresso_', '', sanitize_title( $_REQUEST[ 'page' ] ) ) );
+			// then into "EE_MER_Transactions_Admin"
+			$class_name = 'EE_MER_' . $page . '_Admin';
+			// and then load that class if it exists
+			if ( class_exists( $class_name ) ) {
+				new $class_name();
+			}
+		}
 	}
 
 
