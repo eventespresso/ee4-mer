@@ -34,13 +34,17 @@ class EE_Multi_Event_Registration extends EE_Addon {
 				'plugin_slug' 			=> 'espresso_multi_event_registration',
 				'config_class' 			=> 'EE_Multi_Event_Registration_Config',
 				'config_name'			=> 'multi_event_registration',
-				'module_paths' 		=> array( EE_MER_PATH . 'EED_Multi_Event_Registration.module.php' ),
+				'module_paths' 		=> array(
+					EE_MER_PATH . 'EED_Multi_Event_Registration.module.php',
+				),
 				'widget_paths' 		=> array( EE_MER_PATH . 'EEW_Mini_Cart.widget.php' ),
 				// register autoloaders
 				'autoloader_paths' => array(
 					'EE_Multi_Event_Registration_Config' 						=> EE_MER_PATH . 'EE_Multi_Event_Registration_Config.php',
-					'EE_Event_Cart_Line_Item_Display_Strategy' 		=> EE_MER_PATH . 'EE_Event_Cart_Line_Item_Display_Strategy.php',
+					'EE_Event_Cart_Line_Item_Display_Strategy' 			=> EE_MER_PATH . 'EE_Event_Cart_Line_Item_Display_Strategy.php',
 					'EE_Mini_Cart_Table_Line_Item_Display_Strategy' 	=> EE_MER_PATH . 'EE_Mini_Cart_Table_Line_Item_Display_Strategy.php',
+					'EE_MER_Transactions_Admin' 									=> EE_MER_PATH . 'EE_MER_Transactions_Admin.class.php',
+					'EE_MER_Events_Admin' 											=> EE_MER_PATH . 'EE_MER_Events_Admin.class.php',
 				),
 				'pue_options'			=> array(
 					'pue_plugin_slug' 		=> 'eea-multi-event-registration',
