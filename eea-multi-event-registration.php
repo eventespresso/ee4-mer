@@ -1,12 +1,12 @@
 <?php
 /*
-Plugin Name: Event Espresso - MER - Multi Event Registration (EE 4.6.0+)
+Plugin Name: Event Espresso - MER - Multi Event Registration (EE 4.7.0+)
 Plugin URI: http://www.eventespresso.com
 Description: Multi Events Registration addon for Event Espresso. - Lots of events to register for? Now you can add events to a registration Event Cart ( shopping cart ), then register for them all at once.
 Version: 2.0.0.rc.046
 Author: Event Espresso
 Author URI: http://www.eventespresso.com
-Copyright 2014 Event Espresso (email : support@eventespresso.com)
+Copyright 2015 Event Espresso (email : support@eventespresso.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as
@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA02110-1301USA
 *
 * @ package		Event Espresso
 * @ author			Event Espresso
-* @ copyright	(c) 2008-2014 Event Espresso  All Rights Reserved.
+* @ copyright	(c) 2008-2015 Event Espresso  All Rights Reserved.
 * @ license		http://eventespresso.com/support/terms-conditions/   * see Plugin Licensing *
 * @ link				http://www.eventespresso.com
 * @ version	 	EE4
