@@ -500,6 +500,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ) );
 			$tickets = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
 			$ticket_count = 0;
+			// radio buttons send ticket info as a string like: "TKT_ID-QTY"
+			if ( ! is_array( $tickets ) ) {
+				$tickets = explode( '-', $tickets );
+				array_shift( $tickets );
+			}
 			foreach ( $tickets as $quantity ) {
 				$ticket_count += $quantity;
 			}
