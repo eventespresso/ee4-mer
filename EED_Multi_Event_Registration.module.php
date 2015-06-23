@@ -27,9 +27,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 	/**
 	 * Cart? Event Cart? Ticket Basket?
 	 *
-	 * @type string $_event_cart_name
+	 * @type string $event_cart_name
 	 */
-	protected static $_event_cart_name = '';
+	public static $event_cart_name = '';
 
 	/**
 	 * @type bool $_ajax
@@ -57,7 +57,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return string
 	 */
 	public static function event_cart_name() {
-		return self::$_event_cart_name;
+		return self::$event_cart_name;
 	}
 
 
@@ -174,7 +174,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				get_post_type_archive_link( 'espresso_events' )
 			)
 		);
-		EED_Multi_Event_Registration::$_event_cart_name = apply_filters(
+		EED_Multi_Event_Registration::$event_cart_name = apply_filters(
 			'FHEE__EED_Multi_Event_Registration__set_definitions__event_cart_name',
 			__( 'Event Cart', 'event_espresso' )
 		);
@@ -328,9 +328,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return $btn_text;
 		}
 		if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
-			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
+			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
 		} else {
-			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name );
+			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
 		}
 		return $btn_text;
 	}
@@ -453,7 +453,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) . '" ><span class="dashicons
 				dashicons-cart" ></span >' . apply_filters(
 				'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'return to %s',
-				'event_espresso' ), EED_Multi_Event_Registration::$_event_cart_name ) )  . '</a >' . $html;
+				'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name ) )  . '</a >' . $html;
 		return $html;
 	}
 
@@ -646,9 +646,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// autoload Line_Item_Display classes
 		$template_args[ 'event_cart_heading' ] = apply_filters(
 			'FHEE__EED_Multi_Event_Registration__view_event_cart__event_cart_heading',
-			EED_Multi_Event_Registration::$_event_cart_name
+			EED_Multi_Event_Registration::$event_cart_name
 		);
-		$template_args[ 'event_cart_name' ] = EED_Multi_Event_Registration::$_event_cart_name;
+		$template_args[ 'event_cart_name' ] = EED_Multi_Event_Registration::$event_cart_name;
 		$template_args[ 'total_items' ] = EE_Registry::instance()->CART->all_ticket_quantity_count();
 		$template_args[ 'event_cart' ] = $this->_get_event_cart( $grand_total );
 		$template_args[ 'reg_page_url' ] = EE_EVENT_QUEUE_BASE_URL;
@@ -718,7 +718,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				sprintf(
 					__( 'Either the ticket or %1$s line item was not specified or invalid, therefore the
 				%1$s could not be updated. Please refresh the page and try again.', 'event_espresso' ),
-					EED_Multi_Event_Registration::$_event_cart_name
+					EED_Multi_Event_Registration::$event_cart_name
 				),
 				__FILE__, __FUNCTION__, __LINE__
 			);
@@ -886,7 +886,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 						sprintf(
 							__( 'Ticket quantity must be at least one for each event.%2$sIf you wish to remove this
 							ticket from the %1$s, click on the trash can icon.', 'event_espresso' ),
-							EED_Multi_Event_Registration::$_event_cart_name,
+							EED_Multi_Event_Registration::$event_cart_name,
 							'<br />'
 						),
 						__FILE__, __FUNCTION__, __LINE__
@@ -1046,36 +1046,28 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( $ticket instanceof EE_Ticket ) {
 			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			if ( $line_item instanceof EE_Line_Item ) {
-				//$deleted = false;
+				// get the parent line item now, because we will need it later
+				$parent_line_item = $line_item->parent();
 				$removals = $line_item->quantity();
 				$line_item->delete_children_line_items();
-				//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
-				if ( $line_item->ID() ) {
-					//if ( $line_item->delete() ) {
-					$deleted = $line_item->delete();
-					//EEH_Debug_Tools::printr( $deleted, '$deleted', __FILE__, __LINE__ );
-					//$deleted = true;
-					//}
-				} else {
-					$deleted = EE_Registry::instance()->CART->delete_items( $line_item->code() );
-					//EEH_Debug_Tools::printr( $deleted, '$deleted', __FILE__, __LINE__ );
-					//$deleted = true;
+				$deleted = $this->_delete_line_item( $line_item );
+				if ( $deleted ) {
+					// check if parent line item is now childless
+					$this->_maybe_delete_event_line_item( $parent_line_item );
 				}
-				//EEH_Debug_Tools::printr( $deleted, '$deleted', __FILE__, __LINE__ );
 				// then something got deleted
-				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false )
-				) {
+				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					if ( $removals === 1 ) {
 						$msg = sprintf(
 							__( '%1$s ticket was successfully removed from the %2$s', 'event_espresso' ),
 							$removals,
-							EED_Multi_Event_Registration::$_event_cart_name
+							EED_Multi_Event_Registration::$event_cart_name
 						);
 					} else {
 						$msg = sprintf(
 							__( '%1$s tickets were successfully removed from the %2$s', 'event_espresso' ),
 							$removals,
-							EED_Multi_Event_Registration::$_event_cart_name
+							EED_Multi_Event_Registration::$event_cart_name
 						);
 					}
 					EE_Error::add_success( $msg, __FILE__, __FUNCTION__, __LINE__ );
@@ -1084,7 +1076,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 					EE_Error::add_error(
 						sprintf(
 							__( 'The ticket was not removed from the %1$s', 'event_espresso' ),
-							EED_Multi_Event_Registration::$_event_cart_name
+							EED_Multi_Event_Registration::$event_cart_name
 						),
 						__FILE__, __FUNCTION__, __LINE__
 					);
@@ -1092,6 +1084,50 @@ class EED_Multi_Event_Registration extends EED_Module {
 			}
 		}
 		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 * _delete_line_item
+	 *
+	 * @access public
+	 * @param \EE_Line_Item $line_item
+	 * @return boolean
+	 */
+	public static function _delete_line_item( EE_Line_Item $line_item ) {
+		if ( $line_item->ID() ) {
+			return $line_item->delete();
+		} else {
+			return EE_Registry::instance()->CART->delete_items( $line_item->code() );
+		}
+	}
+
+
+
+	/**
+	 * _maybe_delete_event_line_item
+	 * checks if an event line item still has any tickets associated with it,
+	 * and if not, then deletes the event plus any other non-ticket items,
+	 * which may be things like promotion codes
+	 *
+	 * @access public
+	 * @param \EE_Line_Item $parent_line_item
+	 * @return boolean
+	 */
+	public function _maybe_delete_event_line_item( EE_Line_Item $parent_line_item ) {
+		// are there any tickets left for this event ?
+		$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
+		if ( empty( $ticket_line_items ) ) {
+			// find and delete ALL children which may include non-ticket items like promotions
+			$child_line_items = $parent_line_item->children();
+			if ( ! empty( $child_line_items ) ) {
+				foreach ( $child_line_items as $child_line_item ) {
+					$this->_delete_line_item( $child_line_item );
+				}
+			}
+			$this->_delete_line_item( $parent_line_item );
+		}
 	}
 
 
@@ -1127,7 +1163,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				EE_Error::add_success(
 					sprintf(
 						__( 'The %1$s was successfully emptied!', 'event_espresso' ),
-						EED_Multi_Event_Registration::$_event_cart_name
+						EED_Multi_Event_Registration::$event_cart_name
 					),
 					__FILE__, __FUNCTION__, __LINE__
 				);
@@ -1136,7 +1172,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			EE_Error::add_error(
 				sprintf(
 					__( 'The %1$s could not be emptied!', 'event_espresso' ),
-					EED_Multi_Event_Registration::$_event_cart_name
+					EED_Multi_Event_Registration::$event_cart_name
 				),
 				__FILE__, __FUNCTION__, __LINE__
 			);		}
