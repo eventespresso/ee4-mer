@@ -85,9 +85,12 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 					$html .= $this->display_line_item( $child_line_item, $options );
 					$count += $child_line_item->OBJ_type() == 'Ticket' ? $child_line_item->quantity() : 0;
 				}
-				$total_count += $line_item->code() == 'pre-tax-subtotal' ? 0 : $count;
+				$total_count += $line_item->code() != 'pre-tax-subtotal' ? $count : 0;
+				//echo "<br>line_item->code: "  . $line_item->code();
+				//echo "<br>count: "  . $count;
+				//echo "<br>total_count: "  . $total_count;
 				// only display subtotal if there are multiple child line items
-				if ( $line_item->total() > 0 && $count > 1 ) {
+				if ( ( $line_item->total() > 0 && $count > 1 ) || ( $line_item->code() == 'pre-tax-subtotal' && count( $child_line_items ) ) ) {
 					$count = $line_item->code() == 'pre-tax-subtotal' ? $total_count : $count;
 					$text = __( 'Subtotal', 'event_espresso' );
 					$text = $line_item->code() == 'pre-tax-subtotal' ? EED_Multi_Event_Registration::$event_cart_name . ' ' . $text : $text;
