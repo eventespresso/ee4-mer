@@ -1117,7 +1117,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public function _maybe_delete_event_line_item( EE_Line_Item $parent_line_item ) {
 		// are there any tickets left for this event ?
-		$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
+		//$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
+		$ticket_line_items = $parent_line_item->code() == 'tickets' ? $parent_line_item->children() : array();;
 		if ( empty( $ticket_line_items ) ) {
 			// find and delete ALL children which may include non-ticket items like promotions
 			$child_line_items = $parent_line_item->children();
@@ -1274,13 +1275,15 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// first we need to get an accurate list of tickets in the cart
 			$cart_tickets = EED_Multi_Event_Registration::get_tickets_in_cart();
 			// then we need to get an accurate list of registration tickets
-			$reg_tickets = EED_Multi_Event_Registration::get_registration_tickets( $checkout->transaction );
+			$registrations = $checkout->transaction->registrations();
+			$reg_tickets = EED_Multi_Event_Registration::get_registration_tickets( $registrations );
 			// now delete registrations for any tickets that were completely removed
-			foreach ( $checkout->transaction->registrations() as $registration ) {
-				$reg_ticket = $registration->ticket();
-				if ( $reg_ticket instanceof EE_Ticket && ! isset( $cart_tickets[ $reg_ticket->ID() ]) ) {
-					$changes = EED_Multi_Event_Registration::remove_registration(
-						$checkout->transaction, $registration ) ? true : $changes;
+			foreach ( $reg_tickets as $reg_ticket_id => $reg_ticket_registrations ) {
+				if ( ! isset( $cart_tickets[ $reg_ticket_id ]) ) {
+					foreach ( $reg_ticket_registrations as $reg_ticket_registration ) {
+						$changes = EED_Multi_Event_Registration::remove_registration(
+							$checkout->transaction, $reg_ticket_registration ) ? true : $changes;
+					}
 				}
 			}
 			// then add new tickets and/or adjust quantities for others
@@ -1342,13 +1345,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * is an accurate representation of total tickets in checkout
 	 *
 	 * @access protected
-	 * @param \EE_Transaction $transaction
+	 * @param array $registrations
 	 * @return array
 	 */
-	protected static function get_registration_tickets( EE_Transaction $transaction ) {
+	protected static function get_registration_tickets( $registrations = array() ) {
 		$reg_tickets = array();
 		// now we need to get an accurate count of registration tickets
-		foreach ( $transaction->registrations() as $registration ) {
+		foreach ( (array)$registrations as $registration ) {
 			if ( $registration instanceof EE_Registration ) {
 				$reg_ticket = $registration->ticket();
 				if ( $reg_ticket instanceof EE_Ticket ) {
