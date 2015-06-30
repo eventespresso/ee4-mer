@@ -1273,7 +1273,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$changes = false;
 			EED_Multi_Event_Registration::load_classes();
 			// first we need to get an accurate list of tickets in the cart
-			$cart_tickets = EED_Multi_Event_Registration::get_tickets_in_cart();
+			$cart_tickets = EED_Multi_Event_Registration::get_tickets_in_cart( $checkout );
 			// then we need to get an accurate list of registration tickets
 			$registrations = $checkout->transaction->registrations();
 			$reg_tickets = EED_Multi_Event_Registration::get_registration_tickets( $registrations );
@@ -1301,10 +1301,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 					$checkout->transaction,
 					$new_ticket_count
 				);
+				EED_Multi_Event_Registration::update_cart( $checkout );
 				EED_Multi_Event_Registration::update_checkout_and_transaction(
 					$checkout,
 					$new_ticket_count
 				);
+				add_filter( 'FHEE__Single_Page_Checkout__load_reg_steps__reload_reg_steps', '__return_true' );
 			}
 		}
 		return $checkout;
@@ -1315,17 +1317,18 @@ class EED_Multi_Event_Registration extends EED_Module {
 	/**
 	 *   get_tickets_in_cart
 	 * returns a multi array of EE_Ticket objects
-	 * indexed by:	[ ticket ID ][ auto-numerical ]
+	 * indexed by:    [ ticket ID ][ auto-numerical ]
 	 * is an accurate representation of total tickets in cart
 	 *
 	 * @access protected
+	 * @param \EE_Checkout $checkout
 	 * @return array
 	 */
-	protected static function get_tickets_in_cart() {
+	protected static function get_tickets_in_cart( EE_Checkout $checkout ) {
 		// arrays for tracking ticket counts
 		$cart_tickets = array();
 		// first we need to get an accurate count of tickets in the cart
-		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
+		$tickets_in_cart = $checkout->cart->get_tickets();
 		foreach ( $tickets_in_cart as $ticket_line_item ) {
 			if ( $ticket_line_item instanceof EE_Line_Item && $ticket_line_item->OBJ_type() == 'Ticket' ) {
 				for ( $x = 1; $x <= $ticket_line_item->quantity(); $x++ ) {
@@ -1538,6 +1541,23 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$reg_steps[ $reg_step ] = false;
 		}
 		$checkout->transaction->set_reg_steps( $reg_steps );
+		if ( $checkout->transaction->ID() ) {
+			$checkout->transaction->save();
+		}
+	}
+
+
+
+	/**
+	 *   update_cart
+	 *
+	 * @access public
+	 * @param \EE_Checkout $checkout
+	 * @return bool
+	 */
+	public static function update_cart( EE_Checkout $checkout ) {
+		$checkout->cart->get_grand_total()->recalculate_total_including_taxes();
+		$checkout->transaction->set_total( $checkout->cart->get_grand_total()->total() );
 	}
 
 
