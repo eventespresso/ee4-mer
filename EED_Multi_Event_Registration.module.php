@@ -143,18 +143,25 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_action( 'wp_ajax_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
 		add_action( 'wp_ajax_nopriv_espresso_get_available_spaces', array( 'EED_Multi_Event_Registration', 'ajax_get_available_spaces' ) );
 		// verify that SPCO registrations correspond to tickets in cart
-		add_filter( 'FHEE__EED_Single_Page_Checkout___initialize__checkout', array(
-			'EED_Multi_Event_Registration',
-			'verify_tickets_in_cart'
-		), 10, 1 );
+		add_filter(
+			'FHEE__EED_Single_Page_Checkout___initialize__checkout',
+			array( 'EED_Multi_Event_Registration', 'verify_tickets_in_cart' ),
+			10, 1
+		);
 		// toggling reg status
-		add_filter( 'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing', array(
-			'EED_Multi_Event_Registration',
-			'toggle_registration_status_if_no_monies_owing'
-		), 10, 2 );
+		add_filter(
+			'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing',
+			array( 'EED_Multi_Event_Registration', 'toggle_registration_status_if_no_monies_owing' ),
+			10, 2
+		);
+		// prevent overloading cart
+		add_filter(
+			'FHEE__EE_Ticket_Selector___add_ticket_to_cart__allow_add_to_cart',
+			array( 'EED_Multi_Event_Registration', 'allow_ticket_selector_add_to_cart' ),
+			10, 3
+		);
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
-
 	}
 
 
@@ -776,9 +783,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$ticket = $this->get_ticket( $TKT_ID );
 			if ( $ticket instanceof EE_Ticket ) {
 				foreach ( $ticket_quantity as $line_item_id => $quantity ) {
-					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity ) ) {
+					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, true ) ) {
 						$line_item = $this->get_line_item( $line_item_id );
-						$this->adjust_line_item_quantity( $line_item, $quantity, false );
+						$this->adjust_line_item_quantity( $line_item, $quantity, 'update' );
+					} else {
+						break(2);
 					}
 				}
 			}
@@ -815,9 +824,24 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity ) ) {
 			// you can DO IT !!!
 			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
-			$this->adjust_line_item_quantity( $line_item, $quantity );
+			$this->adjust_line_item_quantity( $line_item, $quantity, 'add' );
 		}
 		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 *    allow_ticket_selector_add_to_cart
+	 *
+	 * @access    public
+	 * @param bool      $allow
+	 * @param EE_Ticket $ticket
+	 * @param int       $quantity
+	 * @return bool
+	 */
+	public static function allow_ticket_selector_add_to_cart( $allow = true, EE_Ticket $ticket, $quantity = 1 ) {
+		return EED_Multi_Event_Registration::instance()->can_purchase_ticket_quantity( $ticket, $quantity );
 	}
 
 
@@ -827,37 +851,105 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *
 	 * @access    protected
 	 * @param EE_Ticket $ticket
-	 * @param int $quantity
+	 * @param int       $quantity
+	 * @param bool      $cart_update
 	 * @return bool
 	 */
-	protected function can_purchase_ticket_quantity( EE_Ticket $ticket, $quantity = 1 ) {
-		if ( $ticket instanceof EE_Ticket ) {
-			$event = $ticket->first_datetime()->event();
-			$additional_limit = $event->additional_limit();
-			$tickets_remaining = $ticket->remaining();
-			if ( $tickets_remaining ) {
-				$quantity = absint( $quantity );
-				if ( $tickets_remaining >= $quantity ) {
-					// YEAH !!!
-					return true;
-				} else {
-					// can't register anymore attendees
-					$singular = 'You have attempted to purchase %s ticket.';
-					$plural = 'You have attempted to purchase %s tickets.';
-					// translate and possibly pluralize the error
-					$limit_error_1 = sprintf( _n( $singular, $plural, $quantity, 'event_espresso' ), $quantity, $quantity );
-					$singular = 'The registration limit for this event is %s ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %s.';
-					$plural = 'The registration limit for this event is %s tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %$s.';
-					// translate and possibly pluralize the error
-					$limit_error_2 = sprintf( _n( $singular, $plural, $additional_limit, 'event_espresso' ), $additional_limit, $additional_limit );
-					EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
+	protected function can_purchase_ticket_quantity( EE_Ticket $ticket, $quantity = 1, $cart_update = false ) {
+		// any tickets left at all?
+		$tickets_remaining = $ticket->remaining();
+		if ( ! $tickets_remaining ) {
+			// event is full
+			EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+			return false;
+		}
+		$quantity = absint( $quantity );
+		// can't register anymore attendees
+		$singular = 'You have attempted to purchase %1$d ticket.';
+		$plural = 'You have attempted to purchase %1$d tickets.';
+		$limit_error_1 = sprintf( _n( $singular, $plural, $quantity, 'event_espresso' ), $quantity );
+		// is there enough tickets left to satisfy request?
+		if ( $tickets_remaining < $quantity ) {
+			// translate and possibly pluralize the error
+			$singular = 'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.';
+			$plural = 'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.';
+			// translate and possibly pluralize the error
+			$limit_error_2 = sprintf( _n( $singular, $plural, $tickets_remaining, 'event_espresso' ), $tickets_remaining );
+			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
+			return false;
+		}
+		// check event
+		$total_ticket_quantity_within_event_additional_limit = $this->_total_ticket_quantity_within_event_additional_limit( $ticket, $quantity, $cart_update );
+		if ( ! $total_ticket_quantity_within_event_additional_limit ) {
+			// get some details from the ticket
+			$additional_limit = $ticket->first_datetime()->event()->additional_limit();
+			// can't register anymore attendees
+			$singular = 'You have attempted to purchase %1$d ticket but that would result in too many tickets in the %2$s for this event.';
+			$plural = 'You have attempted to purchase %1$d tickets but that would result in too many tickets in the %2$s for this event.';
+			$limit_error_1 = sprintf( _n( $singular, $plural, $quantity, 'event_espresso' ), $quantity, EED_Multi_Event_Registration::$event_cart_name );
+			// translate and possibly pluralize the error
+			$singular = 'The registration limit for this event is %1$d ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.';
+			$plural = 'The registration limit for this event is %1$d tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.';
+			// translate and possibly pluralize the error
+			$limit_error_2 = sprintf( _n( $singular, $plural, $additional_limit, 'event_espresso' ), $additional_limit );
+			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
+			return false;
+		}
+		// YEAH !!!
+		return true;
+	}
+
+
+
+	/**
+	 * _total_ticket_quantity_within_event_additional_limit
+	 *
+	 * returns true if the requested ticket quantity
+	 * does not exceed the event's additional limit
+	 * when combined with the tickets for the same event
+	 * that have already been added to the cart
+	 *
+	 * @access    protected
+	 * @param EE_Ticket $ticket
+	 * @param int       $quantity
+	 * @param bool      $cart_update
+	 * @return bool
+	 */
+	protected function _total_ticket_quantity_within_event_additional_limit( EE_Ticket $ticket, $quantity = 1, $cart_update = false ) {
+		$event = $ticket->first_datetime()->event();
+		$event_tickets = $this->_event_tickets();
+		if ( isset( $event_tickets[ $event->ID() ] ) ) {
+			// add tickets that are already in cart
+			$quantity = $cart_update ? $quantity : $quantity + count( $event_tickets[ $event->ID() ] );
+		}
+		return $quantity <= $event->additional_limit() ?  true : false;
+	}
+
+
+
+	/**
+	 *    _event_tickets
+	 * generates a multidimensional array of tickets grouped by event
+	 * where the event ids are the keys for the outer array
+	 *
+	 * @access    protected
+	 * @return array
+	 */
+	protected function _event_tickets() {
+		$event_tickets = array();
+		$ticket_line_items = EE_Registry::instance()->CART->get_tickets();
+		foreach ( $ticket_line_items as $ticket_line_item ) {
+			if ( $ticket_line_item instanceof EE_Line_Item && $ticket_line_item->OBJ_type() == 'Ticket' ) {
+				$ticket = EEM_Ticket::instance()->get_one_by_ID( $ticket_line_item->OBJ_ID() );
+				if ( $ticket instanceof EE_Ticket ) {
+					$event = $ticket->first_datetime()->event();
+					for ( $x = 1; $x <= $ticket_line_item->quantity(); $x++ ) {
+						$event_tickets[ $event->ID() ][] = $ticket->ID();
+					}
 				}
-			} else {
-				// event is full
-				EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			}
 		}
-		return false;
+		return $event_tickets;
 	}
 
 
@@ -868,48 +960,37 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @access    protected
 	 * @param EE_Line_Item $line_item
 	 * @param int $quantity
-	 * @param bool $add
+	 * @param string $action
 	 * @return EE_Line_Item|null
 	 */
-	protected function adjust_line_item_quantity( $line_item, $quantity = 1, $add = true ) {
+	protected function adjust_line_item_quantity( $line_item, $quantity = 1, $action = 'add' ) {
 		if ( $line_item instanceof EE_Line_Item ) {
 			//EEH_Debug_Tools::printr( $line_item->code(), '$line_item->code()', __FILE__, __LINE__ );
 			//EEH_Debug_Tools::printr( $line_item->type(), '$line_item->type()', __FILE__, __LINE__ );
 			//EEH_Debug_Tools::printr( $line_item->OBJ_type(), '$line_item->OBJ_type()', __FILE__, __LINE__ );
+			//EEH_Debug_Tools::printr( $line_item->OBJ_ID(), '$line_item->OBJ_ID()', __FILE__, __LINE__ );
 			//EEH_Debug_Tools::printr( $quantity, '$quantity', __FILE__, __LINE__ );
-			if ( $quantity > 0 ) {
+			//EEH_Debug_Tools::printr( $action, '$action', __FILE__, __LINE__ );
+			$quantity = (int)$quantity;
+			if ( $quantity === 0 && $action == 'update' ) {
+				$_REQUEST[ 'ticket' ] = $line_item->OBJ_ID();
+				$_REQUEST[ 'line_item' ] = $line_item->code();
+				$this->delete_ticket( false );
+				return $line_item;
+			} else if ( $quantity > 0 ) {
 				$additional = 'An additional';
 				$added_or_removed = 'added';
-			} else if ( $quantity < 0 ) {
-				if ( $line_item->quantity() < 2 ) {
-					EE_Error::add_attention(
-						sprintf(
-							__( 'Ticket quantity must be at least one for each event.%2$sIf you wish to remove this
-							ticket from the %1$s, click on the trash can icon.', 'event_espresso' ),
-							EED_Multi_Event_Registration::$event_cart_name,
-							'<br />'
-						),
-						__FILE__, __FUNCTION__, __LINE__
-					);
-					return $line_item;
-				}
+			} else {
 				$additional = 'A ';
 				$added_or_removed = 'removed';
-			} else {
-				EE_Error::add_attention(
-					sprintf( __( 'Ticket quantity was not specified, therefore it could not be adjusted.', 'event_espresso' ), '<br />' ),
-					__FILE__, __FUNCTION__, __LINE__
-				);
-				// qty = 0 ?? just return the line item
-				return $line_item;
 			}
-			$quantity = $add ? $line_item->quantity() + $quantity : $quantity;
+			$quantity = $action == 'update' ? $quantity : $line_item->quantity() + $quantity;
 			// update quantity
 			$line_item->set_quantity( $quantity );
 			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
 			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $quantity;
 			if ( $saved ) {
-				if ( $add ) {
+				if ( $action != 'update' ) {
 					$msg = sprintf(
 						__( '%1$s ticket was successfully %2$s for this event.', 'event_espresso' ),
 						$additional, $added_or_removed
@@ -1007,9 +1088,14 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( $ticket instanceof EE_Ticket ) {
 			$quantity = absint( $quantity );
 			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
-			if ( $line_item instanceof EE_Line_Item  && $quantity ) {
-				// you can DO IT !!!
-				$this->adjust_line_item_quantity( $line_item, $quantity * -1 );
+			if ( $line_item instanceof EE_Line_Item && $quantity ) {
+				// if there will still be tickets in cart after this request
+				// then just remove the requested quantity, else update the entire event cart
+				if ( $line_item->quantity() - $quantity > 0 ) {
+					$this->adjust_line_item_quantity( $line_item, $quantity * -1, 'remove' );
+				} else {
+					$this->adjust_line_item_quantity( $line_item, 0, 'update' );
+				}
 			} else {
 				// no ticket or line item !?!?!
 				EE_Error::add_error( __( 'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
@@ -1037,9 +1123,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *  delete_ticket - removes ticket completely
 	 *
 	 * @access        public
-	 * @return        void
+	 * @param bool $send_ajax_response
 	 */
-	public function delete_ticket() {
+	public function delete_ticket( $send_ajax_response = true ) {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
@@ -1083,7 +1169,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 				}
 			}
 		}
-		$this->send_ajax_response();
+		if ( $send_ajax_response ) {
+			$this->send_ajax_response();
+		}
 	}
 
 
@@ -1113,9 +1201,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *
 	 * @access public
 	 * @param \EE_Line_Item $parent_line_item
-	 * @return boolean
+	 * @return void
 	 */
-	public function _maybe_delete_event_line_item( EE_Line_Item $parent_line_item ) {
+	public function _maybe_delete_event_line_item( $parent_line_item = null ) {
+		if ( ! $parent_line_item instanceof EE_Line_Item ) {
+			return;
+		}
 		// are there any tickets left for this event ?
 		//$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
 		$ticket_line_items = $parent_line_item->code() == 'tickets' ? $parent_line_item->children() : array();;
@@ -1227,7 +1318,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	protected function send_ajax_response( $empty_cart = false, $redirect_url = '' ) {
 		$grand_total = EE_Registry::instance()->CART->get_grand_total();
 		$grand_total->recalculate_total_including_taxes();
-		$empty_cart = $empty_cart || EE_Registry::instance()->CART->all_ticket_quantity_count() == 0 ? true : false;
+		$empty_cart = $empty_cart || EE_Registry::instance()->CART->all_ticket_quantity_count() < 1 ? true : false;
 		// if this is an ajax request AND a callback function exists
 		if ( $this->_ajax === true ) {
 			// grab updated html for the event cart
