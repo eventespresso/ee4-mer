@@ -30,20 +30,15 @@ class EEW_Mini_Cart extends WP_Widget {
 	protected $_cart = NULL;
 
 
-
 	/**
-	*		EE_Mini_Cart
-	*
-	*		@access public
-	*		@return void
-	*/
-	function EEW_Mini_Cart() {
+	 * @see WP_Widget for construct details
+	 */
+	public function __construct() {
 		$widget_options = array(
 			'classname' => 'espresso-mini-cart',
 			'description' => __('A widget for displaying the Event Espresso Mini Cart.', 'event_espresso')
 		);
-		$this->WP_Widget( 'espresso_minicart', 'Event Espresso Mini Cart Widget', $widget_options );
-
+		parent::__construct( 'espresso_minicart', __('Event Espresso Mini Cart Widget', 'event_espresso' ), $widget_options );
 	}
 
 
