@@ -917,10 +917,14 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	protected function _total_ticket_quantity_within_event_additional_limit( EE_Ticket $ticket, $quantity = 1, $cart_update = false ) {
 		$event = $ticket->first_datetime()->event();
-		$event_tickets = $this->_event_tickets();
+		// we want to exclude this ticket from the count if this is a cart update,
+		// because we are not simply incrementing the cart count
+		// but replacing the quantity in the cart with a totally new value
+		$TKT_ID = $cart_update ? $ticket->ID() : 0;
+		$event_tickets = $this->_event_tickets( $TKT_ID );
 		if ( isset( $event_tickets[ $event->ID() ] ) ) {
 			// add tickets that are already in cart
-			$quantity = $cart_update ? $quantity : $quantity + count( $event_tickets[ $event->ID() ] );
+			$quantity += count( $event_tickets[ $event->ID() ] );
 		}
 		return $quantity <= $event->additional_limit() ?  true : false;
 	}
@@ -935,13 +939,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @access    protected
 	 * @return array
 	 */
-	protected function _event_tickets() {
+	protected function _event_tickets( $TKT_ID = 0 ) {
 		$event_tickets = array();
 		$ticket_line_items = EE_Registry::instance()->CART->get_tickets();
 		foreach ( $ticket_line_items as $ticket_line_item ) {
 			if ( $ticket_line_item instanceof EE_Line_Item && $ticket_line_item->OBJ_type() == 'Ticket' ) {
 				$ticket = EEM_Ticket::instance()->get_one_by_ID( $ticket_line_item->OBJ_ID() );
-				if ( $ticket instanceof EE_Ticket ) {
+				if ( $ticket instanceof EE_Ticket && $ticket->ID() != $TKT_ID ) {
 					$event = $ticket->first_datetime()->event();
 					for ( $x = 1; $x <= $ticket_line_item->quantity(); $x++ ) {
 						$event_tickets[ $event->ID() ][] = $ticket->ID();
