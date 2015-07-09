@@ -28,7 +28,7 @@ echo $before_title . $title . $after_title;
 				<thead>
 				<tr id="mini-cart-tbl-row-hdr" class="mini-cart-tbl-row">
 					<th class="mini-cart-tbl-item-th jst-cntr"><?php echo __( 'Item', 'event_espresso' ); ?></th>
-					<th class="mini-cart-tbl-price-th jst-cntr"><?php echo __( 'Price', 'event_espresso' )	; ?></th>
+					<th class="mini-cart-tbl-price-th jst-cntr"><?php echo __( 'Price', 'event_espresso' ); ?></th>
 					<th class="mini-cart-tbl-qty-th jst-cntr"><?php echo __( 'Qty', 'event_espresso' ); ?></th>
 					<th class="mini-cart-tbl-total-th jst-cntr"><?php echo __( 'Total', 'event_espresso' ); ?></th>
 				</tr>

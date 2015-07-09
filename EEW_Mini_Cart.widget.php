@@ -30,20 +30,15 @@ class EEW_Mini_Cart extends WP_Widget {
 	protected $_cart = NULL;
 
 
-
 	/**
-	*		EE_Mini_Cart
-	*
-	*		@access public
-	*		@return void
-	*/
-	function EEW_Mini_Cart() {
+	 * @see WP_Widget for construct details
+	 */
+	public function __construct() {
 		$widget_options = array(
 			'classname' => 'espresso-mini-cart',
 			'description' => __('A widget for displaying the Event Espresso Mini Cart.', 'event_espresso')
 		);
-		$this->WP_Widget( 'espresso_minicart', 'Event Espresso Mini Cart Widget', $widget_options );
-
+		parent::__construct( 'espresso_minicart', __('Event Espresso Mini Cart Widget', 'event_espresso' ), $widget_options );
 	}
 
 
@@ -57,7 +52,7 @@ class EEW_Mini_Cart extends WP_Widget {
 	 */
 	function form( $instance ) {
 
-		$defaults = array( 'title' => 'Your Registrations', 'template' => 'widget_minicart' );
+		$defaults = array( 'title' => __( 'Your Registrations', 'event_espresso' ), 'template' => 'widget_minicart' );
 
 		$instance = wp_parse_args( (array)$instance, $defaults );
 
@@ -112,6 +107,9 @@ class EEW_Mini_Cart extends WP_Widget {
 	 * @throws \EE_Error
 	 */
 	function widget( $args, $instance ) {
+
+		$instance[ 'title' ] = ! empty( $instance[ 'title' ] ) ? $instance[ 'title' ] : __( 'Your Registrations', 'event_espresso' );
+		$instance[ 'template' ] = ! empty( $instance[ 'template' ] ) ? $instance[ 'template' ] : EE_MER_PATH . 'templates' . DS . 'widget_minicart_table.template.php';
 		// autoload Line_Item_Display classes
 		EE_Registry::instance()->load_core( 'Cart' );
 		EE_Registry::instance()->load_helper( 'Line_Item' );
