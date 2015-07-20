@@ -374,7 +374,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param \EE_Event $event
 	 * @return bool
 	 */
-	protected static function has_tickets_in_cart( EE_Event $event ) {
+	protected static function has_tickets_in_cart( $event = null ) {
+		if ( ! $event instanceof EE_Event ) {
+			return false;
+		}
 		EED_Multi_Event_Registration::load_classes();
 		$event_tickets = EED_Multi_Event_Registration::get_all_event_tickets( $event );
 		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
