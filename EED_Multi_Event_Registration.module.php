@@ -1215,7 +1215,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return;
 		}
 		// are there any tickets left for this event ?
-		$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
+		// todo: uncomment the following line when 4.8 is released, then delete the one after it
+		//$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
+		$ticket_line_items = $parent_line_item->code() == 'tickets' ? $parent_line_item->children() : array();;
 		if ( empty( $ticket_line_items ) ) {
 			// find and delete ALL children which may include non-ticket items like promotions
 			$child_line_items = $parent_line_item->children();
