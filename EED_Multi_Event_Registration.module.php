@@ -374,7 +374,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param \EE_Event $event
 	 * @return bool
 	 */
-	protected static function has_tickets_in_cart( EE_Event $event ) {
+	protected static function has_tickets_in_cart( $event = null ) {
+		if ( ! $event instanceof EE_Event ) {
+			return false;
+		}
 		EED_Multi_Event_Registration::load_classes();
 		$event_tickets = EED_Multi_Event_Registration::get_all_event_tickets( $event );
 		$tickets_in_cart = EE_Registry::instance()->CART->get_tickets();
@@ -1143,7 +1146,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$deleted = $this->_delete_line_item( $line_item );
 				if ( $deleted ) {
 					// check if parent line item is now childless
-					$this->_maybe_delete_event_line_item( $parent_line_item );
+					$this->maybe_delete_event_line_item( $parent_line_item );
 				}
 				// then something got deleted
 				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
@@ -1198,7 +1201,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 * _maybe_delete_event_line_item
+	 * maybe_delete_event_line_item
 	 * checks if an event line item still has any tickets associated with it,
 	 * and if not, then deletes the event plus any other non-ticket items,
 	 * which may be things like promotion codes
@@ -1207,11 +1210,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param \EE_Line_Item $parent_line_item
 	 * @return void
 	 */
-	public function _maybe_delete_event_line_item( $parent_line_item = null ) {
+	public function maybe_delete_event_line_item( $parent_line_item = null ) {
 		if ( ! $parent_line_item instanceof EE_Line_Item ) {
 			return;
 		}
 		// are there any tickets left for this event ?
+		// todo: uncomment the following line when 4.8 is released, then delete the one after it
 		//$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
 		$ticket_line_items = $parent_line_item->code() == 'tickets' ? $parent_line_item->children() : array();;
 		if ( empty( $ticket_line_items ) ) {
@@ -1254,7 +1258,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( EE_Registry::instance()->CART->delete_cart() ) {
 			// and clear the session too
 			EE_Registry::instance()->SSN->clear_session( __CLASS__, __FUNCTION__ );
-			EED_Multi_Event_Registration::save_cart();
+			// reset cached cart
+			EE_Registry::instance()->CART = EE_Cart::instance( null );
 			if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false )) {
 				EE_Error::add_success(
 					sprintf(
@@ -1271,7 +1276,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 					EED_Multi_Event_Registration::$event_cart_name
 				),
 				__FILE__, __FUNCTION__, __LINE__
-			);		}
+			);
+		}
 		$this->send_ajax_response(
 			true,
 			apply_filters( 'FHEE__EED_Multi_Event_Registration__empty_event_cart__redirect_url', EE_EVENTS_LIST_URL )
