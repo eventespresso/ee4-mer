@@ -994,7 +994,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$quantity = $action == 'update' ? $quantity : $line_item->quantity() + $quantity;
 			// update quantity
 			$line_item->set_quantity( $quantity );
-			EEH_Line_Item::update_quantity( $line_item, $quantity );
+			//it's "proper" to update the sub-line items quantities too, but core can actually fix it if we don't anyways
+			if( method_exists( 'EEH_Line_Item', 'update_quantity' ) ) {
+				EEH_Line_Item::update_quantity( $line_item, $quantity );
+			} else {
+				$line_item->set_quantity( $quantity );
+			}
 			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
 			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $quantity;
 			if ( $saved ) {
