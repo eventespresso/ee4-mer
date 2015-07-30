@@ -293,7 +293,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// scripts
 			wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
 			wp_enqueue_script( 'espresso_multi_event_registration' );
-			wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 		}
 	}
 
