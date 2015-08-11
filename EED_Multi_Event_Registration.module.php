@@ -1202,7 +1202,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 	/**
 	 * maybe_delete_event_line_item
-	 * checks if an event line item still has any tickets associated with it,
+	 * checks if an event line item still has any tickets associated with it,and
 	 * and if not, then deletes the event plus any other non-ticket items,
 	 * which may be things like promotion codes
 	 *
@@ -1215,9 +1215,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return;
 		}
 		// are there any tickets left for this event ?
-		// todo: uncomment the following line when 4.8 is released, then delete the one after it
-		//$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
-		$ticket_line_items = $parent_line_item->code() == 'tickets' ? $parent_line_item->children() : array();;
+		$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
 		if ( empty( $ticket_line_items ) ) {
 			// find and delete ALL children which may include non-ticket items like promotions
 			$child_line_items = $parent_line_item->children();
