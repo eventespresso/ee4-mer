@@ -241,6 +241,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// set MER active to TRUE
 		add_filter( 'filter_hook_espresso_MER_active', '__return_true' );
 		$this->_ajax = isset( $_REQUEST[ 'ee_front_ajax'] ) ? true : false;
+		$this->translate_js_strings();
 	}
 
 
@@ -264,7 +265,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @access        public
 	 * @return        void
 	 */
-	public static function translate_js_strings() {
+	public function translate_js_strings() {
 		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
 	}
 
@@ -293,7 +294,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// scripts
 			wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
 			wp_enqueue_script( 'espresso_multi_event_registration' );
-			wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 		}
 	}
 
