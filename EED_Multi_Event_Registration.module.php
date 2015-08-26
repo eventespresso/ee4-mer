@@ -569,8 +569,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'results' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
 				_n(
-					__( '1 ticket was successfully added for this event.' ),
-					sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
+					__( '1 ticket was successfully added for this event.', 'event_espresso' ),
+					sprintf( __( '%1$s tickets were successfully added for this event.', 'event_espresso' ), $ticket_count ),
 					$ticket_count
 				),
 				$ticket_count
@@ -578,8 +578,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'current_cart' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				_n(
-					sprintf( __( 'There is currently 1 ticket in the %1$s.' ), EED_Multi_Event_Registration::event_cart_name() ),
-					sprintf( __( 'There are currently %1$d tickets in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
+					sprintf( __( 'There is currently 1 ticket in the %1$s.', 'event_espresso' ), EED_Multi_Event_Registration::event_cart_name() ),
+					sprintf( __( 'There are currently %1$d tickets in the %2$s.', 'event_espresso' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
 					$total_tickets
 				),
 				$total_tickets
