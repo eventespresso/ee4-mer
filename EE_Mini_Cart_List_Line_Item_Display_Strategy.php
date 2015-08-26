@@ -118,7 +118,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		$this->_events[ $line_item->OBJ_ID() ] = $line_item;
 		// event name
 		return EEH_HTML::li(
-			EEH_HTML::strong( $line_item->desc() ),
+			EEH_HTML::strong( $line_item->name() ),
 			'', 'event-header event-cart-total'
 		);
 	}
