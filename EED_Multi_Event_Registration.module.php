@@ -241,6 +241,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// set MER active to TRUE
 		add_filter( 'filter_hook_espresso_MER_active', '__return_true' );
 		$this->_ajax = isset( $_REQUEST[ 'ee_front_ajax'] ) ? true : false;
+		$this->translate_js_strings();
 	}
 
 
@@ -264,7 +265,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @access        public
 	 * @return        void
 	 */
-	public static function translate_js_strings() {
+	public function translate_js_strings() {
 		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
 	}
 
@@ -293,7 +294,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// scripts
 			wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
 			wp_enqueue_script( 'espresso_multi_event_registration' );
-			wp_localize_script( 'espresso_multi_event_registration', 'eei18n', EE_Registry::$i18n_js_strings );
 		}
 	}
 
@@ -569,8 +569,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'results' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
 				_n(
-					__( '1 ticket was successfully added for this event.' ),
-					sprintf( __( '%1$s tickets were successfully added for this event.' ), $ticket_count ),
+					__( '1 ticket was successfully added for this event.', 'event_espresso' ),
+					sprintf( __( '%1$s tickets were successfully added for this event.', 'event_espresso' ), $ticket_count ),
 					$ticket_count
 				),
 				$ticket_count
@@ -578,8 +578,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'current_cart' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				_n(
-					sprintf( __( 'There is currently 1 ticket in the %1$s.' ), EED_Multi_Event_Registration::event_cart_name() ),
-					sprintf( __( 'There are currently %1$d tickets in the %2$s.' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
+					sprintf( __( 'There is currently 1 ticket in the %1$s.', 'event_espresso' ), EED_Multi_Event_Registration::event_cart_name() ),
+					sprintf( __( 'There are currently %1$d tickets in the %2$s.', 'event_espresso' ), $total_tickets, EED_Multi_Event_Registration::event_cart_name() ),
 					$total_tickets
 				),
 				$total_tickets
@@ -1202,7 +1202,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 	/**
 	 * maybe_delete_event_line_item
-	 * checks if an event line item still has any tickets associated with it,
+	 * checks if an event line item still has any tickets associated with it,and
 	 * and if not, then deletes the event plus any other non-ticket items,
 	 * which may be things like promotion codes
 	 *
@@ -1215,9 +1215,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return;
 		}
 		// are there any tickets left for this event ?
-		// todo: uncomment the following line when 4.8 is released, then delete the one after it
-		//$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
-		$ticket_line_items = $parent_line_item->code() == 'tickets' ? $parent_line_item->children() : array();;
+		$ticket_line_items = EEH_Line_Item::get_ticket_line_items( $parent_line_item );
 		if ( empty( $ticket_line_items ) ) {
 			// find and delete ALL children which may include non-ticket items like promotions
 			$child_line_items = $parent_line_item->children();

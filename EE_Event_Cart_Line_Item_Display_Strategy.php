@@ -156,7 +156,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// event name td
-		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->desc() ), '', 'event-header', '', ' colspan="4"' );
+		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->name() ), '', 'event-header', '', ' colspan="4"' );
 		// end of row
 		$html .= EEH_HTML::trx();
 		return $html;
@@ -442,7 +442,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-cart-total-row', 'total_tr odd' );
 		// total td
-		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->desc() . ' ' . $text ), '',  'total_currency total jst-rght', '', ' colspan="2"' );
+		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->name() . ' ' . $text ), '',  'total_currency total jst-rght', '', ' colspan="2"' );
 		// total qty
 		$total_items = $total_items ? $total_items : '';
 		$html .= EEH_HTML::td( EEH_HTML::strong( '<span class="total">' . $total_items . '</span>' ), '', 'total jst-cntr' );
