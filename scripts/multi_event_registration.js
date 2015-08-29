@@ -4,17 +4,50 @@ jQuery( document ).ready( function( $ ) {
 	/**
 	 * @namespace MER
 	 * @type {{
-		 *     event_cart : object,
-		 *     form_input: object,
-		 *     form_data: object,
-		 *     display_debug: number,
+	 *     event_cart : object,
+	 *     form_input: object,
+	 *     form_data: object,
+	 *     response: object,
+	 *     display_debug: boolean,
 	 * }}
 	 * @namespace eei18n
 	 * @type {{
-		 *     ajax_url: string
+	 *     ajax_url: string
+	 *     wp_debug: boolean
+	 * }}
+	 */
+
+
+	MER = {
+
+		/**
+		 * DOM element - main event cart container
+		 */
+		event_cart  : {},
+		/**
+		 * DOM element - event cart text input field
+		 */
+		form_input : {},
+		/**
+		 * DOM element - AJAX notices container
+		 */
+		ajax_notices : {},
+		/**
+		 * array of form data
+		 * @namespace form_data
+		 * @type {{
+		 *     action: string,
+		 *     ticket: string,
+		 *     line_item: string,
+		 *     ee: string,
+		 *     cart_results: string,
 		 * }}
-	 * @namespace response
-	 * @type {{
+		 */
+		form_data : {},
+		/**
+		 * AJAX response
+		 * @namespace response
+		 * @type {{
 		 *     errors: string,
 		 *     attention: string,
 		 *     success: string,
@@ -25,26 +58,13 @@ jQuery( document ).ready( function( $ ) {
 		 *     form_html: string,
 		 *     mini_cart: string,
 		 * }}
-	 * @namespace form_data
-	 * @type {{
-		 *     action: string,
-		 *     ticket: string,
-		 *     line_item: string,
-		 *     ee: string,
-		 *     cart_results: string,
-		 * }}
-	 */
-
-
-	MER = {
-
-		// main event cart container
-		event_cart  : {},
-		// event cart text input field
-		form_input : {},
-		// array of form data
-		form_data : {},
-		// display debugging info in console?
+		 */
+		response : {},
+		/**
+		 * display debugging info in console?
+		 * @namespace display_debug
+		 * @type  boolean
+		 */
 		display_debug : eei18n.wp_debug,
 
 		/********** INITIAL SETUP **********/
@@ -53,6 +73,7 @@ jQuery( document ).ready( function( $ ) {
 		 * @function initialize
 		 */
 		initialize : function() {
+			MER.ajax_notices  = $( '#espresso-ajax-notices' );
 			var event_cart  = $( '#event-cart' );
 			if ( event_cart .length ) {
 				MER.event_cart  = event_cart ;
@@ -251,15 +272,15 @@ jQuery( document ).ready( function( $ ) {
 				},
 
 				success : function( response ) {
-					MER.process_response( response );
+					MER.response = response;
+					MER.process_response( MER.response );
 					MER.do_after_ajax( response );
 				},
 
-				error : function() {
-					var response = {};
-					response.error = eei18n.server_error;
-					MER.do_after_ajax( response );
-					//return SPCO.ajax_request_server_error();
+				error : function( response ) {
+					MER.response = response;
+					MER.response.error = eei18n.server_error;
+					MER.do_after_ajax();
 				}
 
 			} );
@@ -281,26 +302,24 @@ jQuery( document ).ready( function( $ ) {
 
 		/**
 		 * @function do_after_ajax
-		 * @param  {object} response
 		 */
-		do_after_ajax : function( response ) {
+		do_after_ajax : function() {
 			MER.enable_buttons();
 			$( '#espresso-ajax-loading' ).fadeOut( 'fast' );
-			MER.display_messages( response );
+			MER.display_messages( MER.response );
 		},
 
 
 
 		/**
 		 * @function process_response
-		 * @param  {object} response
 		 */
-		process_response : function( response ) {
-			//console.log( response );
-			if ( typeof response === 'object' ) {
-				if ( typeof response.new_html !== 'undefined' ) {
+		process_response : function() {
+			//console.log( MER.response );
+			if ( typeof MER.response === 'object' ) {
+				if ( typeof MER.response.new_html !== 'undefined' ) {
 					// loop thru tracked errors
-					$.each( response.new_html, function( index, html ) {
+					$.each( MER.response.new_html, function( index, html ) {
 						//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
 						if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
 							var event_cart_element = $( MER.event_cart  ).find( index );
@@ -312,10 +331,10 @@ jQuery( document ).ready( function( $ ) {
 						}
 					} );
 				}
-				if ( typeof response.tickets_added !== 'undefined' && response.tickets_added === true ) {
-					var btn_id = typeof response.btn_id !== 'undefined' ? response.btn_id : '';
-					var btn_txt = typeof response.btn_txt !== 'undefined' ? response.btn_txt : '';
-					var form_html = typeof response.form_html !== 'undefined' ? response.form_html : '';
+				if ( typeof MER.response.tickets_added !== 'undefined' && MER.response.tickets_added === true ) {
+					var btn_id = typeof MER.response.btn_id !== 'undefined' ? MER.response.btn_id : '';
+					var btn_txt = typeof MER.response.btn_txt !== 'undefined' ? MER.response.btn_txt : '';
+					var form_html = typeof MER.response.form_html !== 'undefined' ? MER.response.form_html : '';
 					var submit_button = $( btn_id );
 					if ( submit_button.length && btn_txt !== '' ) {
 						if ( submit_button.val() !== btn_txt ) {
@@ -334,23 +353,49 @@ jQuery( document ).ready( function( $ ) {
 						}
 					} );
 				}
-				if ( typeof response.mini_cart !== 'undefined' && response.mini_cart !== '' ) {
+				if ( typeof MER.response.mini_cart !== 'undefined' && MER.response.mini_cart !== '' ) {
 					var mini_cart = $( '#ee-mini-cart-details' );
 					//console.log( mini_cart );
 					if ( mini_cart.length ) {
-						mini_cart.html( response.mini_cart );
+						mini_cart.html( MER.response.mini_cart );
 						$('#mini-cart-whats-next-buttons' ).fadeIn();
 					}
 				}
-				if ( typeof response.cart_results !== 'undefined' && response.cart_results !== '' ) {
+				if ( typeof MER.response.cart_results !== 'undefined' && MER.response.cart_results !== '' ) {
 					var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
 					//console.log( mini_cart );
 					if ( cart_results_wrapper.length ) {
-						cart_results_wrapper.html( response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
+						cart_results_wrapper.html( MER.response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
+						MER.add_modal_notices();
 					}
 				}
 			}
 		},
+
+
+
+
+		/**
+		 *  @function add_modal_notices
+		 */
+		add_modal_notices : function() {
+			var notices = '';
+			if ( typeof MER.response.attention !== 'undefined' && MER.response.attention ) {
+				notices += '<div class="espresso-ajax-modal-notices attention"><p>' + MER.response.attention + '</p></div>';
+			} else if ( typeof MER.response.errors !== 'undefined' && MER.response.errors ) {
+				notices += '<div class="espresso-ajax-modal-notices errors"><p>' + MER.response.errors + '</p></div>';
+			} else if ( typeof MER.response.success !== 'undefined' && MER.response.success ) {
+				notices += '<div class="espresso-ajax-modal-notices success"><p>' + MER.response.success + '</p></div>';
+			}
+			if ( notices !== '' ) {
+				notices = '<div id="espresso-ajax-modal-notices-dv" style="display: block;">' + notices + '</div>';
+				var cart_results = $( "#cart-results-modal-dv" );
+				var notices_width = cart_results.innerWidth();
+				cart_results.append( notices );
+				$( '#espresso-ajax-modal-notices-dv' ).css({ 'width' : notices_width } ).show();
+			}
+		},
+
 
 
 
@@ -404,9 +449,9 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		display_messages : function( msg ) {
 			if ( typeof msg.attention !== 'undefined' && msg.attention ) {
-				MER.show_event_cart_ajax_msg( 'attention', msg.attention, 10000 );
+				MER.show_event_cart_ajax_msg( 'attention', msg.attention, 18000 );
 			} else if ( typeof msg.errors !== 'undefined' && msg.errors ) {
-				MER.show_event_cart_ajax_msg( 'error', msg.errors, 10000 );
+				MER.show_event_cart_ajax_msg( 'error', msg.errors, 12000 );
 			} else if ( typeof msg.success !== 'undefined' && msg.success ) {
 				MER.show_event_cart_ajax_msg( 'success', msg.success, 6000 );
 			}
@@ -428,7 +473,7 @@ jQuery( document ).ready( function( $ ) {
 				// make sure fade out time is not too short
 				fadeOut = typeof fadeOut === 'undefined' || fadeOut < 4000 ? 4000 : fadeOut;
 				// center notices on screen
-				$( '#espresso-ajax-notices' ).eeCenter( 'fixed' );
+				MER.ajax_notices.eeCenter( 'fixed' );
 				// target parent container
 				var espresso_ajax_msg = $( '#espresso-ajax-notices-' + msg_type );
 				//  actual message container
@@ -457,90 +502,93 @@ jQuery( document ).ready( function( $ ) {
 				}
 			} );
 			return json_object;
-		},
+		}
 
 
 
 		/**
 		*        retrieve available spaces updates from the server on a timed interval
 		*/
-		poll_available_spaces :function( event_id, httpTimeout ) {
-
-			//alert( 'event_id : ' + event_id);
-
-			if ( httpTimeout == undefined ) {
-				httpTimeout = 30000;
-			}
-
-			if ( event_id ) {
-				$.ajax( {
-					type : "POST",
-					url : mer.ajax_url,
-					data : {
-						"action" : "espresso_get_available_spaces",
-						"event_id" : event_id,
-						"event_cart_ajax" : 1
-					},
-					dataType : "json",
-					success : function( response ) {
-
-						var availability = response.spaces + ' <span class="available-spaces-last-update-spn">( last update: ' + response.time + ' )</span>';
-						$( '#available-spaces-spn-' + response.id ).fadeOut( 500, function() {
-							$( '#available-spaces-spn-' + response.id ).html( availability ).fadeIn( 500 );
-						} );
-
-					},
-					error : function( response ) {
-
-						if ( response.error == undefined || response.error == '' ) {
-							response = new Object();
-							response.error = 'Available space polling failed. Please refresh the page and it try again and again.';
-						}
-						show_event_cart_ajax_error_msg( 0, response );
-
-					},
-					//						complete: function(response) {
-
-					//							setTimeout(function() {
-					//								poll_available_spaces( event_id );
-					//							}, httpTimeout );
-
-					//						},
-					timeout : httpTimeout
-				} );
-			}
-		},
-
-
-
-		/**
-		 *        loop thru events in event list and begin polling server re: available spaces
-		 */
-		begin_polling_available_spaces : function() {
-			var httpTimeout = 30000 * $( '.available-spaces-spn' ).size();
-			$( '.available-spaces-spn' ).each( function( index ) {
-				var event_id = $( this ).attr( 'id' );
-				event_id = event_id.replace( 'available-spaces-spn-', '' );
-				setTimeout( function() {
-					poll_available_spaces( event_id, httpTimeout );
-				}, 30000 * index );
-			} );
-			setTimeout( function() {
-				begin_polling_available_spaces();
-			}, httpTimeout );
-
-		},
-
-
-
-		/**
-		 *        loop thru events in event list and begin polling server re: available spaces
-		 */
-		event_list_polling : function( serialized_array ) {
-			if ( $( '#event-cart-poll-server' ).val() == 1 ) {
-				setTimeout( MER.begin_polling_available_spaces(), 30000 );
-			}
-		}
+		//poll_available_spaces :function( event_id, httpTimeout ) {
+		//
+		//	//alert( 'event_id : ' + event_id);
+		//
+		//	if ( httpTimeout == undefined ) {
+		//		httpTimeout = 30000;
+		//	}
+		//
+		//	if ( event_id ) {
+		//		$.ajax( {
+		//			type : "POST",
+		//			url : mer.ajax_url,
+		//			data : {
+		//				"action" : "espresso_get_available_spaces",
+		//				"event_id" : event_id,
+		//				"event_cart_ajax" : 1
+		//			},
+		//			dataType : "json",
+		//
+		//			success : function( response ) {
+		//
+		//				MER.response = response;
+		//				var availability = MER.response.spaces + ' <span class="available-spaces-last-update-spn">( last update: ' + MER.response.time + ' )</span>';
+		//				$( '#available-spaces-spn-' + MER.response.id ).fadeOut( 500, function() {
+		//					$( '#available-spaces-spn-' + MER.response.id ).html( availability ).fadeIn( 500 );
+		//				} );
+		//
+		//			},
+		//
+		//			error : function( response ) {
+		//
+		//				MER.response = response;
+		//				if ( MER.response.error == undefined || MER.response.error == '' ) {
+		//					MER.response.error = 'Available space polling failed. Please refresh the page and it try again and again.';
+		//				}
+		//				show_event_cart_ajax_error_msg( 0, response );
+		//
+		//			},
+		//			//						complete: function(response) {
+		//
+		//			//							setTimeout(function() {
+		//			//								poll_available_spaces( event_id );
+		//			//							}, httpTimeout );
+		//
+		//			//						},
+		//			timeout : httpTimeout
+		//		} );
+		//	}
+		//},
+		//
+		//
+		//
+		///**
+		// *        loop thru events in event list and begin polling server re: available spaces
+		// */
+		//begin_polling_available_spaces : function() {
+		//	var httpTimeout = 30000 * $( '.available-spaces-spn' ).size();
+		//	$( '.available-spaces-spn' ).each( function( index ) {
+		//		var event_id = $( this ).attr( 'id' );
+		//		event_id = event_id.replace( 'available-spaces-spn-', '' );
+		//		setTimeout( function() {
+		//			poll_available_spaces( event_id, httpTimeout );
+		//		}, 30000 * index );
+		//	} );
+		//	setTimeout( function() {
+		//		begin_polling_available_spaces();
+		//	}, httpTimeout );
+		//
+		//},
+		//
+		//
+		//
+		///**
+		// *        loop thru events in event list and begin polling server re: available spaces
+		// */
+		//event_list_polling : function( serialized_array ) {
+		//	if ( $( '#event-cart-poll-server' ).val() == 1 ) {
+		//		setTimeout( MER.begin_polling_available_spaces(), 30000 );
+		//	}
+		//}
 
 
 
