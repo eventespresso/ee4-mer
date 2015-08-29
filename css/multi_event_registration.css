@@ -118,3 +118,28 @@
 .cart-results-button-spn + .cart-results-button-spn {
 	/*margin-left: 2em;*/
 }
+
+
+.espresso-ajax-modal-notices {
+	border-top: 4px solid;
+	font-size: 1em;
+	font-weight: bold;
+	line-height: 1.2em;
+	margin: 2em 0 0;
+	padding: 2em 1em 1em;
+	text-align: left;
+}
+
+.espresso-ajax-modal-notices p {
+	margin: 0;
+}
+
+.espresso-ajax-modal-notices.attention {
+	border-color: #F8D755;
+}
+.espresso-ajax-modal-notices.error {
+	border-color: #e44064;
+}
+.espresso-ajax-modal-notices.success {
+	border-color: #70cc50;
+}
