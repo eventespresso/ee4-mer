@@ -505,19 +505,21 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return 	void
 	 */
 	public static function process_ticket_selections() {
+		//echo "\n\n " . __LINE__ . ") " . __METHOD__ . "() <br />";
 		$response = array( 'tickets_added' => false );
 		if ( EED_Ticket_Selector::instance()->process_ticket_selections() ) {
 			$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ) );
-			$tickets = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
-			$ticket_count = 0;
-			// radio buttons send ticket info as a string like: "TKT_ID-QTY"
-			if ( ! is_array( $tickets ) ) {
-				$tickets = explode( '-', $tickets );
-				array_shift( $tickets );
-			}
-			foreach ( $tickets as $quantity ) {
-				$ticket_count += $quantity;
-			}
+			//$tickets = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
+			$ticket_count = EE_Registry::instance()->CART->all_ticket_quantity_count();
+			//$ticket_count = 0;
+			//// radio buttons send ticket info as a string like: "TKT_ID-QTY"
+			//if ( ! is_array( $tickets ) ) {
+			//	$tickets = explode( '-', $tickets );
+			//	array_shift( $tickets );
+			//}
+			//foreach ( $tickets as $quantity ) {
+			//	$ticket_count += $quantity;
+			//}
 			$response = array(
 				'tickets_added' 	=> true,
 				'ticket_count' 		=> $ticket_count,
@@ -528,6 +530,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 				'cart_results' 		=> EED_Multi_Event_Registration::get_cart_results( $ticket_count )
 			);
 		}
+		//$notices = EE_Error::get_notices( false );
+		//echo "\n notices: ";
+		//var_dump( $notices );
 		// just send the ajax
 		echo json_encode(
 			array_merge(
@@ -786,9 +791,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$ticket = $this->get_ticket( $TKT_ID );
 			if ( $ticket instanceof EE_Ticket ) {
 				foreach ( $ticket_quantity as $line_item_id => $quantity ) {
-					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, true ) ) {
+					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, true, true ) ) {
 						$line_item = $this->get_line_item( $line_item_id );
-						$this->adjust_line_item_quantity( $line_item, $quantity, 'update' );
+						$line_item = $this->adjust_line_item_quantity( $line_item, $quantity, 'update' );
+						if ( $line_item instanceof EE_Line_Item ) {
+							$this->_adjust_ticket_reserves( $ticket, $line_item->quantity() - $quantity );
+						}
 					} else {
 						break(2);
 					}
@@ -808,7 +816,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return array
 	 */
 	public static function ajax_add_ticket() {
-		EED_Multi_Event_Registration::instance()->add_ticket( 1, true );
+		EED_Multi_Event_Registration::instance()->add_ticket( 1 );
 	}
 
 
@@ -824,12 +832,34 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
-		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity ) ) {
+		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, false, true ) ) {
 			// you can DO IT !!!
 			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
-			$this->adjust_line_item_quantity( $line_item, $quantity, 'add' );
+			$line_item = $this->adjust_line_item_quantity( $line_item, $quantity, 'add' );
+			if ( $line_item instanceof EE_Line_Item ) {
+				$this->_adjust_ticket_reserves( $ticket, $quantity );
+			}
 		}
 		$this->send_ajax_response();
+	}
+
+
+
+	/**
+	 *    increment or decrement a ticket's quantity in the event cart
+	 *
+	 * @access    public
+	 * @param \EE_Ticket $ticket
+	 * @param int        $quantity
+	 * @return void
+	 */
+	protected function _adjust_ticket_reserves( EE_Ticket $ticket, $quantity = 1 ) {
+		if ( $quantity > 0 ) {
+			$ticket->increase_reserved( $quantity );
+		} else {
+			$ticket->decrease_reserved( $quantity );
+		}
+		$ticket->save();
 	}
 
 
@@ -844,7 +874,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return bool
 	 */
 	public static function allow_ticket_selector_add_to_cart( $allow = true, EE_Ticket $ticket, $quantity = 1 ) {
-		return EED_Multi_Event_Registration::instance()->can_purchase_ticket_quantity( $ticket, $quantity );
+		// if already toggled toggled to false by something else then don't bother processing
+		if ( $allow ) {
+			$allow = EED_Multi_Event_Registration::instance()->can_purchase_ticket_quantity( $ticket, $quantity );
+		}
+		return $allow;
 	}
 
 
@@ -856,11 +890,15 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param EE_Ticket $ticket
 	 * @param int       $quantity
 	 * @param bool      $cart_update
+	 * @param bool      $check_reserved
 	 * @return bool
 	 */
-	protected function can_purchase_ticket_quantity( EE_Ticket $ticket, $quantity = 1, $cart_update = false ) {
+	protected function can_purchase_ticket_quantity( EE_Ticket $ticket, $quantity = 1, $cart_update = false, $check_reserved = false ) {
 		// any tickets left at all?
 		$tickets_remaining = $ticket->remaining();
+		if ( $check_reserved ) {
+			$tickets_remaining -= $ticket->reserved();
+		}
 		if ( ! $tickets_remaining ) {
 			// event is full
 			EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
@@ -1099,9 +1137,15 @@ class EED_Multi_Event_Registration extends EED_Module {
 				// if there will still be tickets in cart after this request
 				// then just remove the requested quantity, else update the entire event cart
 				if ( $line_item->quantity() - $quantity > 0 ) {
-					$this->adjust_line_item_quantity( $line_item, $quantity * -1, 'remove' );
+					$line_item = $this->adjust_line_item_quantity( $line_item, $quantity * -1, 'remove' );
+					if ( $line_item instanceof EE_Line_Item ) {
+						$this->_adjust_ticket_reserves( $ticket, abs( $quantity ) * -1 );
+					}
 				} else {
-					$this->adjust_line_item_quantity( $line_item, 0, 'update' );
+					$line_item = $this->adjust_line_item_quantity( $line_item, 0, 'update' );
+					if ( $line_item instanceof EE_Line_Item ) {
+						$this->_adjust_ticket_reserves( $ticket, abs( $line_item->quantity() ) * -1 );
+					}
 				}
 			} else {
 				// no ticket or line item !?!?!
@@ -1252,6 +1296,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public function empty_event_cart() {
 		$this->init();
 		EED_Multi_Event_Registration::load_classes();
+		do_action( 'AHEE__EED_Multi_Event_Registration__empty_event_cart__before_delete_cart', EE_Registry::instance()->SSN );
 		// remove all unwanted records from the db
 		if ( EE_Registry::instance()->CART->delete_cart() ) {
 			// and clear the session too
@@ -1296,7 +1341,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( isset( $_REQUEST[ 'event_id' ] ) ) {
 			$event = EEM_Event::instance()->get_one_by_ID( absint( $_REQUEST[ 'event_id' ] ) );
 			if ( $event instanceof EE_Event ) {
-				$available_spaces = $event->first_datetime()->tickets_remaining();
+				$available_spaces = $event->first_datetime()->tickets_remaining( array(), true );
 				// just send the ajax
 				echo json_encode( array( 'id' => $event->ID(), 'spaces' => $available_spaces, 'time' => current_time( 'g:i:s a T' ) ) );
 				// to be... or...
@@ -1324,6 +1369,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return void
 	 */
 	protected function send_ajax_response( $empty_cart = false, $redirect_url = '' ) {
+		//echo "\n\n " . __LINE__ . ") " . __METHOD__ . "() <br />";
 		$grand_total = EE_Registry::instance()->CART->get_grand_total();
 		$grand_total->recalculate_total_including_taxes();
 		$empty_cart = $empty_cart || EE_Registry::instance()->CART->all_ticket_quantity_count() < 1 ? true : false;
@@ -1335,6 +1381,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$new_html['.event-cart-grand-total'] = '';
 				$new_html['.event-cart-register-button'] = '';
 			}
+			//$notices = EE_Error::get_notices( false );
+			//echo "\n notices: ";
+			//var_dump( $notices );
 			// just send the ajax
 			echo json_encode(
 				array_merge(
