@@ -1311,7 +1311,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( isset( $_REQUEST[ 'event_id' ] ) ) {
 			$event = EEM_Event::instance()->get_one_by_ID( absint( $_REQUEST[ 'event_id' ] ) );
 			if ( $event instanceof EE_Event ) {
-				$available_spaces = $event->first_datetime()->tickets_remaining();
+				$available_spaces = $event->first_datetime()->tickets_remaining(); //  array(), true
 				// just send the ajax
 				echo json_encode( array( 'id' => $event->ID(), 'spaces' => $available_spaces, 'time' => current_time( 'g:i:s a T' ) ) );
 				// to be... or...
