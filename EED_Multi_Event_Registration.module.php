@@ -570,8 +570,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
 				sprintf(
 					_n( 
-						'1 ticket was successfully added for this event.',
-						'%1$s tickets were successfully added for this event.', 
+						'1 item was successfully added for this event.',
+						'%1$s items were successfully added for this event.', 
 						$ticket_count,
 						'event_espresso' 
 					),
@@ -583,8 +583,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				sprintf(
 					_n( 
-						'There is currently 1 ticket in the %2$s.', 
-						'There are currently %1$d tickets in the %2$s.',
+						'There is currently 1 item in the %2$s.', 
+						'There are currently %1$d items in the %2$s.',
 						$total_tickets, 
 						'event_espresso'
 					 ),
