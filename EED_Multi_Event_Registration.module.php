@@ -570,8 +570,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
 				sprintf(
 					_n( 
-						'1 ticket was successfully added for this event.',
-						'%1$s tickets were successfully added for this event.', 
+						'1 item was successfully added for this event.',
+						'%1$s items were successfully added for this event.', 
 						$ticket_count,
 						'event_espresso' 
 					),
@@ -583,8 +583,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				sprintf(
 					_n( 
-						'There is currently 1 ticket in the %2$s.', 
-						'There are currently %1$d tickets in the %2$s.',
+						'There is currently 1 item in the %2$s.', 
+						'There are currently %1$d items in the %2$s.',
 						$total_tickets, 
 						'event_espresso'
 					 ),
@@ -1014,11 +1014,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			if ( $saved ) {
 				if ( $action != 'update' ) {
 					$msg = sprintf(
-						__( '%1$s ticket was successfully %2$s for this event.', 'event_espresso' ),
+						__( '%1$s item was successfully %2$s for this event.', 'event_espresso' ),
 						$additional, $added_or_removed
 					);
 				} else {
-					$msg = __( 'Ticket quantities were successfully updated for this event.', 'event_espresso' );
+					$msg = __( 'The quantities were successfully updated for this event.', 'event_espresso' );
 				}
 				// something got added
 				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
@@ -1027,7 +1027,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			} else if ( $line_item->quantity() != $quantity ) {
 				// nothing added
 				EE_Error::add_error(
-					sprintf( __( '%1$s ticket was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
+					sprintf( __( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
 					__FILE__, __FUNCTION__, __LINE__
 				);
 				return null;
@@ -1074,7 +1074,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		// couldn't find the line item !?!?!
 		EE_Error::add_error(
-			__( 'The specified item could not be found in the cart, therefore the ticket quantity could not be adjusted. Please refresh the page and try again.', 'event_espresso' ),
+			__( 'The specified item could not be found in the cart, therefore the quantity could not be adjusted. Please refresh the page and try again.', 'event_espresso' ),
 			__FILE__, __FUNCTION__, __LINE__
 		);
 		return null;
@@ -1167,13 +1167,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					if ( $removals === 1 ) {
 						$msg = sprintf(
-							__( '%1$s ticket was successfully removed from the %2$s', 'event_espresso' ),
+							__( '%1$s item was successfully removed from the %2$s', 'event_espresso' ),
 							$removals,
 							EED_Multi_Event_Registration::$event_cart_name
 						);
 					} else {
 						$msg = sprintf(
-							__( '%1$s tickets were successfully removed from the %2$s', 'event_espresso' ),
+							__( '%1$s items were successfully removed from the %2$s', 'event_espresso' ),
 							$removals,
 							EED_Multi_Event_Registration::$event_cart_name
 						);
@@ -1183,7 +1183,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 					// nothing removed
 					EE_Error::add_error(
 						sprintf(
-							__( 'The ticket was not removed from the %1$s', 'event_espresso' ),
+							__( 'The item was not removed from the %1$s', 'event_espresso' ),
 							EED_Multi_Event_Registration::$event_cart_name
 						),
 						__FILE__, __FUNCTION__, __LINE__
