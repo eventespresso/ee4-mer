@@ -13,18 +13,6 @@ jQuery( document ).ready( function( $ ) {
 	 * @type {{
 		 *     ajax_url: string
 		 * }}
-	 * @namespace response
-	 * @type {{
-		 *     errors: string,
-		 *     attention: string,
-		 *     success: string,
-		 *     new_html: object,
-		 *     tickets_added: boolean,
-		 *     btn_id: string,
-		 *     btn_txt: string,
-		 *     form_html: string,
-		 *     mini_cart: string,
-		 * }}
 	 * @namespace form_data
 	 * @type {{
 		 *     action: string,
@@ -139,7 +127,7 @@ jQuery( document ).ready( function( $ ) {
 					//var serialized_form_data = $( MER.event_cart  ).find( 'form' ).serializeArray();
 					//MER.form_data = MER.convert_to_JSON( serialized_form_data );
 					MER.form_data = MER.get_form_data( MER.event_cart, true );
-					console.log( MER.form_data );
+					//console.log( MER.form_data );
 					MER.form_data.action = 'espresso_update_event_cart';
 					MER.submit_ajax_request();
 				}
@@ -173,6 +161,7 @@ jQuery( document ).ready( function( $ ) {
 		set_listener_for_ticket_selector_submit_btn : function() {
 			$( 'body' ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
 				MER.form_data = MER.get_form_data( $( this ), false );
+				//console.log( MER.form_data );
 				var ticket_count = 0;
 				if ( typeof MER.form_data[ 'tkt-slctr-event-id' ] !== 'undefined' && MER.form_data[ 'tkt-slctr-event-id' ] !== ''  ) {
 					var tkt_slctr_qty = 'tkt-slctr-qty-' + MER.form_data[ 'tkt-slctr-event-id' ] + '[]';
@@ -252,7 +241,6 @@ jQuery( document ).ready( function( $ ) {
 
 				success : function( response ) {
 					MER.process_response( response );
-					MER.do_after_ajax( response );
 				},
 
 				error : function() {
@@ -294,61 +282,119 @@ jQuery( document ).ready( function( $ ) {
 		/**
 		 * @function process_response
 		 * @param  {object} response
+		 *@param  {string} response.errors
+		 * @param  {string} response.attention
+		 * @param  {string} response.success
+		 * @param  {object} response.new_html
+		 * @param  {string} response.cart_results
+		 * @param  {object} response.tickets_added
+		 * @param  {string} response.btn_id
+		 * @param  {string} response.btn_txt
+		 * @param  {string} response.form_html
+		 * @param  {string} response.mini_cart
+		 * @param  {string} response.redirect_url
 		 */
 		process_response : function( response ) {
 			//console.log( response );
 			if ( typeof response === 'object' ) {
+				if ( typeof response.redirect_url !== 'undefined' && response.redirect_url !== '' ) {
+					// redirect browser
+					window.location.replace( response.redirect_url );
+					return;
+				}
 				if ( typeof response.new_html !== 'undefined' ) {
-					// loop thru tracked errors
-					$.each( response.new_html, function( index, html ) {
-						//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
-						if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
-							var event_cart_element = $( MER.event_cart  ).find( index );
-							if ( event_cart_element.length ) {
-								event_cart_element.replaceWith( html );
-								$( MER.event_cart ).eeScrollTo( 200 );
-								//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
-							}
-						}
-					} );
+					MER.process_new_html( response );
 				}
 				if ( typeof response.tickets_added !== 'undefined' && response.tickets_added === true ) {
-					var btn_id = typeof response.btn_id !== 'undefined' ? response.btn_id : '';
-					var btn_txt = typeof response.btn_txt !== 'undefined' ? response.btn_txt : '';
-					var form_html = typeof response.form_html !== 'undefined' ? response.form_html : '';
-					var submit_button = $( btn_id );
-					if ( submit_button.length && btn_txt !== '' ) {
-						if ( submit_button.val() !== btn_txt ) {
-							submit_button.val( btn_txt );
-							var ticket_form = submit_button.parents( 'form:first' );
-							if ( ticket_form.length && form_html !== '' ) {
-								ticket_form.append( form_html );
-								//console.log( JSON.stringify( 'form_html: ' + form_html, null, 4 ) );
-							}
-						}
-					}
-					$('.ticket-selector-tbl-qty-slct' ).each( function() {
-						//console.log( JSON.stringify( 'ticket-selector-tbl-qty-slct id: ' + $( this ).attr( 'id' ), null, 4 ) );
-						if ( $( this ).find( 'option[value="0"]' ).length > 0 ) {
-							$( this ).val( 0 );
-						}
-					} );
+					MER.process_tickets_added( response );
 				}
 				if ( typeof response.mini_cart !== 'undefined' && response.mini_cart !== '' ) {
-					var mini_cart = $( '#ee-mini-cart-details' );
-					//console.log( mini_cart );
-					if ( mini_cart.length ) {
-						mini_cart.html( response.mini_cart );
-						$('#mini-cart-whats-next-buttons' ).fadeIn();
-					}
+					MER.process_mini_cart( response );
+
 				}
 				if ( typeof response.cart_results !== 'undefined' && response.cart_results !== '' ) {
-					var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
-					//console.log( mini_cart );
-					if ( cart_results_wrapper.length ) {
-						cart_results_wrapper.html( response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
+					MER.process_cart_results( response );
+				}
+				MER.do_after_ajax( response );
+			}
+		},
+
+
+
+		/**
+		 *  @function process_new_html
+		 * @param  {object} response
+		 */
+		process_new_html : function( response ) {
+			// loop thru tracked errors
+			$.each( response.new_html, function( index, html ) {
+				//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
+				if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
+					var event_cart_element = $( MER.event_cart ).find( index );
+					if ( event_cart_element.length ) {
+						event_cart_element.replaceWith( html );
+						$( MER.event_cart ).eeScrollTo( 200 );
+						//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
 					}
 				}
+			} );
+		},
+
+
+
+		/**
+		 *  @function process_tickets_added
+		 * @param  {object} response
+		 */
+		process_tickets_added : function( response ) {
+			var btn_id = typeof response.btn_id !== 'undefined' ? response.btn_id : '';
+			var btn_txt = typeof response.btn_txt !== 'undefined' ? response.btn_txt : '';
+			var form_html = typeof response.form_html !== 'undefined' ? response.form_html : '';
+			var submit_button = $( btn_id );
+			if ( submit_button.length && btn_txt !== '' ) {
+				if ( submit_button.val() !== btn_txt ) {
+					submit_button.val( btn_txt );
+					var ticket_form = submit_button.parents( 'form:first' );
+					if ( ticket_form.length && form_html !== '' ) {
+						ticket_form.append( form_html );
+						//console.log( JSON.stringify( 'form_html: ' + form_html, null, 4 ) );
+					}
+				}
+			}
+			$( '.ticket-selector-tbl-qty-slct' ).each( function() {
+				//console.log( JSON.stringify( 'ticket-selector-tbl-qty-slct id: ' + $( this ).attr( 'id' ), null, 4 ) );
+				if ( $( this ).find( 'option[value="0"]' ).length > 0 ) {
+					$( this ).val( 0 );
+				}
+			} );
+		},
+
+
+
+		/**
+		 *  @function process_mini_cart
+		 * @param  {object} response
+		 */
+		process_mini_cart : function( response ) {
+			var mini_cart = $( '#ee-mini-cart-details' );
+			//console.log( mini_cart );
+			if ( mini_cart.length ) {
+				mini_cart.html( response.mini_cart );
+				$( '#mini-cart-whats-next-buttons' ).fadeIn();
+			}
+		},
+
+
+
+		/**
+		 *  @function process_cart_results
+		 * @param  {object} response
+		 */
+		process_cart_results : function( response ) {
+			var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
+			//console.log( mini_cart );
+			if ( cart_results_wrapper.length ) {
+				cart_results_wrapper.html( response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
 			}
 		},
 
@@ -423,15 +469,16 @@ jQuery( document ).ready( function( $ ) {
 		show_event_cart_ajax_msg : function( type, msg, fadeOut ) {
 			// does an actual message exist ?
 			if ( typeof msg !== 'undefined' && msg !== '' ) {
-				// ensure message type is set
+				//ensure message type is set
+				/** @type {string} - whether an error or success */
 				var msg_type = typeof type !== 'undefined' && type !== '' ? type : 'error';
 				// make sure fade out time is not too short
 				fadeOut = typeof fadeOut === 'undefined' || fadeOut < 4000 ? 4000 : fadeOut;
 				// center notices on screen
 				$( '#espresso-ajax-notices' ).eeCenter( 'fixed' );
-				// target parent container
+				/** @type {object} - target parent container */
 				var espresso_ajax_msg = $( '#espresso-ajax-notices-' + msg_type );
-				//  actual message container
+				/** @type {object} - actual message container */
 				espresso_ajax_msg.children( '.espresso-notices-msg' ).html( msg );
 				// display message
 				espresso_ajax_msg.removeClass( 'hidden' ).show().delay( fadeOut ).fadeOut();
@@ -457,90 +504,90 @@ jQuery( document ).ready( function( $ ) {
 				}
 			} );
 			return json_object;
-		},
+		}
 
 
 
 		/**
 		*        retrieve available spaces updates from the server on a timed interval
 		*/
-		poll_available_spaces :function( event_id, httpTimeout ) {
-
-			//alert( 'event_id : ' + event_id);
-
-			if ( httpTimeout == undefined ) {
-				httpTimeout = 30000;
-			}
-
-			if ( event_id ) {
-				$.ajax( {
-					type : "POST",
-					url : mer.ajax_url,
-					data : {
-						"action" : "espresso_get_available_spaces",
-						"event_id" : event_id,
-						"event_cart_ajax" : 1
-					},
-					dataType : "json",
-					success : function( response ) {
-
-						var availability = response.spaces + ' <span class="available-spaces-last-update-spn">( last update: ' + response.time + ' )</span>';
-						$( '#available-spaces-spn-' + response.id ).fadeOut( 500, function() {
-							$( '#available-spaces-spn-' + response.id ).html( availability ).fadeIn( 500 );
-						} );
-
-					},
-					error : function( response ) {
-
-						if ( response.error == undefined || response.error == '' ) {
-							response = new Object();
-							response.error = 'Available space polling failed. Please refresh the page and it try again and again.';
-						}
-						show_event_cart_ajax_error_msg( 0, response );
-
-					},
-					//						complete: function(response) {
-
-					//							setTimeout(function() {
-					//								poll_available_spaces( event_id );
-					//							}, httpTimeout );
-
-					//						},
-					timeout : httpTimeout
-				} );
-			}
-		},
+		//poll_available_spaces :function( event_id, httpTimeout ) {
+		//
+		//	//alert( 'event_id : ' + event_id);
+		//
+		//	if ( httpTimeout == undefined ) {
+		//		httpTimeout = 30000;
+		//	}
+		//
+		//	if ( event_id ) {
+		//		$.ajax( {
+		//			type : "POST",
+		//			url : mer.ajax_url,
+		//			data : {
+		//				"action" : "espresso_get_available_spaces",
+		//				"event_id" : event_id,
+		//				"event_cart_ajax" : 1
+		//			},
+		//			dataType : "json",
+		//			success : function( response ) {
+		//
+		//				var availability = response.spaces + ' <span class="available-spaces-last-update-spn">( last update: ' + response.time + ' )</span>';
+		//				$( '#available-spaces-spn-' + response.id ).fadeOut( 500, function() {
+		//					$( '#available-spaces-spn-' + response.id ).html( availability ).fadeIn( 500 );
+		//				} );
+		//
+		//			},
+		//			error : function( response ) {
+		//
+		//				if ( response.error == undefined || response.error == '' ) {
+		//					response = {};
+		//					response.error = 'Available space polling failed. Please refresh the page and it try again and again.';
+		//				}
+		//				show_event_cart_ajax_error_msg( 0, response );
+		//
+		//			},
+		//			//						complete: function(response) {
+		//
+		//			//							setTimeout(function() {
+		//			//								poll_available_spaces( event_id );
+		//			//							}, httpTimeout );
+		//
+		//			//						},
+		//			timeout : httpTimeout
+		//		} );
+		//	}
+		//},
+		//
+		//
+		//
+		///**
+		// *        loop thru events in event list and begin polling server re: available spaces
+		// */
+		//begin_polling_available_spaces : function() {
+		//	var httpTimeout = 30000 * $( '.available-spaces-spn' ).size();
+		//	$( '.available-spaces-spn' ).each( function( index ) {
+		//		var event_id = $( this ).attr( 'id' );
+		//		event_id = event_id.replace( 'available-spaces-spn-', '' );
+		//		setTimeout( function() {
+		//			poll_available_spaces( event_id, httpTimeout );
+		//		}, 30000 * index );
+		//	} );
+		//	setTimeout( function() {
+		//		begin_polling_available_spaces();
+		//	}, httpTimeout );
+		//
+		//},
 
 
 
 		/**
 		 *        loop thru events in event list and begin polling server re: available spaces
 		 */
-		begin_polling_available_spaces : function() {
-			var httpTimeout = 30000 * $( '.available-spaces-spn' ).size();
-			$( '.available-spaces-spn' ).each( function( index ) {
-				var event_id = $( this ).attr( 'id' );
-				event_id = event_id.replace( 'available-spaces-spn-', '' );
-				setTimeout( function() {
-					poll_available_spaces( event_id, httpTimeout );
-				}, 30000 * index );
-			} );
-			setTimeout( function() {
-				begin_polling_available_spaces();
-			}, httpTimeout );
-
-		},
-
-
-
-		/**
-		 *        loop thru events in event list and begin polling server re: available spaces
-		 */
-		event_list_polling : function( serialized_array ) {
-			if ( $( '#event-cart-poll-server' ).val() == 1 ) {
-				setTimeout( MER.begin_polling_available_spaces(), 30000 );
-			}
-		}
+		//event_list_polling : function( serialized_array ) {
+		//	if ( $( '#event-cart-poll-server' ).val() == 1 ) {
+		//		setTimeout( MER.begin_polling_available_spaces(), 30000 );
+		//	}
+		//}
 
 
 
