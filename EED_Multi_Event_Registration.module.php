@@ -113,6 +113,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		EED_Multi_Event_Registration::set_definitions();
 		// loads additional classes for modifying admin pages
 		add_action( 'admin_init', array( 'EED_Multi_Event_Registration', 'route_admin_page_requests' ), 10 );
+		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ), 10 );
 		// process ticket selections
 		add_action(
 			'wp_ajax_espresso_process_ticket_selections',
@@ -482,18 +483,39 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// grab ticket quantity array
 			$ticket_quantities = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
 			$ticket_quantities = is_array( $ticket_quantities ) ? $ticket_quantities : array( $ticket_quantities );
-			foreach ( $ticket_quantities as $ticket_quantity ) {
+			foreach ( $ticket_quantities as $key => $ticket_quantity ) {
 				// if ANY qty was set, then don't redirect
-				if ( absint( $ticket_quantity )) {
+				$ticket_quantity = absint( $ticket_quantity );
+				if ( $ticket_quantity == 1 ) {
+					$event = EEM_Event::instance()->get_one_by_ID( $EVT_ID );
+					if ( $event instanceof EE_Event ) {
+						if ( $event->additional_limit() == 1 && EED_Multi_Event_Registration::instance()->has_tickets_in_cart( $event ) ) {
+							continue;
+						} else {
+							return;
+						}
+					}
+				} else if ( $ticket_quantity > 1 ) {
 					return;
 				}
 			}
 		}
+		$redirect_url = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
 		if ( EE_Registry::instance()->REQ->get( 'event_cart', '' ) == 'view' ) {
-			wp_safe_redirect( add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) );
-			exit();
+			if ( EE_Registry::instance()->REQ->get( 'ee_front_ajax', false ) ) {
+				// just send the ajax
+				echo json_encode(
+					array_merge(
+						EE_Error::get_notices( false ),
+						array( 'redirect_url'  => $redirect_url )
+					)
+				);
+				exit();
+			} else {
+				wp_safe_redirect( $redirect_url );
+				exit();
+			}
 		}
-		exit();
 	}
 
 
@@ -573,7 +595,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 						'1 item was successfully added for this event.',
 						'%1$s items were successfully added for this event.', 
 						$ticket_count,
-						'event_espresso' 
+						'event_espresso'
 					),
 					$ticket_count
 				),
