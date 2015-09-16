@@ -13,6 +13,7 @@
 		"src/readme.txt"
 	],
   "github" : true,
+  "demoee" : true,
   "awsbucket" : "",
   "awsregion" : ""
 }
