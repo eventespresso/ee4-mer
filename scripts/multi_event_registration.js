@@ -277,7 +277,7 @@ jQuery( document ).ready( function( $ ) {
 				success : function( response ) {
 					MER.response = response;
 					MER.process_response( MER.response );
-					MER.do_after_ajax( response );
+					MER.do_after_ajax();
 				},
 
 				error : function( response ) {
