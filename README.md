@@ -1,6 +1,6 @@
 #EE4 MER : Multi Event Registration Add-on for Event Espresso 4
 
-[![GitHub release](https://img.shields.io/badge/Release%20Candidate-v2.0.0.rc-orange.svg?style=plastic)](https://github.com/eventespresso/event-espresso-core)
+[![GitHub release](https://img.shields.io/badge/Release%20Candidate-v2.0.4.rc-orange.svg?style=plastic)](https://github.com/eventespresso/event-espresso-core)
 [![WordPress](https://img.shields.io/badge/WordPress-v4.2%20tested-brightgreen.svg?style=plastic)](http://eventespresso.com/)
 [![License](https://img.shields.io/badge/License-GPLv2-blue.svg?style=plastic)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![License](https://img.shields.io/badge/Eco%20Certified-Dolphin%20Friendly-ff69b4.svg?style=plastic)](http://eventespresso.com/)

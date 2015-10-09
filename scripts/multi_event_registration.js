@@ -57,6 +57,8 @@ jQuery( document ).ready( function( $ ) {
 		 *     btn_txt: string,
 		 *     form_html: string,
 		 *     mini_cart: string,
+		 *     cart_results: string,
+		 *     redirect_url: string,
 		 * }}
 		 */
 		response : {},
@@ -160,7 +162,7 @@ jQuery( document ).ready( function( $ ) {
 					//var serialized_form_data = $( MER.event_cart  ).find( 'form' ).serializeArray();
 					//MER.form_data = MER.convert_to_JSON( serialized_form_data );
 					MER.form_data = MER.get_form_data( MER.event_cart, true );
-					console.log( MER.form_data );
+					//console.log( MER.form_data );
 					MER.form_data.action = 'espresso_update_event_cart';
 					MER.submit_ajax_request();
 				}
@@ -194,6 +196,7 @@ jQuery( document ).ready( function( $ ) {
 		set_listener_for_ticket_selector_submit_btn : function() {
 			$( 'body' ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
 				MER.form_data = MER.get_form_data( $( this ), false );
+				//console.log( MER.form_data );
 				var ticket_count = 0;
 				if ( typeof MER.form_data[ 'tkt-slctr-event-id' ] !== 'undefined' && MER.form_data[ 'tkt-slctr-event-id' ] !== ''  ) {
 					var tkt_slctr_qty = 'tkt-slctr-qty-' + MER.form_data[ 'tkt-slctr-event-id' ] + '[]';
@@ -317,58 +320,100 @@ jQuery( document ).ready( function( $ ) {
 		process_response : function() {
 			//console.log( MER.response );
 			if ( typeof MER.response === 'object' ) {
+				if ( typeof MER.response.redirect_url !== 'undefined' && MER.response.redirect_url !== '' ) {
+					// redirect browser
+					window.location.replace( MER.response.redirect_url );
+					return;
+				}
 				if ( typeof MER.response.new_html !== 'undefined' ) {
-					// loop thru tracked errors
-					$.each( MER.response.new_html, function( index, html ) {
-						//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
-						if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
-							var event_cart_element = $( MER.event_cart  ).find( index );
-							if ( event_cart_element.length ) {
-								event_cart_element.replaceWith( html );
-								$( MER.event_cart ).eeScrollTo( 200 );
-								//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
-							}
-						}
-					} );
+					MER.process_new_html();
 				}
 				if ( typeof MER.response.tickets_added !== 'undefined' && MER.response.tickets_added === true ) {
-					var btn_id = typeof MER.response.btn_id !== 'undefined' ? MER.response.btn_id : '';
-					var btn_txt = typeof MER.response.btn_txt !== 'undefined' ? MER.response.btn_txt : '';
-					var form_html = typeof MER.response.form_html !== 'undefined' ? MER.response.form_html : '';
-					var submit_button = $( btn_id );
-					if ( submit_button.length && btn_txt !== '' ) {
-						if ( submit_button.val() !== btn_txt ) {
-							submit_button.val( btn_txt );
-							var ticket_form = submit_button.parents( 'form:first' );
-							if ( ticket_form.length && form_html !== '' ) {
-								ticket_form.append( form_html );
-								//console.log( JSON.stringify( 'form_html: ' + form_html, null, 4 ) );
-							}
-						}
-					}
-					$('.ticket-selector-tbl-qty-slct' ).each( function() {
-						//console.log( JSON.stringify( 'ticket-selector-tbl-qty-slct id: ' + $( this ).attr( 'id' ), null, 4 ) );
-						if ( $( this ).find( 'option[value="0"]' ).length > 0 ) {
-							$( this ).val( 0 );
-						}
-					} );
+					MER.process_tickets_added();
 				}
 				if ( typeof MER.response.mini_cart !== 'undefined' && MER.response.mini_cart !== '' ) {
-					var mini_cart = $( '#ee-mini-cart-details' );
-					//console.log( mini_cart );
-					if ( mini_cart.length ) {
-						mini_cart.html( MER.response.mini_cart );
-						$('#mini-cart-whats-next-buttons' ).fadeIn();
-					}
+					MER.process_mini_cart();
+
 				}
 				if ( typeof MER.response.cart_results !== 'undefined' && MER.response.cart_results !== '' ) {
-					var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
-					//console.log( mini_cart );
-					if ( cart_results_wrapper.length ) {
-						cart_results_wrapper.html( MER.response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
-						MER.add_modal_notices();
+					MER.process_cart_results();
+				}
+			}
+		},
+
+
+
+		/**
+		 *  @function process_new_html
+		 */
+		process_new_html : function() {
+			// loop thru tracked errors
+			$.each( MER.response.new_html, function( index, html ) {
+				//console.log( JSON.stringify( 'index: ' + index, null, 4 ) );
+				if ( typeof index !== 'undefined' && typeof html !== 'undefined' ) {
+					var event_cart_element = $( MER.event_cart ).find( index );
+					if ( event_cart_element.length ) {
+						event_cart_element.replaceWith( html );
+						$( MER.event_cart ).eeScrollTo( 200 );
+						//console.log( JSON.stringify( 'html: ' + html, null, 4 ) );
 					}
 				}
+			} );
+		},
+
+
+
+		/**
+		 *  @function process_tickets_added
+		 */
+		process_tickets_added : function() {
+			var btn_id = typeof MER.response.btn_id !== 'undefined' ? MER.response.btn_id : '';
+			var btn_txt = typeof MER.response.btn_txt !== 'undefined' ? MER.response.btn_txt : '';
+			var form_html = typeof MER.response.form_html !== 'undefined' ? MER.response.form_html : '';
+			var submit_button = $( btn_id );
+			if ( submit_button.length && btn_txt !== '' ) {
+				if ( submit_button.val() !== btn_txt ) {
+					submit_button.val( btn_txt );
+					var ticket_form = submit_button.parents( 'form:first' );
+					if ( ticket_form.length && form_html !== '' ) {
+						ticket_form.append( form_html );
+						//console.log( JSON.stringify( 'form_html: ' + form_html, null, 4 ) );
+					}
+				}
+			}
+			$( '.ticket-selector-tbl-qty-slct' ).each( function() {
+				//console.log( JSON.stringify( 'ticket-selector-tbl-qty-slct id: ' + $( this ).attr( 'id' ), null, 4 ) );
+				if ( $( this ).find( 'option[value="0"]' ).length > 0 ) {
+					$( this ).val( 0 );
+				}
+			} );
+		},
+
+
+
+		/**
+		 *  @function process_mini_cart
+		 */
+		process_mini_cart : function() {
+			var mini_cart = $( '#ee-mini-cart-details' );
+			//console.log( mini_cart );
+			if ( mini_cart.length ) {
+				mini_cart.html( MER.response.mini_cart );
+				$( '#mini-cart-whats-next-buttons' ).fadeIn();
+			}
+		},
+
+
+
+		/**
+		 *  @function process_cart_results
+		 */
+		process_cart_results : function() {
+			var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
+			//console.log( mini_cart );
+			if ( cart_results_wrapper.length ) {
+				cart_results_wrapper.html( MER.response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
+				MER.add_modal_notices();
 			}
 		},
 
@@ -469,14 +514,15 @@ jQuery( document ).ready( function( $ ) {
 			// does an actual message exist ?
 			if ( typeof msg !== 'undefined' && msg !== '' ) {
 				// ensure message type is set
+				/** @type {string} - whether an error or success */
 				var msg_type = typeof type !== 'undefined' && type !== '' ? type : 'error';
 				// make sure fade out time is not too short
 				fadeOut = typeof fadeOut === 'undefined' || fadeOut < 4000 ? 4000 : fadeOut;
 				// center notices on screen
 				MER.ajax_notices.eeCenter( 'fixed' );
-				// target parent container
+				/** @type {object} - target parent container */
 				var espresso_ajax_msg = $( '#espresso-ajax-notices-' + msg_type );
-				//  actual message container
+				/** @type {object} - actual message container */
 				espresso_ajax_msg.children( '.espresso-notices-msg' ).html( msg );
 				// display message
 				espresso_ajax_msg.removeClass( 'hidden' ).show().delay( fadeOut ).fadeOut();
@@ -578,12 +624,12 @@ jQuery( document ).ready( function( $ ) {
 		//	}, httpTimeout );
 		//
 		//},
-		//
-		//
-		//
-		///**
-		// *        loop thru events in event list and begin polling server re: available spaces
-		// */
+
+
+
+		/**
+		 *        loop thru events in event list and begin polling server re: available spaces
+		 */
 		//event_list_polling : function( serialized_array ) {
 		//	if ( $( '#event-cart-poll-server' ).val() == 1 ) {
 		//		setTimeout( MER.begin_polling_available_spaces(), 30000 );

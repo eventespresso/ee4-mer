@@ -210,13 +210,13 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			$disabled = '';
 			$disabled_class = '';
 			$disabled_style = '';
-			$disabled_title = __( 'add one ticket', 'event_espresso' );
+			$disabled_title = __( 'add one item', 'event_espresso' );
 			$query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
 		} else {
 			$disabled = ' disabled="disabled"';
 			$disabled_class = ' disabled';
 			$disabled_style = ' style="background-color:#e8e8e8;"';
-			$disabled_title = __( 'there are no more tickets available', 'event_espresso' );
+			$disabled_title = __( 'there are no more items available', 'event_espresso' );
 			$query_args = array( 'event_cart' => 'view' );
 		}
 		return '
@@ -239,7 +239,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				>
 				<span class="dashicons dashicons-plus" ></span >
 			</a >
-			<a	title = "' . __( 'remove one ticket', 'event_espresso' ) . '"
+			<a	title = "' . __( 'remove one item', 'event_espresso' ) . '"
 					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button"
 					rel = "' . $line_item->code() . '"
 					href = "' . add_query_arg( array(
@@ -250,7 +250,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 						>
 				<span class="dashicons dashicons-minus" ></span >
 			</a >
-			<a	title="' . __( 'delete ticket from event cart', 'event_espresso' ) . '"
+			<a	title="' . __( 'delete item from event cart', 'event_espresso' ) . '"
 					class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button"
 					rel="' . $line_item->code() . '"
 					href="' . add_query_arg( array(
