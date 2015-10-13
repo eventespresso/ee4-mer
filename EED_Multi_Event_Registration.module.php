@@ -596,9 +596,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'results' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
 				sprintf(
-					_n( 
+					_n(
 						'1 item was successfully added for this event.',
-						'%1$s items were successfully added for this event.', 
+						'%1$s items were successfully added for this event.',
 						$ticket_count,
 						'event_espresso'
 					),
@@ -609,10 +609,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'current_cart' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				sprintf(
-					_n( 
-						'There is currently 1 item in the %2$s.', 
+					_n(
+						'There is currently 1 item in the %2$s.',
 						'There are currently %1$d items in the %2$s.',
-						$total_tickets, 
+						$total_tickets,
 						'event_espresso'
 					 ),
 					$total_tickets,
@@ -1176,7 +1176,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( $line_item->quantity() - $quantity > 0 ) {
 					$line_item = $this->adjust_line_item_quantity( $line_item, $quantity * -1, 'remove' );
 					if ( $line_item instanceof EE_Line_Item ) {
-						$this->_adjust_ticket_reserves( $ticket, abs( $quantity ) * -1 );
+						$this->_adjust_ticket_reserves( $ticket, $quantity * -1 );
 					}
 				} else {
 					$line_item = $this->adjust_line_item_quantity( $line_item, 0, 'update' );
