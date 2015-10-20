@@ -254,8 +254,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return        void
 	 */
 	public static function load_classes() {
-		EE_Registry::instance()->load_core( 'Cart' );
-		EE_Registry::instance()->load_helper( 'Line_Item' );
+		static $loaded = false;
+		if ( ! $loaded ) {
+			EE_Registry::instance()->load_core( 'Cart' );
+			EE_Registry::instance()->load_helper( 'Line_Item' );
+			$loaded = true;
+		}
 	}
 
 
