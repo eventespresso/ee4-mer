@@ -82,19 +82,54 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// don't empty cart
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__clear_session', '__return_false' );
 		// process registration links
-		add_filter( 'FHEE__EE_Ticket_Selector__ticket_selector_form_open__html', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_form_html' ), 10, 2 );
-		add_filter( 'FHEE__EE_Ticket_Selector__display_ticket_selector_submit__btn_text', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_submit_button' ), 10, 2 );
-		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__success_redirect_url', array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_redirect_url' ), 10, 2 );
+		add_filter(
+			'FHEE__EE_Ticket_Selector__ticket_selector_form_open__html',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_form_html' ),
+			10, 2
+		);
+		add_filter(
+			'FHEE__EE_Ticket_Selector__display_ticket_selector_submit__btn_text',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_submit_button' ),
+			10, 2
+		);
+		add_filter(
+			'FHEE__EED_Ticket_Selector__ticket_selector_iframe__css',
+			array( 'EED_Multi_Event_Registration', 'style_sheet_URLs' ),
+			10, 1
+		);
+		add_filter(
+			'FHEE__EED_Ticket_Selector__ticket_selector_iframe__js',
+			array( 'EED_Multi_Event_Registration', 'javascript_URLs' ),
+			10, 1
+		);
+		add_filter(
+			'FHEE__EE_Ticket_Selector__process_ticket_selections__success_redirect_url',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_redirect_url' ),
+			10, 2
+		);
 		// verify that SPCO registrations correspond to tickets in cart
-		add_filter( 'FHEE__EED_Single_Page_Checkout___initialize__checkout', array('EED_Multi_Event_Registration', 'verify_tickets_in_cart' ), 10, 1 );
+		add_filter(
+			'FHEE__EED_Single_Page_Checkout___initialize__checkout',
+			array('EED_Multi_Event_Registration', 'verify_tickets_in_cart' ),
+			10, 1
+		);
 		// redirect to event_cart
-		add_action( 'EED_Ticket_Selector__process_ticket_selections__before', array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ), 10 );
-		add_filter( 'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html', array( 'EED_Multi_Event_Registration', 'return_to_event_cart_button'	), 10, 2 );
+		add_action(
+			'EED_Ticket_Selector__process_ticket_selections__before',
+			array( 'EED_Multi_Event_Registration', 'redirect_to_event_cart' ),
+			10
+		);
+		add_filter(
+			'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html',
+			array(  'EED_Multi_Event_Registration', 'return_to_event_cart_button' ),
+			10, 2
+		);
 		// toggling reg status
-		add_filter( 'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing', array(
-			'EED_Multi_Event_Registration',
-			'toggle_registration_status_if_no_monies_owing'
-		), 10, 2 );
+		add_filter(
+			'FHEE__EE_Registration_Processor__toggle_registration_status_if_no_monies_owing',
+			array( 'EED_Multi_Event_Registration', 'toggle_registration_status_if_no_monies_owing' ),
+			10, 2
+		);
 		// display errors
 		add_action( 'wp_footer', array( 'EED_Multi_Event_Registration', 'cart_results_modal_div' ), 1 );
 		// update cart in session
@@ -186,6 +221,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'FHEE__EED_Multi_Event_Registration__set_definitions__event_cart_name',
 			__( 'Event Cart', 'event_espresso' )
 		);
+		EE_Registry::$i18n_js_strings[ 'iframe_tickets_added' ] = sprintf(
+			__( 'Success! Please click "View %s" to proceed with your registration.', 'event_espresso' ),
+			EED_Multi_Event_Registration::$event_cart_name
+		);
 	}
 
 
@@ -272,6 +311,34 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public function translate_js_strings() {
 		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
+	}
+
+
+
+	/**
+	 *    mer_style_sheets
+	 *
+	 * @access    public
+	 * @param array $style_sheet_URLs
+	 * @return array
+	 */
+	public static function style_sheet_URLs( $style_sheet_URLs = array() ) {
+		$style_sheet_URLs[] = EE_MER_URL . 'css' . DS . 'multi_event_registration.css';
+		return $style_sheet_URLs;
+	}
+
+
+
+	/**
+	 *    javascript_URLs
+	 *
+	 * @access    public
+	 * @param array $javascript_URLs
+	 * @return array
+	 */
+	public static function javascript_URLs( $javascript_URLs = array() ) {
+		$javascript_URLs[] = EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js';
+		return $javascript_URLs;
 	}
 
 

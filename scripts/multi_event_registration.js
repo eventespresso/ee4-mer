@@ -9,6 +9,7 @@ jQuery( document ).ready( function( $ ) {
 	 *     form_data: object,
 	 *     response: object,
 	 *     display_debug: boolean,
+	 *     ticket_selector_iframe: boolean,
 	 * }}
 	 * @namespace eei18n
 	 * @type {{
@@ -68,6 +69,8 @@ jQuery( document ).ready( function( $ ) {
 		 * @type  boolean
 		 */
 		display_debug : eei18n.wp_debug,
+		// is ticket selector in an iframe ?
+		ticket_selector_iframe : typeof( eei18n.ticket_selector_iframe ) !== 'undefined' ? eei18n.ticket_selector_iframe : false,
 
 		/********** INITIAL SETUP **********/
 
@@ -88,7 +91,7 @@ jQuery( document ).ready( function( $ ) {
 				MER.set_listener_for_ticket_selector_submit_btn();
 				MER.set_listener_for_close_modal_btn();
 			}
-			//alert( 'initialized' );
+			//alert( 'initialized !' );
 		},
 
 
@@ -194,7 +197,7 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_ticket_selector_submit_btn
 		 */
 		set_listener_for_ticket_selector_submit_btn : function() {
-			$( 'body' ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
+			$( document ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
 				MER.form_data = MER.get_form_data( $( this ), false );
 				//console.log( MER.form_data );
 				var ticket_count = 0;
@@ -224,8 +227,12 @@ jQuery( document ).ready( function( $ ) {
 				//console.log( JSON.stringify( 'MER.form_data.event_cart: ' + MER.form_data.event_cart, null, 4 ) );
 				var view_cart = typeof MER.form_data.event_cart !== 'undefined' && MER.form_data.event_cart === 'view';
 				//console.log( JSON.stringify( 'view_cart: ' + view_cart, null, 4 ) );
+				//console.log( JSON.stringify( 'MER.ticket_selector_iframe: ' + MER.ticket_selector_iframe, null, 4 ) );
 				//alert( 'MER.form_data.event_cart = ' + MER.form_data.event_cart + '\n' + 'ticket_count = ' + ticket_count );
-				if   ( ticket_count !== 0 || ( ticket_count === 0 && ! view_cart ) ) {
+				if (
+					( ( ticket_count !== 0 ) || ( ticket_count === 0 && ! view_cart ) )
+					&& ! ( MER.ticket_selector_iframe && view_cart )
+				) {
 					MER.form_data.action = 'espresso_' + MER.form_data.ee;
 					MER.submit_ajax_request();
 					event.preventDefault();
@@ -240,7 +247,7 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_close_modal_btn
 		 */
 		set_listener_for_close_modal_btn : function() {
-			$( 'body' ).on( 'click', '.close-modal-js', function( event ) {
+			$( document ).on( 'click', '.close-modal-js', function( event ) {
 				var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
 				if ( cart_results_wrapper.length ) {
 					cart_results_wrapper.eeRemoveOverlay().hide();
@@ -414,7 +421,10 @@ jQuery( document ).ready( function( $ ) {
 			if ( cart_results_wrapper.length ) {
 				cart_results_wrapper.html( MER.response.cart_results ).eeCenter( 'fixed' ).eeAddOverlay( 0.5 ).show();
 				MER.add_modal_notices();
+			} else if ( MER.ticket_selector_iframe ) {
+				MER.show_event_cart_ajax_msg( 'success', eei18n.iframe_tickets_added, 6000 );
 			}
+
 		},
 
 
@@ -638,9 +648,9 @@ jQuery( document ).ready( function( $ ) {
 
 
 
-};
+	};
 
 	MER.initialize();
 
-} );
+});
 
