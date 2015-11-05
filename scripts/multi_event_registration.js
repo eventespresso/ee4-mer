@@ -101,7 +101,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_add_ticket_button : function() {
 			MER.event_cart.on( 'click', '.event-cart-add-ticket-button', function( event ) {
-				if ( ! $( this ).hasClass( 'disabled' ) ) {
+				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $( this ).hasClass( 'js-disabled-event-cart-btn' ) ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_add_ticket_to_event_cart';
@@ -121,7 +121,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_remove_ticket_button : function() {
 			MER.event_cart.on( 'click', '.event-cart-remove-ticket-button', function( event ) {
-				if ( ! $( this ).hasClass( 'disabled' ) ) {
+				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $(this).hasClass('js-disabled-event-cart-btn') ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_remove_ticket_from_event_cart';
@@ -141,7 +141,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_delete_ticket_button : function() {
 			MER.event_cart.on( 'click', '.event-cart-delete-ticket-button', function( event ) {
-				if ( ! $( this ).hasClass( 'disabled' ) ) {
+				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $(this).hasClass('js-disabled-event-cart-btn') ) {
 					var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_delete_ticket_from_event_cart';
@@ -161,7 +161,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_update_event_cart_button : function() {
 			MER.event_cart.on( 'click', '.event-cart-update-cart-lnk', function( event ) {
-				if ( ! $( this ).hasClass( 'disabled' ) ) {
+				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $(this).hasClass('js-disabled-event-cart-btn') ) {
 					//var serialized_form_data = $( MER.event_cart  ).find( 'form' ).serializeArray();
 					//MER.form_data = MER.convert_to_JSON( serialized_form_data );
 					MER.form_data = MER.get_form_data( MER.event_cart, true );
@@ -181,7 +181,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_empty_event_cart_link : function() {
 			MER.event_cart.on( 'click', '.event-cart-empty-cart-lnk', function( event ) {
-				if ( ! $( this ).hasClass( 'disabled' ) ) {
+				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $(this).hasClass('js-disabled-event-cart-btn') ) {
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_empty_event_cart';
 					MER.submit_ajax_request();
@@ -481,7 +481,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		disable_buttons : function() {
 			$( '.event-cart-button' ).each( function() {
-				$( this ).addClass( 'disabled disabled-event-cart-btn' );
+				$( this ).addClass( 'js-disabled-event-cart-btn' );
 			} );
 		},
 
@@ -492,7 +492,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		enable_buttons : function() {
 			$( '.event-cart-button' ).each( function() {
-				$( this ).removeClass( 'disabled disabled-event-cart-btn' );
+				$( this ).removeClass( 'js-disabled-event-cart-btn' );
 			} );
 		},
 
