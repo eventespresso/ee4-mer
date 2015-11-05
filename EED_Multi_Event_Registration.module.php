@@ -893,7 +893,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$ticket = $this->get_ticket( $TKT_ID );
 			if ( $ticket instanceof EE_Ticket ) {
 				foreach ( $ticket_quantity as $line_item_id => $quantity ) {
-					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, true, true ) ) {
+					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, true ) ) {
 						$line_item = $this->get_line_item( $line_item_id );
 						$line_item = $this->adjust_line_item_quantity( $line_item, $quantity, 'update' );
 						if ( $line_item instanceof EE_Line_Item ) {
@@ -934,7 +934,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
-		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, false, true ) ) {
+		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, false ) ) {
 			// you can DO IT !!!
 			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			$line_item = $this->adjust_line_item_quantity( $line_item, $quantity, 'add' );
@@ -992,15 +992,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param EE_Ticket $ticket
 	 * @param int       $quantity
 	 * @param bool      $cart_update
-	 * @param bool      $check_reserved
 	 * @return bool
 	 */
-	protected function can_purchase_ticket_quantity( EE_Ticket $ticket, $quantity = 1, $cart_update = false, $check_reserved = false ) {
+	protected function can_purchase_ticket_quantity( $ticket = null, $quantity = 1, $cart_update = false ) {
 		// any tickets left at all?
-		$tickets_remaining = $ticket->remaining();
-		if ( $check_reserved ) {
-			$tickets_remaining -= $ticket->reserved();
-		}
+		$tickets_remaining = $ticket instanceof EE_Ticket ? $ticket->remaining() : 0;
 		if ( ! $tickets_remaining ) {
 			// event is full
 			EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
@@ -1080,6 +1076,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * where the event ids are the keys for the outer array
 	 *
 	 * @access    protected
+	 * @param int $TKT_ID
 	 * @return array
 	 */
 	protected function _event_tickets( $TKT_ID = 0 ) {
@@ -1221,7 +1218,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return array
 	 */
 	public static function ajax_remove_ticket() {
-		EED_Multi_Event_Registration::instance()->remove_ticket( 1, true );
+		EED_Multi_Event_Registration::instance()->remove_ticket( 1 );
 	}
 
 
@@ -1449,7 +1446,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( isset( $_REQUEST[ 'event_id' ] ) ) {
 			$event = EEM_Event::instance()->get_one_by_ID( absint( $_REQUEST[ 'event_id' ] ) );
 			if ( $event instanceof EE_Event ) {
-				$available_spaces = $event->first_datetime()->tickets_remaining( array(), true );
+				$available_spaces = $event->first_datetime()->tickets_remaining( array() );
 				// just send the ajax
 				echo json_encode( array( 'id' => $event->ID(), 'spaces' => $available_spaces, 'time' => current_time( 'g:i:s a T' ) ) );
 				// to be... or...
