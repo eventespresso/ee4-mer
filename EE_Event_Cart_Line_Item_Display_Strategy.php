@@ -96,11 +96,14 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				if ( ( $line_item->total() > 0 && $count > 1 ) || ( $line_item->code() == 'pre-tax-subtotal' && count( $child_line_items ) ) ) {
 					$count = $line_item->code() == 'pre-tax-subtotal' ? $total_count : $count;
 					$text = __( 'Subtotal', 'event_espresso' );
-					$text = $line_item->code() == 'pre-tax-subtotal' ? 
-					apply_filters( 
-						'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__pretax_subtotal_text', 
-						EED_Multi_Event_Registration::$event_cart_name . ' ' . $text 
-					) : $text;
+					$text = $line_item->code() == 'pre-tax-subtotal'
+						? EED_Multi_Event_Registration::$event_cart_name . ' ' . $text
+						: $text;
+					apply_filters(
+						'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__pretax_subtotal_text',
+						$text,
+						$line_item
+					);
 					$html .= $this->_sub_total_row( $line_item, $text, $count );
 				}
 				break;
@@ -142,7 +145,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				$html .= $this->_total_row(
 					$line_item,
 					apply_filters(
-						'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__grand_total_text', 
+						'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__grand_total_text',
 						EED_Multi_Event_Registration::$event_cart_name . ' ' . __( 'Total', 'event_espresso' )
 					),
 					EE_Registry::instance()->CART->all_ticket_quantity_count()
