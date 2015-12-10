@@ -99,7 +99,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 					$text = $line_item->code() == 'pre-tax-subtotal'
 						? EED_Multi_Event_Registration::$event_cart_name . ' ' . $text
 						: $text;
-					apply_filters(
+					$text = apply_filters(
 						'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__pretax_subtotal_text',
 						$text,
 						$line_item
