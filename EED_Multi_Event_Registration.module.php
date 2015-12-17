@@ -833,8 +833,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// no ticket or line item !?!?!
 			EE_Error::add_error(
 				sprintf(
-					__( 'Either the ticket or %1$s line item was not specified or invalid, therefore the
-				%1$s could not be updated. Please refresh the page and try again.', 'event_espresso' ),
+					__( 'Either the ticket or %1$s line item was not specified or invalid, therefore the %1$s could not be updated. Please refresh the page and try again.', 'event_espresso' ),
 					EED_Multi_Event_Registration::$event_cart_name
 				),
 				__FILE__, __FUNCTION__, __LINE__
