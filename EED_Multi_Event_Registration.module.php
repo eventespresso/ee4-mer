@@ -1127,18 +1127,23 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$additional = 'A ';
 				$added_or_removed = 'removed';
 			}
-			$quantity = $action == 'update' ? $quantity : $line_item->quantity() + $quantity;
+			$new_quantity = $action == 'update' ? $quantity : $line_item->quantity() + $quantity;
 			// update quantity
-			$line_item->set_quantity( $quantity );
+			$line_item->set_quantity( $new_quantity );
 			//it's "proper" to update the sub-line items quantities too, but core can actually fix it if we don't anyways
 			if( method_exists( 'EEH_Line_Item', 'update_quantity' ) ) {
-				EEH_Line_Item::update_quantity( $line_item, $quantity );
+				EEH_Line_Item::update_quantity( $line_item, $new_quantity );
 			} else {
-				$line_item->set_quantity( $quantity );
+				$line_item->set_quantity( $new_quantity );
 			}
 			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
-			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $quantity;
+			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $new_quantity;
 			if ( $saved ) {
+				do_action(
+					'FHEE__EED_Multi_Event_Registration__adjust_line_item_quantity__line_item_quantity_updated',
+					$line_item,
+					$quantity
+				);
 				if ( $action != 'update' ) {
 					$msg = sprintf(
 						__( '%1$s item was successfully %2$s for this event.', 'event_espresso' ),
@@ -1151,7 +1156,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					EE_Error::add_success( $msg, __FILE__, __FUNCTION__, __LINE__ );
 				}
-			} else if ( $line_item->quantity() != $quantity ) {
+			} else if ( $line_item->quantity() != $new_quantity ) {
 				// nothing added
 				EE_Error::add_error(
 					sprintf( __( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
@@ -1289,25 +1294,30 @@ class EED_Multi_Event_Registration extends EED_Module {
 			if ( $line_item instanceof EE_Line_Item ) {
 				// get the parent line item now, because we will need it later
 				$parent_line_item = $line_item->parent();
-				$removals = $line_item->quantity();
+				$quantity_deleted = $line_item->quantity();
 				$line_item->delete_children_line_items();
 				$deleted = $this->_delete_line_item( $line_item );
 				if ( $deleted ) {
 					// check if parent line item is now childless
 					$this->maybe_delete_event_line_item( $parent_line_item );
+					do_action(
+						'FHEE__EED_Multi_Event_Registration__delete_ticket__ticket_removed_from_cart',
+						$ticket,
+						$quantity_deleted
+					);
 				}
 				// then something got deleted
 				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
-					if ( $removals === 1 ) {
+					if ( $quantity_deleted === 1 ) {
 						$msg = sprintf(
 							__( '%1$s item was successfully removed from the %2$s', 'event_espresso' ),
-							$removals,
+							$quantity_deleted,
 							EED_Multi_Event_Registration::$event_cart_name
 						);
 					} else {
 						$msg = sprintf(
 							__( '%1$s items were successfully removed from the %2$s', 'event_espresso' ),
-							$removals,
+							$quantity_deleted,
 							EED_Multi_Event_Registration::$event_cart_name
 						);
 					}
