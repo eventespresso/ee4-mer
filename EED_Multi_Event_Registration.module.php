@@ -93,6 +93,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 			10, 2
 		);
 		add_filter(
+			'FHEE__EED_Ticket_Selector__proceed_to_registration_btn_txt',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_button_txt' ),
+			10, 2
+		);
+		add_filter(
+			'FHEE__EE_Ticket_Selector__display_view_details_btn__btn_text',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_button_txt' ),
+			10, 2
+		);
+		add_filter(
 			'FHEE__EED_Ticket_Selector__ticket_selector_iframe__css',
 			array( 'EED_Multi_Event_Registration', 'style_sheet_URLs' ),
 			10, 1
@@ -105,6 +115,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_filter(
 			'FHEE__EE_Ticket_Selector__process_ticket_selections__success_redirect_url',
 			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_redirect_url' ),
+			10, 2
+		);
+		add_filter(
+			'FHEE__EED_Ticket_Selector__proceed_to_registration_btn_url',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_button_url' ),
+			10, 2
+		);
+		add_filter(
+			'FHEE__EE_Ticket_Selector__display_view_details_btn__btn_url',
+			array( 'EED_Multi_Event_Registration', 'filter_ticket_selector_button_url' ),
 			10, 2
 		);
 		// verify that SPCO registrations correspond to tickets in cart
@@ -195,6 +215,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'FHEE__EE_Ticket_Selector___add_ticket_to_cart__allow_add_to_cart',
 			array( 'EED_Multi_Event_Registration', 'allow_ticket_selector_add_to_cart' ),
 			10, 3
+		);
+		add_filter(
+			'FHEE__EE_Ticket_Selector___add_ticket_to_cart__allow_display_availability_error',
+			array( 'EED_Multi_Event_Registration', 'display_availability_error' ),
+			10, 1
 		);
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
@@ -486,6 +511,30 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
+	 *  filter_ticket_selector_button_url
+	 *
+	 * @access 	public
+	 * @return 	string
+	 */
+	public static function filter_ticket_selector_button_url() {
+		return add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
+	}
+
+
+
+	/**
+	 *  filter_ticket_selector_button_txt
+	 *
+	 * @access 	public
+	 * @return 	string
+	 */
+	public static function filter_ticket_selector_button_txt() {
+		return sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
+	}
+
+
+
+	/**
 	 *    changes event list button URL based on tickets in cart
 	 *
 	 * @access 	public
@@ -697,6 +746,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'view_event_cart_url' => add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ),
 			'close_modal' => $close_modal,
 			'btn_class' => apply_filters( 'FHEE__EED_Multi_Event_Registration__event_cart_template__btn_class', '' ),
+			'additional_info' => apply_filters( 'FHEE__EED_Multi_Event_Registration__event_cart_template__additional_info', '' ),
 		);
 		return EEH_Template::display_template( EE_MER_PATH . 'templates' . DS . 'cart_results_modal_dialog.template.php', $template_args, true );
 	}
@@ -978,6 +1028,39 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// if already toggled toggled to false by something else then don't bother processing
 		if ( $allow ) {
 			$allow = EED_Multi_Event_Registration::instance()->can_purchase_ticket_quantity( $ticket, $quantity );
+		}
+		return $allow;
+	}
+
+
+
+	/**
+	 *    allow_display_availability_error
+	 *
+	 * @access    public
+	 * @param bool      $allow
+	 * @return bool
+	 */
+	public static function display_availability_error( $allow = true ) {
+		// if already toggled toggled to false by something else then don't bother processing
+		if ( EE_Registry::instance()->CART->all_ticket_quantity_count() ) {
+			$allow = false;
+			add_filter(
+				'FHEE__EED_Multi_Event_Registration__event_cart_template__additional_info',
+				function( $additional_info ) {
+					return $additional_info . apply_filters(
+						'FHEE__EED_Multi_Event_Registration__display_availability_error__additional_info',
+						sprintf(
+							__(
+								'%sYour request could not be completely fulfilled due to lack of availability.%s',
+								'event_espresso'
+							),
+							'<div class="important-notice small-text">',
+							'</div><br />'
+						)
+					);
+				}
+			);
 		}
 		return $allow;
 	}
