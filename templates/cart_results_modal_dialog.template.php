@@ -12,6 +12,7 @@
 <div id="cart-results-modal-dv">
 	<div class="cart-results-wrap-dv">
 		<h3><?php echo $results; ?></h3>
+		<?php echo $additional_info; ?>
 	</div>
 	<div id="cart-results-whats-next-buttons-dv">
 		<span class="cart-results-button-spn">
