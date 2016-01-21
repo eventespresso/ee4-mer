@@ -105,6 +105,10 @@
 	border-radius: 5px;
 	color: #23282d;
 }
+#cart-results-modal-dv h3,
+#cart-results-modal-dv h5 {
+	color: #23282d;
+}
 #cart-results-current-cart-dv {
 	padding: 2em 0 0;
 	margin: 2em 0 0;
