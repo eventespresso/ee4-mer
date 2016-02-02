@@ -402,7 +402,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 			}
 			return $btn_text;
 		}
-		if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
+		if ( $event->external_url() ) {
+			return $btn_text;
+		} else if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
 			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
 		} else {
 			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
