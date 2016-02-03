@@ -402,7 +402,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 			}
 			return $btn_text;
 		}
-		if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
+		if ( $event instanceof EE_Event && $event->external_url() ) {
+			return $btn_text;
+		} else if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
 			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
 		} else {
 			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
@@ -610,10 +612,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$response = array(
 				'tickets_added' 	=> true,
 				'ticket_count' 		=> $ticket_count,
-				'btn_id' 				=> "#ticket-selector-submit-$EVT_ID-btn",
-				'btn_txt' 				=> EED_Multi_Event_Registration::filter_ticket_selector_submit_button( '', null, true ),
+				'btn_id' 			=> "#ticket-selector-submit-$EVT_ID-btn",
+				'btn_txt' 			=> EED_Multi_Event_Registration::filter_ticket_selector_submit_button( '', null, true ),
 				'form_html' 		=> EED_Multi_Event_Registration::filter_ticket_selector_form_html( '', null, true ),
-				'mini_cart' 			=> EED_Multi_Event_Registration::get_mini_cart(),
+				'mini_cart' 		=> EED_Multi_Event_Registration::get_mini_cart(),
 				'cart_results' 		=> EED_Multi_Event_Registration::get_cart_results( $ticket_count )
 			);
 		}
