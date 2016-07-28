@@ -967,16 +967,24 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		$quantity = absint( $quantity );
 		// can't register anymore attendees
-		$singular = 'You have attempted to purchase %1$d ticket.';
-		$plural = 'You have attempted to purchase %1$d tickets.';
-		$limit_error_1 = sprintf( _n( $singular, $plural, $quantity, 'event_espresso' ), $quantity );
+		$total_tickets_string = _n( 
+			'You have attempted to purchase %d ticket.', 
+			'You have attempted to purchase %d tickets.', 
+			$quantity, 
+			'event_espresso' 
+		);
+		$limit_error_1 = sprintf( $total_tickets_string, $quantity );
 		// is there enough tickets left to satisfy request?
 		if ( $tickets_remaining < $quantity ) {
 			// translate and possibly pluralize the error
-			$singular = 'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.';
-			$plural = 'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.';
-			// translate and possibly pluralize the error
-			$limit_error_2 = sprintf( _n( $singular, $plural, $tickets_remaining, 'event_espresso' ), $tickets_remaining );
+			$tickets_remaining_string = _n( 
+				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.', 
+				'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.', 
+				$tickets_remaining, 
+				'event_espresso' 
+			);
+
+			$limit_error_2 = sprintf( $tickets_remaining_string, $tickets_remaining );
 			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
 			return false;
 		}
@@ -986,14 +994,22 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// get some details from the ticket
 			$additional_limit = $ticket->first_datetime()->event()->additional_limit();
 			// can't register anymore attendees
-			$singular = 'You have attempted to purchase %1$d ticket but that would result in too many tickets in the %2$s for this event.';
-			$plural = 'You have attempted to purchase %1$d tickets but that would result in too many tickets in the %2$s for this event.';
-			$limit_error_1 = sprintf( _n( $singular, $plural, $quantity, 'event_espresso' ), $quantity, EED_Multi_Event_Registration::$event_cart_name );
+			$limit_error_1_string = _n(
+				'You have attempted to purchase %1$d ticket but that would result in too many tickets in the %2$s for this event.',
+				'You have attempted to purchase %1$d tickets but that would result in too many tickets in the %2$s for this event.',
+				$quantity,
+				'event_espresso'
+			);
+			$limit_error_1 = sprintf( $limit_error_1_string, $quantity, EED_Multi_Event_Registration::$event_cart_name );
 			// translate and possibly pluralize the error
-			$singular = 'The registration limit for this event is %1$d ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.';
-			$plural = 'The registration limit for this event is %1$d tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.';
-			// translate and possibly pluralize the error
-			$limit_error_2 = sprintf( _n( $singular, $plural, $additional_limit, 'event_espresso' ), $additional_limit );
+			$limit_error_2_string = _n( 
+				'The registration limit for this event is %1$d ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
+				'The registration limit for this event is %1$d tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
+				$additional_limit,
+				'event_espresso'
+			);
+			$limit_error_2 = sprintf( $limit_error_2_string, $additional_limit );
+
 			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
 			return false;
 		}
