@@ -37,8 +37,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA02110-1301USA
 * ------------------------------------------------------------------------
 */
 
-define( 'EE_MER_CORE_VERSION_REQUIRED', '4.8.0.rc.000' );
+<<<<<<< HEAD
+define( 'EE_MER_CORE_VERSION_REQUIRED', '4.8.6.rc.002' );
+define( 'EE_MER_VERSION', '2.0.8.rc.001' );
+=======
+define( 'EE_MER_CORE_VERSION_REQUIRED', '4.8.0.rc.0000' );
 define( 'EE_MER_VERSION', '2.0.10.rc.002' );
+>>>>>>> origin/master
 define( 'EE_MER_PLUGIN_FILE', __FILE__ );
 
 

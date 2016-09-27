@@ -31,7 +31,7 @@
 		<h5><?php echo $current_cart; ?></h5>
 		<div id="cart-results-view-cart-dv">
 			<a class="cart-results-view-cart-lnk view-cart-lnk cart-results-button button <?php echo $btn_class; ?>" href="<?php echo $view_event_cart_url; ?>">
-				<span class="dashicons dashicons-cart"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'view %s', 'event_espresso' ), $event_cart_name ) ); ?>
+				<span class="dashicons dashicons-cart"></span><?php echo apply_filters( 'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'View %s', 'event_espresso' ), $event_cart_name ) ); ?>
 			</a>
 		</div>
 	</div>
