@@ -512,24 +512,29 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *  filter_ticket_selector_button_url
-	 *
-	 * @access 	public
-	 * @return 	string
-	 */
-	public static function filter_ticket_selector_button_url() {
-		return add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
+    /**
+     * filter_ticket_selector_button_url
+     *
+     * @access public
+     * @param  string $button_url
+     * @param  EE_Event $event
+     * @return string
+     */
+	public static function filter_ticket_selector_button_url( $button_url, \EE_Event $event ) {
+		return $event->display_ticket_selector()
+               && \EE_Config::instance()->template_settings->EED_Events_Archive->display_ticket_selector
+            ? add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL )
+            : $button_url;
 	}
 
 
 
     /**
-     *  filter_ticket_selector_button_txt
+     * filter_ticket_selector_button_txt
      *
-     * @access    public
-     * @param string   $button_txt
-     * @param EE_Event $event
+     * @access public
+     * @param  string   $button_txt
+     * @param  EE_Event $event
      * @return string
      */
 	public static function filter_ticket_selector_button_txt( $button_txt, \EE_Event $event ) {
