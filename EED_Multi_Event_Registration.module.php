@@ -278,9 +278,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 	/**
 	 *    set_config
-	 * this configures this module to use the same config as the EE_Promotions class
-	 *
-	 * @return EE_Promotions_Config
+     * this configures this module to use the same config as the EE_Promotions class
+     *
+     * @return EE_Config_Base|EE_Multi_Event_Registration_Config
 	 */
 	public function set_config() {
 		$this->set_config_section( 'addons' );
@@ -524,14 +524,19 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *  filter_ticket_selector_button_txt
-	 *
-	 * @access 	public
-	 * @return 	string
-	 */
-	public static function filter_ticket_selector_button_txt() {
-		return sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
+    /**
+     *  filter_ticket_selector_button_txt
+     *
+     * @access    public
+     * @param string   $button_txt
+     * @param EE_Event $event
+     * @return string
+     */
+	public static function filter_ticket_selector_button_txt( $button_txt, \EE_Event $event ) {
+        return $event->display_ticket_selector()
+            && \EE_Config::instance()->template_settings->EED_Events_Archive->display_ticket_selector
+            ? sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name )
+            : $button_txt;
 	}
 
 
@@ -1088,21 +1093,21 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		$quantity = absint( $quantity );
 		// can't register anymore attendees
-		$total_tickets_string = _n( 
-			'You have attempted to purchase %d ticket.', 
-			'You have attempted to purchase %d tickets.', 
-			$quantity, 
-			'event_espresso' 
+		$total_tickets_string = _n(
+			'You have attempted to purchase %d ticket.',
+			'You have attempted to purchase %d tickets.',
+			$quantity,
+			'event_espresso'
 		);
 		$limit_error_1 = sprintf( $total_tickets_string, $quantity );
 		// is there enough tickets left to satisfy request?
 		if ( $tickets_remaining < $quantity ) {
 			// translate and possibly pluralize the error
-			$tickets_remaining_string = _n( 
-				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.', 
-				'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.', 
-				$tickets_remaining, 
-				'event_espresso' 
+			$tickets_remaining_string = _n(
+				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
+				'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
+				$tickets_remaining,
+				'event_espresso'
 			);
 
 			$limit_error_2 = sprintf( $tickets_remaining_string, $tickets_remaining );
@@ -1123,7 +1128,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			);
 			$limit_error_1 = sprintf( $limit_error_1_string, $quantity, EED_Multi_Event_Registration::$event_cart_name );
 			// translate and possibly pluralize the error
-			$limit_error_2_string = _n( 
+			$limit_error_2_string = _n(
 				'The registration limit for this event is %1$d ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
 				'The registration limit for this event is %1$d tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
 				$additional_limit,
