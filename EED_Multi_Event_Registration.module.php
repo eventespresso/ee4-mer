@@ -81,6 +81,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 		EE_Config::register_route( 'empty', 'Multi_Event_Registration', 'empty_event_cart', 'event_cart' );
 		// don't empty cart
 		add_filter( 'FHEE__EE_Ticket_Selector__process_ticket_selections__clear_session', '__return_false' );
+		// show a View Cart button even if there are no tickets
+		add_filter(
+			'FHEE__EE_Ticket_Selector__display_ticket_selector_submit__no_tickets_but_display_register_now_button',
+			array( 'EED_Multi_Event_Registration', 'no_tickets_but_display_register_now_button' ),
+			10, 2
+		);
 		// process registration links
 		add_filter(
 			'FHEE__EE_Ticket_Selector__ticket_selector_form_open__html',
@@ -413,6 +419,30 @@ class EED_Multi_Event_Registration extends EED_Module {
 	// *******************************************************************************************************
 	// *******************************************   EVENT LISTING   *******************************************
 	// *******************************************************************************************************
+
+
+
+
+
+
+	public static function no_tickets_but_display_register_now_button( $display = false, $event = null ) {
+		// verify event
+		if ( ! $event instanceof EE_Event ) {
+			if ( WP_DEBUG ) {
+				EE_Error::add_error(
+					__( 'An invalid event object was received.', 'event_espresso' ),
+					__FILE__,
+					__FUNCTION__,
+					__LINE__
+				);
+			}
+			return false;
+		}
+		return EED_Multi_Event_Registration::has_tickets_in_cart( $event );
+	}
+
+
+
 	/**
 	 * filter_ticket_selector_submit_button
 	 * changes the default "Register Now" text based on event's inclusion in the cart
@@ -427,7 +457,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// verify event
 		if ( ! $event instanceof EE_Event && ! $tickets_in_cart ) {
 			if ( WP_DEBUG ) {
-				EE_Error::add_error( __( 'An invalid event object was received.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+				EE_Error::add_error(
+					__( 'An invalid event object was received.', 'event_espresso' ),
+					__FILE__,
+					__FUNCTION__,
+					__LINE__
+				);
 			}
 			return $btn_text;
 		}
