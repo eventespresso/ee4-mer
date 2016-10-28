@@ -199,6 +199,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 		add_action( 'wp_ajax_espresso_empty_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_empty_event_cart' ) );
 		add_action( 'wp_ajax_nopriv_espresso_empty_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_empty_event_cart' ) );
 		// ajax update event
+		add_action( 'wp_ajax_espresso_view_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_view_event_cart' ) );
+		add_action( 'wp_ajax_nopriv_espresso_view_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_view_event_cart' ) );
+		// ajax update event
 		add_action( 'wp_ajax_espresso_update_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_update_event_cart' ) );
 		add_action( 'wp_ajax_nopriv_espresso_update_event_cart', array( 'EED_Multi_Event_Registration', 'ajax_update_event_cart' ) );
 		// ajax available_spaces
@@ -839,6 +842,25 @@ class EED_Multi_Event_Registration extends EED_Module {
 	// *******************************************************************************************************
 	// ********************************************   EVENT QUEUE   ********************************************
 	// *******************************************************************************************************
+
+
+
+	/**
+	 * basically retrieves the URL for the event cart, and instructs browser to redirect
+	 *
+	 * @access        public
+	 * @return        void
+	 */
+	public function ajax_view_event_cart() {
+        // just send the ajax
+        echo json_encode(
+            array_merge(
+                EE_Error::get_notices(false),
+                array('redirect_url' => add_query_arg(array('event_cart' => 'view'), EE_EVENT_QUEUE_BASE_URL))
+            )
+        );
+        exit();
+    }
 
 
 
