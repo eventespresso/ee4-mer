@@ -199,8 +199,18 @@ jQuery( document ).ready( function( $ ) {
 		set_listener_for_ticket_selector_submit_btn : function() {
 			$( document ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
 				MER.form_data = MER.get_form_data( $( this ), false );
-				//console.log( MER.form_data );
-				var ticket_count = 0;
+
+                // console.log(JSON.stringify('MER.form_data', null, 4));
+                // console.log( MER.form_data );
+                if (typeof MER.form_data.ee === 'undefined') {
+                    // alert('206) MER.form_data.ee = ' + MER.form_data.ee);
+                    MER.form_data.ee = 'view_event_cart';
+                    MER.form_data.event_cart = 'view';
+                    // console.log(JSON.stringify('MER.form_data', null, 4));
+                    // console.log(MER.form_data);
+                }
+
+                var ticket_count = 0;
 				if ( typeof MER.form_data[ 'tkt-slctr-event-id' ] !== 'undefined' && MER.form_data[ 'tkt-slctr-event-id' ] !== ''  ) {
 					var tkt_slctr_qty = 'tkt-slctr-qty-' + MER.form_data[ 'tkt-slctr-event-id' ] + '[]';
 					//console.log( tkt_slctr_qty );
@@ -225,20 +235,21 @@ jQuery( document ).ready( function( $ ) {
 				//console.log( JSON.stringify( 'ticket_count: ' + ticket_count, null, 4 ) );
 				//console.log( JSON.stringify( 'typeof ticket_count: ' + ( typeof ticket_count ), null, 4 ) );
 				//console.log( JSON.stringify( 'MER.form_data.event_cart: ' + MER.form_data.event_cart, null, 4 ) );
-				var view_cart = typeof MER.form_data.event_cart !== 'undefined' && MER.form_data.event_cart === 'view';
-				//console.log( JSON.stringify( 'view_cart: ' + view_cart, null, 4 ) );
+                // var view_cart = MER.form_data.event_cart === 'view';
+                var view_cart = typeof MER.form_data.event_cart !== 'undefined' && MER.form_data.event_cart === 'view';
+                //console.log( JSON.stringify( 'view_cart: ' + view_cart, null, 4 ) );
 				//console.log( JSON.stringify( 'MER.ticket_selector_iframe: ' + MER.ticket_selector_iframe, null, 4 ) );
-				//alert( 'MER.form_data.event_cart = ' + MER.form_data.event_cart + '\n' + 'ticket_count = ' + ticket_count );
-				if (
-					( ( ticket_count !== 0 ) || ( ticket_count === 0 && ! view_cart ) )
-					&& ! ( MER.ticket_selector_iframe && view_cart )
-				) {
+				//alert( 'MER.form_data.event_cart = ' + MER.form_data.event_cart + '\n' + 'ticket_count = ' + ticket_count + '\n' + 'view_cart = ' + view_cart );
+                //alert('( ticket_count !== 0 ) = ' + ( ticket_count !== 0 ) + '\n' + '( ticket_count === 0 && ! view_cart ) = ' + ( ticket_count === 0 && !view_cart ) + '\n' + '! ( MER.ticket_selector_iframe && view_cart ) = ' + !( MER.ticket_selector_iframe && view_cart ));
+                if ( ! ( MER.ticket_selector_iframe && view_cart ) ) {
 					MER.form_data.action = 'espresso_' + MER.form_data.ee;
 					MER.submit_ajax_request();
 					event.preventDefault();
 					event.stopPropagation();
 				}
-			} );
+                // console.log( JSON.stringify( 'ticket_count: ' + ticket_count, null, 4 ) );
+                // console.log( JSON.stringify( 'view_cart: ' + view_cart, null, 4 ) );
+            } );
 		},
 
 
@@ -263,13 +274,17 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function submit_promo_code
 		 */
 		submit_ajax_request : function() {
-			// no form_data ?
+            // console.log(JSON.stringify('MER.form_data', null, 4));
+            // console.log(MER.form_data);
+            // alert('276) MER.form_data (see console)');
+            // no form_data ?
 			if ( typeof MER.form_data.action === 'undefined' || MER.form_data.action === '' ) {
-				return;
+                // MER.form_data.action = 'view_cart';
+                return;
 			}
-			MER.form_data.noheader = 1;
+            MER.form_data.noheader = 1;
 			MER.form_data.ee_front_ajax = 1;
-			// send AJAX
+            // send AJAX
 			$.ajax( {
 
 				type : "POST",
@@ -457,7 +472,7 @@ jQuery( document ).ready( function( $ ) {
 		/**
 		 *  @function get_form_data
 		 * @param  {object} form_container
-		 * @param  {bool} form_within - whether the form should be looked for above or within the indicated DOM element
+		 * @param  {boolean} form_within - whether the form should be looked for above or within the indicated DOM element
 		 */
 		get_form_data : function( form_container, form_within ) {
 			if ( form_container.length ) {
