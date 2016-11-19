@@ -307,6 +307,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public function translate_js_strings() {
 		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
+		EE_Registry::$i18n_js_strings[ 'confirm_delete_state' ] = __("This item is required. Removing it will empty the event cart!\nClick OK to continue or Cancel to keep this item.", 'event_espresso' );
 	}
 
 
@@ -967,21 +968,21 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		$quantity = absint( $quantity );
 		// can't register anymore attendees
-		$total_tickets_string = _n( 
-			'You have attempted to purchase %d ticket.', 
-			'You have attempted to purchase %d tickets.', 
-			$quantity, 
-			'event_espresso' 
+		$total_tickets_string = _n(
+			'You have attempted to purchase %d ticket.',
+			'You have attempted to purchase %d tickets.',
+			$quantity,
+			'event_espresso'
 		);
 		$limit_error_1 = sprintf( $total_tickets_string, $quantity );
 		// is there enough tickets left to satisfy request?
 		if ( $tickets_remaining < $quantity ) {
 			// translate and possibly pluralize the error
-			$tickets_remaining_string = _n( 
-				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.', 
-				'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.', 
-				$tickets_remaining, 
-				'event_espresso' 
+			$tickets_remaining_string = _n(
+				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
+				'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
+				$tickets_remaining,
+				'event_espresso'
 			);
 
 			$limit_error_2 = sprintf( $tickets_remaining_string, $tickets_remaining );
@@ -1002,7 +1003,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			);
 			$limit_error_1 = sprintf( $limit_error_1_string, $quantity, EED_Multi_Event_Registration::$event_cart_name );
 			// translate and possibly pluralize the error
-			$limit_error_2_string = _n( 
+			$limit_error_2_string = _n(
 				'The registration limit for this event is %1$d ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
 				'The registration limit for this event is %1$d tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
 				$additional_limit,
@@ -1094,7 +1095,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			//EEH_Debug_Tools::printr( $quantity, '$quantity', __FILE__, __LINE__ );
 			//EEH_Debug_Tools::printr( $action, '$action', __FILE__, __LINE__ );
 			$quantity = (int)$quantity;
-			if ( $quantity === 0 && $action == 'update' ) {
+			if ( $quantity === 0 && $action === 'update' ) {
 				$_REQUEST[ 'ticket' ] = $line_item->OBJ_ID();
 				$_REQUEST[ 'line_item' ] = $line_item->code();
 				$this->delete_ticket( false );
@@ -1106,7 +1107,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$additional = 'A ';
 				$added_or_removed = 'removed';
 			}
-			$quantity = $action == 'update' ? $quantity : $line_item->quantity() + $quantity;
+			$quantity = $action === 'update' ? $quantity : $line_item->quantity() + $quantity;
 			// update quantity
 			$line_item->set_quantity( $quantity );
 			//it's "proper" to update the sub-line items quantities too, but core can actually fix it if we don't anyways
@@ -1116,9 +1117,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$line_item->set_quantity( $quantity );
 			}
 			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
-			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $quantity;
+			$saved = $line_item->ID()
+                ? $line_item->save()
+                : $line_item->quantity() === $quantity;
 			if ( $saved ) {
-				if ( $action != 'update' ) {
+				if ( $action !== 'update' ) {
 					$msg = sprintf(
 						__( '%1$s item was successfully %2$s for this event.', 'event_espresso' ),
 						$additional, $added_or_removed
@@ -1130,7 +1133,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					EE_Error::add_success( $msg, __FILE__, __FUNCTION__, __LINE__ );
 				}
-			} else if ( $line_item->quantity() != $quantity ) {
+			} else if ( $line_item->quantity() !== $quantity ) {
 				// nothing added
 				EE_Error::add_error(
 					sprintf( __( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
@@ -1193,10 +1196,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *    call remove_ticket() via AJAX
 	 *
 	 * @access public
-	 * @return array
+	 * @return void
 	 */
 	public static function ajax_remove_ticket() {
-		EED_Multi_Event_Registration::instance()->remove_ticket( 1, true );
+		EED_Multi_Event_Registration::instance()->remove_ticket( 1 );
 	}
 
 
@@ -1207,27 +1210,38 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *
 	 * @access 	public
 	 * @param int $quantity
-	 * @return TRUE on success and FALSE on fail
+	 * @return void
 	 */
 	public function remove_ticket( $quantity = 1 ) {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
 		if ( $ticket instanceof EE_Ticket ) {
-			$quantity = absint( $quantity );
-			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
-			if ( $line_item instanceof EE_Line_Item && $quantity ) {
-				// if there will still be tickets in cart after this request
-				// then just remove the requested quantity, else update the entire event cart
-				if ( $line_item->quantity() - $quantity > 0 ) {
-					$this->adjust_line_item_quantity( $line_item, $quantity * -1, 'remove' );
-				} else {
-					$this->adjust_line_item_quantity( $line_item, 0, 'update' );
-				}
-			} else {
-				// no ticket or line item !?!?!
-				EE_Error::add_error( __( 'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
-			}
+            $quantity = absint($quantity);
+            $line_item = $this->get_line_item($_REQUEST['line_item']);
+            if ($line_item instanceof EE_Line_Item && $quantity) {
+                // if there will still be tickets in cart after this request
+                // then just remove the requested quantity, else update the entire event cart
+                if ($line_item->quantity() - $quantity > 0) {
+                    $this->adjust_line_item_quantity($line_item, $quantity * -1, 'remove');
+                } else {
+                    // just empty the cart if removing a required ticket
+                    if ($ticket->required()) {
+                        $this->empty_event_cart();
+                        return;
+                    }
+                    $this->adjust_line_item_quantity($line_item, 0, 'update');
+                }
+            } else {
+                // no ticket or line item !?!?!
+                EE_Error::add_error(
+                    __(
+                        'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.',
+                        'event_espresso'
+                    ),
+                    __FILE__, __FUNCTION__, __LINE__
+                );
+            }
 		}
 		$this->send_ajax_response();
 	}
@@ -1258,7 +1272,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// check the request
 		$ticket = $this->_validate_request();
 		if ( $ticket instanceof EE_Ticket ) {
-			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
+            // just empty the cart if removing a required ticket
+            if ($ticket->required()) {
+                $this->empty_event_cart();
+                return;
+            }
+            $line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			if ( $line_item instanceof EE_Line_Item ) {
 				// get the parent line item now, because we will need it later
 				$parent_line_item = $line_item->parent();
