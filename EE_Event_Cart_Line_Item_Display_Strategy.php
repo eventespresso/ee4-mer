@@ -186,8 +186,13 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	private function _ticket_row( EE_Line_Item $line_item, $options = array() ) {
 		$ticket = EEM_Ticket::instance()->get_one_by_ID( $line_item->OBJ_ID() );
 		if ( $ticket instanceof EE_Ticket ) {
+            $required = $ticket->required() ? ' required' : '';
 			// start of row
-			$html = EEH_HTML::tr( '', 'event-cart-ticket-row-' . $line_item->ID(), 'event-cart-ticket-row item' );
+			$html = EEH_HTML::tr(
+			    '',
+                'event-cart-ticket-row-' . $line_item->ID(),
+                "event-cart-ticket-row item{$required}"
+            );
 			// name && desc
 			$name_and_desc = $line_item->name();
 			$name_and_desc .= $options['show_desc'] ? '<span class="line-item-desc-spn smaller-text"> : ' . $line_item->desc() . '</span>'  : '';
@@ -197,7 +202,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			// price td
 			$html .= EEH_HTML::td( $line_item->unit_price_no_code(), '',  'jst-rght' );
 			// quantity td
-			$html .= EEH_HTML::td( $this->_ticket_qty_input( $line_item, $ticket ), '', 'jst-rght' );
+			$html .= EEH_HTML::td( $this->_ticket_qty_input( $line_item, $ticket, $required ), '', 'jst-rght' );
 			// total td
 			$html .= EEH_HTML::td( $line_item->total_no_code(), '',  'jst-rght' );
 			// end of row
@@ -216,7 +221,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 * @param \EE_Ticket   $ticket
 	 * @return mixed
 	 */
-	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket ) {
+	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket, $required = '' ) {
 		if ( $ticket->remaining() - $line_item->quantity() ) {
 			$disabled = '';
 			$disabled_class = '';
@@ -234,7 +239,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	<div class="event-cart-ticket-qty-dv">
 		<input type="text"
 					id="event-cart-update-txt-qty-' . $line_item->code() . '"
-					class="event-cart-update-txt-qty ' . $disabled_class . '"
+					class="event-cart-update-txt-qty ' . $disabled_class . $required . '"
 					name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
 					rel="' . $line_item->code() . '"
 					value="' . $line_item->quantity() . '"
@@ -251,8 +256,9 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				<span class="dashicons dashicons-plus" ></span >
 			</a >
 			<a	title = "' . __( 'remove one item', 'event_espresso' ) . '"
-					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button"
+					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
 					rel = "' . $line_item->code() . '"
+				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
 					href = "' . add_query_arg( array(
 			'event_cart' => 'remove_ticket',
 			'ticket'      => $ticket->ID(),
@@ -262,8 +268,9 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				<span class="dashicons dashicons-minus" ></span >
 			</a >
 			<a	title="' . __( 'delete item from event cart', 'event_espresso' ) . '"
-					class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button"
+					class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
 					rel="' . $line_item->code() . '"
+				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
 					href="' . add_query_arg( array(
 			'event_cart' => 'delete_ticket',
 			'ticket'      => $ticket->ID(),
