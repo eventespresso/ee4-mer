@@ -307,7 +307,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public function translate_js_strings() {
 		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
-		EE_Registry::$i18n_js_strings[ 'confirm_delete_state' ] = __("This item is required. Removing it will empty the event cart!\nClick OK to continue or Cancel to keep this item.", 'event_espresso' );
+		EE_Registry::$i18n_js_strings[ 'confirm_delete_state' ] = __("This item is required. Removing it will also remove any related items from the event cart!\nClick OK to continue or Cancel to keep this item.", 'event_espresso' );
 	}
 
 
@@ -1077,15 +1077,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *    _adjust_line_item_quantity
-	 *
-	 * @access    protected
-	 * @param EE_Line_Item $line_item
-	 * @param int $quantity
-	 * @param string $action
-	 * @return EE_Line_Item|null
-	 */
+    /**
+     *    _adjust_line_item_quantity
+     *
+     * @access    protected
+     * @param EE_Line_Item $line_item
+     * @param int          $quantity
+     * @param string       $action
+     * @return EE_Line_Item|null
+     * @throws \EE_Error
+     */
 	protected function adjust_line_item_quantity( $line_item, $quantity = 1, $action = 'add' ) {
 		if ( $line_item instanceof EE_Line_Item ) {
 			//EEH_Debug_Tools::printr( $line_item->code(), '$line_item->code()', __FILE__, __LINE__ );
@@ -1191,27 +1192,28 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 * ajax_remove_ticket
-	 *    call remove_ticket() via AJAX
-	 *
-	 * @access public
-	 * @return void
-	 */
+    /**
+     * ajax_remove_ticket
+     * call remove_ticket() via AJAX
+     *
+     * @access public
+     * @return void
+     * @throws \EE_Error
+     */
 	public static function ajax_remove_ticket() {
 		EED_Multi_Event_Registration::instance()->remove_ticket( 1 );
 	}
 
 
 
-
-	/**
-	 *        remove an attendee from event in the event cart
-	 *
-	 * @access 	public
-	 * @param int $quantity
-	 * @return void
-	 */
+    /**
+     * remove an attendee from event in the event cart
+     *
+     * @access    public
+     * @param int $quantity
+     * @return void
+     * @throws \EE_Error
+     */
 	public function remove_ticket( $quantity = 1 ) {
 		$line_item = null;
 		// check the request
@@ -1227,8 +1229,7 @@ class EED_Multi_Event_Registration extends EED_Module {
                 } else {
                     // just empty the cart if removing a required ticket
                     if ($ticket->required()) {
-                        $this->empty_event_cart();
-                        return;
+                        $this->remove_all_tickets_for_event($ticket->get_related_event());
                     }
                     $this->adjust_line_item_quantity($line_item, 0, 'update');
                 }
@@ -1248,25 +1249,27 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 * ajax_delete_ticket
-	 *    call delete_ticket() via AJAX
-	 *
-	 * @access public
-	 * @return array
-	 */
+    /**
+     * ajax_delete_ticket
+     * call delete_ticket() via AJAX
+     *
+     * @access public
+     * @return void
+     * @throws \EE_Error
+     */
 	public static function ajax_delete_ticket() {
 		EED_Multi_Event_Registration::instance()->delete_ticket();
 	}
 
 
 
-	/**
-	 *  delete_ticket - removes ticket completely
-	 *
-	 * @access        public
-	 * @param bool $send_ajax_response
-	 */
+    /**
+     * delete_ticket - removes ticket completely
+     *
+     * @access        public
+     * @param bool $send_ajax_response
+     * @throws \EE_Error
+     */
 	public function delete_ticket( $send_ajax_response = true ) {
 		$line_item = null;
 		// check the request
@@ -1274,8 +1277,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( $ticket instanceof EE_Ticket ) {
             // just empty the cart if removing a required ticket
             if ($ticket->required()) {
-                $this->empty_event_cart();
-                return;
+                $this->remove_all_tickets_for_event($ticket->get_related_event());
             }
             $line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			if ( $line_item instanceof EE_Line_Item ) {
@@ -1375,7 +1377,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *    call empty_event_cart() via AJAX
 	 *
 	 * @access public
-	 * @return array
+	 * @return void
 	 */
 	public static function ajax_empty_event_cart() {
 		EED_Multi_Event_Registration::instance()->empty_event_cart();
@@ -1421,6 +1423,26 @@ class EED_Multi_Event_Registration extends EED_Module {
 			apply_filters( 'FHEE__EED_Multi_Event_Registration__empty_event_cart__redirect_url', EE_EVENTS_LIST_URL )
 		);
 	}
+
+
+
+    /**
+     * @param \EE_Event $event
+     * @throws \EE_Error
+     */
+    public function remove_all_tickets_for_event(EE_Event $event)
+    {
+        $event_line_item = EEH_Line_Item::get_event_line_item(
+            EE_Registry::instance()->CART->get_grand_total(),
+            $event
+        );
+        if ($event_line_item instanceof EE_Line_Item) {
+            if ( $event_line_item->delete_children_line_items() ) {
+                $event_line_item->delete_if_childless_subtotal();
+            }
+            $this->send_ajax_response();
+        }
+    }
 
 
 
