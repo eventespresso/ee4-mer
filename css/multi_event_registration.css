@@ -123,3 +123,9 @@
 .cart-results-button-spn + .cart-results-button-spn {
 	/*margin-left: 2em;*/
 }
+
+
+.event-cart-required-items-notice {
+    margin: 1em 0;
+    text-align: right;
+}
