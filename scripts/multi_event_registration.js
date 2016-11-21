@@ -12,7 +12,9 @@ jQuery( document ).ready( function( $ ) {
 	 * }}
 	 * @namespace eei18n
 	 * @type {{
-		 *     ajax_url: string
+		 *     wp_debug: boolean,
+		 *     ajax_url: string,
+		 *     iframe_tickets_added: string,
 		 * }}
 	 * @namespace form_data
 	 * @type {{
@@ -439,7 +441,8 @@ jQuery( document ).ready( function( $ ) {
 		/**
 		 *  @function get_form_data
 		 * @param  {object} form_container
-		 * @param  {bool} form_within - whether the form should be looked for above or within the indicated DOM element
+		 * @param  {boolean} form_within - whether the form should be looked for above or within the indicated DOM
+         * element
 		 */
 		get_form_data : function( form_container, form_within ) {
 			if ( form_container.length ) {
