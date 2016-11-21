@@ -23,7 +23,8 @@
 				</tbody>
 
 			</table>
-		</div>
+            <?php do_action('AHEE__event_cart_template__after_event_cart_table'); ?>
+        </div>
 
 		<div class="event-cart-grand-total">
 		<?php	if ( $total_items ) { ?>
