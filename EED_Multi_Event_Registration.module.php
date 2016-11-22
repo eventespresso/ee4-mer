@@ -1436,12 +1436,24 @@ class EED_Multi_Event_Registration extends EED_Module {
             EE_Registry::instance()->CART->get_grand_total(),
             $event
         );
-        if ($event_line_item instanceof EE_Line_Item) {
-            if ( $event_line_item->delete_children_line_items() ) {
-                $event_line_item->delete_if_childless_subtotal();
+        if ( $event_line_item instanceof EE_Line_Item) {
+            $deleted = $event_line_item->delete_children_line_items();
+            if ($deleted) {
+                $deleted = $event_line_item->delete_if_childless_subtotal();
             }
-            $this->send_ajax_response();
+            if ( ! $deleted){
+                EE_Error::add_error(
+                    __('Line item deletion failed.', 'event_espresso'),
+                    __FILE__, __FUNCTION__, __LINE__
+                );
+            }
+        } else {
+            EE_Error::add_error(
+                __('A valid line item for the event could not be found.', 'event_espresso'),
+                __FILE__, __FUNCTION__, __LINE__
+            );
         }
+        $this->send_ajax_response();
     }
 
 
