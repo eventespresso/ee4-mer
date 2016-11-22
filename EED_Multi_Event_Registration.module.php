@@ -1443,13 +1443,19 @@ class EED_Multi_Event_Registration extends EED_Module {
             }
             if ( ! $deleted){
                 EE_Error::add_error(
-                    __('Line item deletion failed.', 'event_espresso'),
+                    sprintf(
+                        __('Event line item (ID:%1d$) deletion failed.', 'event_espresso'),
+                        $event_line_item->ID()
+                    ),
                     __FILE__, __FUNCTION__, __LINE__
                 );
             }
         } else {
             EE_Error::add_error(
-                __('A valid line item for the event could not be found.', 'event_espresso'),
+                sprintf(
+                    __('A valid line item for the event (ID:%1d$) could not be found.', 'event_espresso'),
+                    $event->ID()
+                ),
                 __FILE__, __FUNCTION__, __LINE__
             );
         }
