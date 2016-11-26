@@ -441,7 +441,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			}
 			return false;
 		}
-		return EED_Multi_Event_Registration::has_tickets_in_cart( $event );
+        return EED_Multi_Event_Registration::has_tickets_in_cart( $event );
 	}
 
 
@@ -521,7 +521,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		foreach ( $tickets_in_cart as $ticket_in_cart ) {
 			if (
 				$ticket_in_cart instanceof EE_Line_Item &&
-				$ticket_in_cart->OBJ_type() == 'Ticket' &&
+				$ticket_in_cart->OBJ_type() === 'Ticket' &&
 				isset( $event_tickets[ $ticket_in_cart->OBJ_ID() ] )
 			) {
 				return true;
@@ -553,14 +553,12 @@ class EED_Multi_Event_Registration extends EED_Module {
     /**
      * filter_ticket_selector_button_url
      *
-     * @access public
      * @param  string $button_url
      * @param  EE_Event $event
      * @return string
      */
 	public static function filter_ticket_selector_button_url( $button_url, \EE_Event $event ) {
-		return $event->display_ticket_selector()
-               && \EE_Config::instance()->template_settings->EED_Events_Archive->display_ticket_selector
+        return \EED_Multi_Event_Registration::_filter_ticket_selector_button($event)
             ? add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL )
             : $button_url;
 	}
@@ -568,16 +566,35 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
     /**
+     * filter_ticket_selector_button
+     * If the Ticket Selector should be displayed
+     * and the event is NOT sold out
+     * (unless it's sold out because we just added the last tickets to the cart)
+     * then change the submit button text to "View Event Cart"
+     *
+     * @param  EE_Event $event
+     * @return boolean
+     */
+	protected static function _filter_ticket_selector_button( \EE_Event $event ) {
+        return $event->display_ticket_selector()
+           && \EE_Config::instance()->template_settings->EED_Events_Archive->display_ticket_selector
+           && ! (
+            $event->is_sold_out()
+            && ! EED_Multi_Event_Registration::has_tickets_in_cart($event)
+        );
+	}
+
+
+
+    /**
      * filter_ticket_selector_button_txt
      *
-     * @access public
      * @param  string   $button_txt
      * @param  EE_Event $event
      * @return string
      */
 	public static function filter_ticket_selector_button_txt( $button_txt, \EE_Event $event ) {
-        return $event->display_ticket_selector()
-            && \EE_Config::instance()->template_settings->EED_Events_Archive->display_ticket_selector
+        return \EED_Multi_Event_Registration::_filter_ticket_selector_button($event)
             ? sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name )
             : $button_txt;
 	}
