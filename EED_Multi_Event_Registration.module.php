@@ -345,6 +345,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public function translate_js_strings() {
 		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
+		EE_Registry::$i18n_js_strings[ 'confirm_delete_state' ] = __("This item is required. Removing it will also remove any related items from the event cart!\nClick OK to continue or Cancel to keep this item.", 'event_espresso' );
 	}
 
 
@@ -1282,15 +1283,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *    _adjust_line_item_quantity
-	 *
-	 * @access    protected
-	 * @param EE_Line_Item $line_item
-	 * @param int $quantity
-	 * @param string $action
-	 * @return EE_Line_Item|null
-	 */
+    /**
+     *    _adjust_line_item_quantity
+     *
+     * @access    protected
+     * @param EE_Line_Item $line_item
+     * @param int          $quantity
+     * @param string       $action
+     * @return EE_Line_Item|null
+     * @throws \EE_Error
+     */
 	protected function adjust_line_item_quantity( $line_item, $quantity = 1, $action = 'add' ) {
 		if ( $line_item instanceof EE_Line_Item ) {
 			//EEH_Debug_Tools::printr( $line_item->code(), '$line_item->code()', __FILE__, __LINE__ );
@@ -1300,7 +1302,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			//EEH_Debug_Tools::printr( $quantity, '$quantity', __FILE__, __LINE__ );
 			//EEH_Debug_Tools::printr( $action, '$action', __FILE__, __LINE__ );
 			$quantity = (int)$quantity;
-			if ( $quantity === 0 && $action == 'update' ) {
+			if ( $quantity === 0 && $action === 'update' ) {
 				$_REQUEST[ 'ticket' ] = $line_item->OBJ_ID();
 				$_REQUEST[ 'line_item' ] = $line_item->code();
 				$this->delete_ticket( false );
@@ -1312,7 +1314,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$additional = 'A ';
 				$added_or_removed = 'removed';
 			}
-			$new_quantity = $action == 'update' ? $quantity : $line_item->quantity() + $quantity;
+			$new_quantity = $action === 'update' ? $quantity : $line_item->quantity() + $quantity;
 			// update quantity
 			$line_item->set_quantity( $new_quantity );
 			//it's "proper" to update the sub-line items quantities too, but core can actually fix it if we don't anyways
@@ -1322,14 +1324,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 				$line_item->set_quantity( $new_quantity );
 			}
 			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
-			$saved = $line_item->ID() ? $line_item->save() : $line_item->quantity() == $new_quantity;
+			$saved = $line_item->ID()
+                ? $line_item->save()
+                : $line_item->quantity() === $quantity;
 			if ( $saved ) {
 				do_action(
 					'FHEE__EED_Multi_Event_Registration__adjust_line_item_quantity__line_item_quantity_updated',
 					$line_item,
 					$quantity
 				);
-				if ( $action != 'update' ) {
+				if ( $action !== 'update' ) {
 					$msg = sprintf(
 						__( '%1$s item was successfully %2$s for this event.', 'event_espresso' ),
 						$additional, $added_or_removed
@@ -1341,7 +1345,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					EE_Error::add_success( $msg, __FILE__, __FUNCTION__, __LINE__ );
 				}
-			} else if ( $line_item->quantity() != $new_quantity ) {
+			} else if ( $line_item->quantity() !== $quantity ) {
 				// nothing added
 				EE_Error::add_error(
 					sprintf( __( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
@@ -1399,83 +1403,100 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 * ajax_remove_ticket
-	 *    call remove_ticket() via AJAX
-	 *
-	 * @access public
-	 * @return array
-	 */
+    /**
+     * ajax_remove_ticket
+     * call remove_ticket() via AJAX
+     *
+     * @access public
+     * @return void
+     * @throws \EE_Error
+     */
 	public static function ajax_remove_ticket() {
 		EED_Multi_Event_Registration::instance()->remove_ticket( 1 );
 	}
 
 
 
-
-	/**
-	 *        remove an attendee from event in the event cart
-	 *
-	 * @access 	public
-	 * @param int $quantity
-	 * @return TRUE on success and FALSE on fail
-	 */
+    /**
+     * remove an attendee from event in the event cart
+     *
+     * @access    public
+     * @param int $quantity
+     * @return void
+     * @throws \EE_Error
+     */
 	public function remove_ticket( $quantity = 1 ) {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
 		if ( $ticket instanceof EE_Ticket ) {
-			$quantity = absint( $quantity );
-			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
-			if ( $line_item instanceof EE_Line_Item && $quantity ) {
-				// if there will still be tickets in cart after this request
-				// then just remove the requested quantity, else update the entire event cart
-				if ( $line_item->quantity() - $quantity > 0 ) {
-					$line_item = $this->adjust_line_item_quantity( $line_item, $quantity * -1, 'remove' );
+            $quantity = absint($quantity);
+            $line_item = $this->get_line_item($_REQUEST['line_item']);
+            if ($line_item instanceof EE_Line_Item && $quantity) {
+                // if there will still be tickets in cart after this request
+                // then just remove the requested quantity, else update the entire event cart
+                if ($line_item->quantity() - $quantity > 0) {
+                    $line_item = $this->adjust_line_item_quantity($line_item, $quantity * -1, 'remove');
 					if ( $line_item instanceof EE_Line_Item ) {
 						$this->_adjust_ticket_reserves( $ticket, $quantity * -1 );
 					}
-				} else {
+                } else {
+                    // just empty the cart if removing a required ticket
+                    if ($ticket->required()) {
+                        $this->remove_all_tickets_for_event($ticket->get_related_event());
+                    }
 					$line_item = $this->adjust_line_item_quantity( $line_item, 0, 'update' );
 					if ( $line_item instanceof EE_Line_Item ) {
 						$this->_adjust_ticket_reserves( $ticket, abs( $line_item->quantity() ) * -1 );
 					}
-				}
-			} else {
-				// no ticket or line item !?!?!
-				EE_Error::add_error( __( 'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
-			}
+                }
+            } else {
+                // no ticket or line item !?!?!
+                EE_Error::add_error(
+                    __(
+                        'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.',
+                        'event_espresso'
+                    ),
+                    __FILE__, __FUNCTION__, __LINE__
+                );
+            }
 		}
 		$this->send_ajax_response();
 	}
 
 
 
-	/**
-	 * ajax_delete_ticket
-	 *    call delete_ticket() via AJAX
-	 *
-	 * @access public
-	 * @return array
-	 */
+    /**
+     * ajax_delete_ticket
+     * call delete_ticket() via AJAX
+     *
+     * @access public
+     * @return void
+     * @throws \EE_Error
+     */
 	public static function ajax_delete_ticket() {
 		EED_Multi_Event_Registration::instance()->delete_ticket();
 	}
 
 
 
-	/**
-	 *  delete_ticket - removes ticket completely
-	 *
-	 * @access        public
-	 * @param bool $send_ajax_response
-	 */
+    /**
+     * delete_ticket - removes ticket completely
+     *
+     * @access        public
+     * @param bool $send_ajax_response
+     * @throws \EE_Error
+     */
 	public function delete_ticket( $send_ajax_response = true ) {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
 		if ( $ticket instanceof EE_Ticket ) {
-			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
+            // just empty the cart if removing a required ticket
+            if ($ticket->required()) {
+                $this->remove_all_tickets_for_event($ticket->get_related_event());
+            }
+            $line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			if ( $line_item instanceof EE_Line_Item ) {
 				// get the parent line item now, because we will need it later
 				$parent_line_item = $line_item->parent();
@@ -1578,7 +1599,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *    call empty_event_cart() via AJAX
 	 *
 	 * @access public
-	 * @return array
+	 * @return void
 	 */
 	public static function ajax_empty_event_cart() {
 		EED_Multi_Event_Registration::instance()->empty_event_cart();
@@ -1625,6 +1646,44 @@ class EED_Multi_Event_Registration extends EED_Module {
 			apply_filters( 'FHEE__EED_Multi_Event_Registration__empty_event_cart__redirect_url', EE_EVENTS_LIST_URL )
 		);
 	}
+
+
+
+    /**
+     * @param \EE_Event $event
+     * @throws \EE_Error
+     */
+    public function remove_all_tickets_for_event(EE_Event $event)
+    {
+        $event_line_item = EEH_Line_Item::get_event_line_item(
+            EE_Registry::instance()->CART->get_grand_total(),
+            $event
+        );
+        if ( $event_line_item instanceof EE_Line_Item) {
+            $deleted = $event_line_item->delete_children_line_items();
+            if ($deleted) {
+                $deleted = $event_line_item->delete_if_childless_subtotal();
+            }
+            if ( ! $deleted){
+                EE_Error::add_error(
+                    sprintf(
+                        __('Event line item (ID:%1d$) deletion failed.', 'event_espresso'),
+                        $event_line_item->ID()
+                    ),
+                    __FILE__, __FUNCTION__, __LINE__
+                );
+            }
+        } else {
+            EE_Error::add_error(
+                sprintf(
+                    __('A valid line item for the event (ID:%1d$) could not be found.', 'event_espresso'),
+                    $event->ID()
+                ),
+                __FILE__, __FUNCTION__, __LINE__
+            );
+        }
+        $this->send_ajax_response();
+    }
 
 
 

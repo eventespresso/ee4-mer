@@ -148,3 +148,8 @@
 .espresso-ajax-modal-notices.success {
 	border-color: #70cc50;
 }
+
+.event-cart-required-items-notice {
+    margin: 1em 0;
+    text-align: right;
+}

@@ -21,6 +21,12 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	private $_show_taxes = false;
 
 	/**
+	 * whether any required tickets have been selected
+	 * @type bool $_show_taxes
+	 */
+	private $_has_required = false;
+
+	/**
 	 * html for any tax rows
 	 * @type string $_show_taxes
 	 */
@@ -32,11 +38,14 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	 */
 	private $_events = array();
 
-	/**
-	 * @param EE_Line_Item $line_item
-	 * @param array        $options
-	 * @return mixed
-	 */
+
+
+    /**
+     * @param EE_Line_Item $line_item
+     * @param array        $options
+     * @return mixed
+     * @throws \EE_Error
+     */
 	public function display_line_item( EE_Line_Item $line_item, $options = array() ) {
 
 		EE_Registry::instance()->load_helper( 'HTML' );
@@ -48,7 +57,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			'event_count' => 0,
 		);
 		$options = array_merge( $default_options, (array)$options );
-		$options = apply_filters(
+		$options = (array) apply_filters(
 			'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__options',
 			$options
 		);
@@ -57,7 +66,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 			case EEM_Line_Item::type_line_item:
 				// item row
-				if ( $line_item->OBJ_type() == 'Ticket' ) {
+				if ( $line_item->OBJ_type() === 'Ticket' ) {
 					$html .= $this->_ticket_row( $line_item, $options );
 				} else {
 					$html .= $this->_item_row( $line_item, $options );
@@ -74,7 +83,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 			case EEM_Line_Item::type_sub_total:
 
-				if ( $line_item->OBJ_type() == 'Event' ) {
+				if ( $line_item->OBJ_type() === 'Event' ) {
 					if ( ! isset( $this->_events[ $line_item->OBJ_ID() ] ) ) {
 						$html .= $this->_event_row( $line_item );
 					}
@@ -83,20 +92,24 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				$child_line_items = $line_item->children();
 				$count = 0;
 				static $total_count = 0;
-				foreach ( $child_line_items as $child_line_item ) {
-					// recursively feed children back into this method
+                /** @var EE_Line_Item $child_line_item */
+                foreach ($child_line_items as $child_line_item ) {
+                    // recursively feed children back into this method
 					$html .= $this->display_line_item( $child_line_item, $options );
-					$count += $child_line_item->OBJ_type() == 'Ticket' ? $child_line_item->quantity() : 0;
+					$count += $child_line_item->OBJ_type() === 'Ticket' ? $child_line_item->quantity() : 0;
 				}
-				$total_count += $line_item->code() != 'pre-tax-subtotal' ? $count : 0;
+				$total_count += $line_item->code() !== 'pre-tax-subtotal' ? $count : 0;
 				//echo "<br>line_item->code: "  . $line_item->code();
 				//echo "<br>count: "  . $count;
 				//echo "<br>total_count: "  . $total_count;
 				// only display subtotal if there are multiple child line items
-				if ( ( $line_item->total() > 0 && $count > 1 ) || ( $line_item->code() == 'pre-tax-subtotal' && count( $child_line_items ) ) ) {
-					$count = $line_item->code() == 'pre-tax-subtotal' ? $total_count : $count;
+				if (
+				    ( $line_item->total() > 0 && $count > 1 )
+                    || ( $line_item->code() === 'pre-tax-subtotal' &&  count( $child_line_items ) )
+                ) {
+					$count = $line_item->code() === 'pre-tax-subtotal' ? $total_count : $count;
 					$text = __( 'Subtotal', 'event_espresso' );
-					$text = $line_item->code() == 'pre-tax-subtotal'
+					$text = $line_item->code() === 'pre-tax-subtotal'
 						? EED_Multi_Event_Registration::$event_cart_name . ' ' . $text
 						: $text;
 					$text = apply_filters(
@@ -150,6 +163,12 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 					),
 					EE_Registry::instance()->CART->all_ticket_quantity_count()
 				);
+                if ($this->_has_required) {
+                    add_action(
+                        'AHEE__event_cart_template__after_event_cart_table',
+                        array( $this, 'after_event_cart_table')
+                    );
+                }
 				break;
 
 		}
@@ -186,18 +205,30 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	private function _ticket_row( EE_Line_Item $line_item, $options = array() ) {
 		$ticket = EEM_Ticket::instance()->get_one_by_ID( $line_item->OBJ_ID() );
 		if ( $ticket instanceof EE_Ticket ) {
+            $required = '';
+            $required_class = '';
+            if ( $ticket->required() ) {
+                $this->_has_required = true;
+                $required = ' ** ';
+                $required_class = ' required';
+            }
 			// start of row
-			$html = EEH_HTML::tr( '', 'event-cart-ticket-row-' . $line_item->ID(), 'event-cart-ticket-row item' );
+			$html = EEH_HTML::tr(
+			    '',
+                'event-cart-ticket-row-' . $line_item->ID(),
+                "event-cart-ticket-row item{$required_class}"
+            );
 			// name && desc
 			$name_and_desc = $line_item->name();
 			$name_and_desc .= $options['show_desc'] ? '<span class="line-item-desc-spn smaller-text"> : ' . $line_item->desc() . '</span>'  : '';
 			$name_and_desc = $line_item->is_taxable() ? $name_and_desc . ' * ' : $name_and_desc;
-			// name td
+            $name_and_desc .= $required;
+            // name td
 			$html .= EEH_HTML::td( $name_and_desc, '', 'ticket info' );
 			// price td
 			$html .= EEH_HTML::td( $line_item->unit_price_no_code(), '',  'jst-rght' );
 			// quantity td
-			$html .= EEH_HTML::td( $this->_ticket_qty_input( $line_item, $ticket ), '', 'jst-rght' );
+			$html .= EEH_HTML::td( $this->_ticket_qty_input( $line_item, $ticket, $required_class ), '', 'jst-rght' );
 			// total td
 			$html .= EEH_HTML::td( $line_item->total_no_code(), '',  'jst-rght' );
 			// end of row
@@ -209,15 +240,16 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 
 
-	/**
-	 *    _ticket_qty_input
-	 *
-	 * @param EE_Line_Item $line_item
-	 * @param \EE_Ticket   $ticket
-	 * @return mixed
-	 */
-	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket ) {
-		if ( $ticket->remaining() > 0 ) {
+    /**
+     *    _ticket_qty_input
+     *
+     * @param EE_Line_Item $line_item
+     * @param \EE_Ticket   $ticket
+     * @param string       $required
+     * @return mixed
+     */
+	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket, $required = '' ) {
+		if ( $ticket->remaining() - $line_item->quantity() ) {
 			$disabled = '';
 			$disabled_class = '';
 			$disabled_title = __( 'add one item', 'event_espresso' );
@@ -230,14 +262,14 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		}
 		return '
 	<div class="event-cart-ticket-qty-dv">
-		<input 	type="text"
-				id="event-cart-update-txt-qty-' . $line_item->code() . '"
-				class="event-cart-update-txt-qty ' . $disabled_class . '"
-				name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
-				rel="' . $line_item->code() . '"
-				value="' . $line_item->quantity() . '"
-				' . $disabled . '
-				size="3"
+		<input type="text"
+					id="event-cart-update-txt-qty-' . $line_item->code() . '"
+					class="event-cart-update-txt-qty ' . $disabled_class . $required . '"
+					name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
+					rel="' . $line_item->code() . '"
+					value="' . $line_item->quantity() . '"
+					' . $disabled . '
+					size="3"
 		/>
 		<span class="event-cart-update-buttons" >
 			<a	title="' . $disabled_title . '"
@@ -247,25 +279,27 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			>
 				<span class="dashicons dashicons-plus" ></span >
 			</a >
-			<a	title="' . __( 'remove one item', 'event_espresso' ) . '"
-				class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button"
-				rel="' . $line_item->code() . '"
-				href="' . add_query_arg( array(
-			'event_cart' => 'remove_ticket',
-			'ticket'      => $ticket->ID(),
-			'line_item'   => $line_item->code()
-		), EE_EVENT_QUEUE_BASE_URL ) . '"
+			<a	title = "' . __( 'remove one item', 'event_espresso' ) . '"
+					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
+					rel = "' . $line_item->code() . '"
+				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
+					href = "' . add_query_arg( array(
+						'event_cart' => 'remove_ticket',
+						'ticket'      => $ticket->ID(),
+						'line_item'   => $line_item->code()
+					), EE_EVENT_QUEUE_BASE_URL ) . '"
 			>
 				<span class="dashicons dashicons-minus" ></span >
 			</a >
-			<a	title="' . __( 'delete item from event cart', 'event_espresso' ) . '"
-				class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button"
-				rel="' . $line_item->code() . '"
-				href="' . add_query_arg( array(
-			'event_cart' => 'delete_ticket',
-			'ticket'      => $ticket->ID(),
-			'line_item'   => $line_item->code()
-		), EE_EVENT_QUEUE_BASE_URL ) . '"
+			<a	title="' . __(/** @lang text */'delete item from event cart', 'event_espresso' ) . '"
+					class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
+					rel="' . $line_item->code() . '"
+				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
+					href="' . add_query_arg( array(
+						'event_cart' => 'delete_ticket',
+						'ticket'      => $ticket->ID(),
+						'line_item'   => $line_item->code()
+					), EE_EVENT_QUEUE_BASE_URL ) . '"
 			>
 				<span class="dashicons dashicons-trash"></span>
 			</a>
@@ -335,14 +369,14 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 
 
-
-	/**
-	 * 	_sub_item_row
-	 *
-	 * @param EE_Line_Item $line_item
-	 * @param array        $options
-	 * @return mixed
-	 */
+    /**
+     *    _sub_item_row
+     *
+     * @param EE_Line_Item $line_item
+     * @param array        $options
+     * @return mixed
+     * @throws \EE_Error
+     */
 	private function _sub_item_row( EE_Line_Item $line_item, $options = array() ) {
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-cart-sub-item-row-' . $line_item->ID(), 'event-cart-sub-item-row item sub-item-row' );
@@ -437,11 +471,11 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 
 
 	/**
-	 *    _total_row
-	 *
-	 * @param EE_Line_Item $line_item
+     *    _total_row
+     *
+     * @param EE_Line_Item $line_item
 	 * @param string       $text
-	 * @param int          $total_items
+	 * @param int|string   $total_items
 	 * @return mixed
 	 */
 	private function _total_row( EE_Line_Item $line_item, $text = '', $total_items = 0 ) {
@@ -458,6 +492,16 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		// end of row
 		$html .= EEH_HTML::trx();
 		return $html;
+	}
+
+
+
+    public function after_event_cart_table()
+    {
+        echo EEH_HTML::p(
+            __(' ** indicates an item that is required and must be purchased.', 'event_espresso'),
+            '', 'event-cart-required-items-notice important-notice'
+        );
 	}
 
 

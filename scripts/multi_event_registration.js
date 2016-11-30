@@ -13,8 +13,18 @@ jQuery( document ).ready( function( $ ) {
 	 * }}
 	 * @namespace eei18n
 	 * @type {{
-	 *     ajax_url: string
-	 *     wp_debug: boolean
+	 *     wp_debug: boolean,
+	 *     ajax_url: string,
+	 *     iframe_tickets_added: string,
+	 * }}
+	 * @namespace form_data
+	 * @type {{
+	 *     action: string,
+	 *     ticket: string,
+	 *     line_item: string,
+	 *     ee: string,
+	 *     cart_results: string,
+	 *     confirm_delete_state: string,
 	 * }}
 	 */
 
@@ -121,16 +131,19 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_remove_ticket_button : function() {
 			MER.event_cart.on( 'click', '.event-cart-remove-ticket-button', function( event ) {
+                event.preventDefault();
+                event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $(this).hasClass('js-disabled-event-cart-btn') ) {
-					var urlParams = $( this ).eeGetParams();
+                    if (! MER.confirm_required_ticket_delete($(this))) {
+                        return;
+                    }
+                    var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_remove_ticket_from_event_cart';
 					MER.form_data.ticket = typeof( urlParams.ticket ) !== 'undefined' ? urlParams.ticket : '';
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
 				}
-				event.preventDefault();
-				event.stopPropagation();
 			});
 		},
 
@@ -141,19 +154,41 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_delete_ticket_button : function() {
 			MER.event_cart.on( 'click', '.event-cart-delete-ticket-button', function( event ) {
+                event.preventDefault();
+                event.stopPropagation();
 				if ( ! $( this ).hasClass( 'disabled-event-cart-btn' ) && ! $(this).hasClass('js-disabled-event-cart-btn') ) {
-					var urlParams = $( this ).eeGetParams();
+                    if ( ! MER.confirm_required_ticket_delete($(this), true)) {
+                        return;
+                    }
+                    var urlParams = $( this ).eeGetParams();
 					MER.form_data = {};
 					MER.form_data.action = 'espresso_delete_ticket_from_event_cart';
 					MER.form_data.ticket = typeof( urlParams.ticket ) !== 'undefined' ? urlParams.ticket : '';
 					MER.form_data.line_item = typeof( urlParams.line_item ) !== 'undefined' ? urlParams.line_item : '';
 					MER.submit_ajax_request();
 				}
-				event.preventDefault();
-				event.stopPropagation();
 			});
 		},
 
+
+        /**
+         *  @function confirm_required_ticket_delete
+         */
+        confirm_required_ticket_delete: function($button, deleteAll) {
+            deleteAll = typeof deleteAll !== 'undefined' ? deleteAll : false;
+            if ($button.hasClass('required') ) {
+                // not deleting all, so need to check ticket qty
+                if (deleteAll !== true) {
+                    var $target = $('#' + $button.data('target'));
+                    deleteAll = $target.length && parseInt($target.val()) === 1;
+                }
+                if (deleteAll === true) {
+                    return confirm(eei18n.confirm_delete_state);
+                }
+            }
+            // proceed with deletion
+            return true;
+        },
 
 
 		/**
@@ -472,7 +507,8 @@ jQuery( document ).ready( function( $ ) {
 		/**
 		 *  @function get_form_data
 		 * @param  {object} form_container
-		 * @param  {boolean} form_within - whether the form should be looked for above or within the indicated DOM element
+		 * @param  {boolean} form_within - whether the form should be looked for above or within the indicated DOM
+         * element
 		 */
 		get_form_data : function( form_container, form_within ) {
 			if ( form_container.length ) {
