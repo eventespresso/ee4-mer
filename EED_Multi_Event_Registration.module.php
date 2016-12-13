@@ -1326,7 +1326,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			//EEH_Debug_Tools::printr( $line_item, '$line_item', __FILE__, __LINE__ );
 			$saved = $line_item->ID()
                 ? $line_item->save()
-                : $line_item->quantity() === $quantity;
+                : $line_item->quantity() === $new_quantity;
 			if ( $saved ) {
 				do_action(
 					'FHEE__EED_Multi_Event_Registration__adjust_line_item_quantity__line_item_quantity_updated',
@@ -1345,7 +1345,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					EE_Error::add_success( $msg, __FILE__, __FUNCTION__, __LINE__ );
 				}
-			} else if ( $line_item->quantity() !== $quantity ) {
+			} else if ( $line_item->quantity() !== $new_quantity ) {
 				// nothing added
 				EE_Error::add_error(
 					sprintf( __( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
