@@ -156,7 +156,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			array( 'EED_Multi_Event_Registration', 'toggle_registration_status_if_no_monies_owing' ),
 			10, 2
 		);
-		// display errors
+        add_action(
+            'AHEE__EED_Events_Archive__before_load_assets',
+            array('EED_Multi_Event_Registration', 'before_event_list_load_assets')
+        );
+        // display errors
 		add_action( 'wp_footer', array( 'EED_Multi_Event_Registration', 'cart_results_modal_div' ), 1 );
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
@@ -301,10 +305,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 	/**
-	 *        protected constructor to prevent direct creation
+	 * protected constructor to prevent direct creation
 	 *
 	 * @access protected
-	 * @return EED_Multi_Event_Registration
+	 * @return void
 	 */
 	protected function init() {
 		// stop SPCO from executing
@@ -349,6 +353,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 	}
 
 
+
+    public static function before_event_list_load_assets()
+    {
+        EE_Registry::$i18n_js_strings['is_iframe'] = \EED_Events_Archive::is_iframe();
+    }
 
 	/**
 	 *    mer_style_sheets
@@ -610,14 +619,14 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 */
 	public static function filter_ticket_selector_redirect_url() {
 		if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__filter_ticket_selector_redirect_url__redirect_to_cart', false ) ) {
-			return add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
+			return add_query_arg(array('event_cart' => 'view'), EE_EVENT_QUEUE_BASE_URL);
 		} else {
 			$referer_uri = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : '';
 			if ( $referer_uri === EE_EVENTS_LIST_URL ) {
 				return EE_EVENTS_LIST_URL;
 			}
 			$request_uri = isset( $_SERVER[ 'REQUEST_URI' ] ) ? $_SERVER[ 'REQUEST_URI' ] : '';
-			if ( basename( $request_uri ) != basename( EE_EVENTS_LIST_URL ) ) {
+			if ( basename( $request_uri ) !== basename( EE_EVENTS_LIST_URL ) ) {
 				return EE_EVENTS_LIST_URL . basename( $request_uri );
 			} else {
 				return EE_EVENTS_LIST_URL;
@@ -627,14 +636,15 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *    creates button for going back to the Event Cart
-	 *
-	 * @access    public
-	 * @param string $html
-	 * @param \EE_SPCO_Reg_Step $reg_step
-	 * @return string
-	 */
+    /**
+     *    creates button for going back to the Event Cart
+     *
+     * @access    public
+     * @param string            $html
+     * @param \EE_SPCO_Reg_Step $reg_step
+     * @return string
+     * @throws \EE_Error
+     */
 	public static function return_to_event_cart_button( $html = '', EE_SPCO_Reg_Step $reg_step ) {
 		// returning to SPCO ?
 		if ( $reg_step->checkout->revisit ) {
@@ -642,18 +652,32 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return $html;
 		}
 		// and if a payment has already been made and this isn't a revisit
-		if ( $reg_step->checkout->transaction instanceof EE_Transaction && EE_Registry::instance()->REQ->get( 'e_reg_url_link', '' ) === '' ) {
+		if (
+		    $reg_step->checkout->transaction instanceof EE_Transaction
+            && EE_Registry::instance()->REQ->get( 'e_reg_url_link', '' ) === ''
+        ) {
 			$last_payment = $reg_step->checkout->transaction->last_payment();
-			if ( $last_payment instanceof EE_Payment && $last_payment->status() !== EEM_Payment::status_id_failed && $reg_step->checkout->transaction->paid() > 0 ) {
+			if (
+			    $last_payment instanceof EE_Payment
+                && $last_payment->status() !== EEM_Payment::status_id_failed
+                && $reg_step->checkout->transaction->paid() > 0
+            ) {
 				return $html;
 			}
 		}
-		$html = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button hide-me-after-successful-payment-js button" href = "' . add_query_arg(
-				array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) . '" ><span class="dashicons
-				dashicons-cart" ></span >' . apply_filters(
-				'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'return to %s',
-				'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name ) )  . '</a >' . $html;
-		return $html;
+        $link = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button';
+        $link .= ' hide-me-after-successful-payment-js button" href="';
+        $link .= add_query_arg(array('event_cart' => 'view'), EE_EVENT_QUEUE_BASE_URL);
+        $link .= '" ><span class="dashicons dashicons-cart" ></span >';
+        $link .= apply_filters(
+            'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt',
+            sprintf(
+                __( 'return to %s', 'event_espresso' ),
+                EED_Multi_Event_Registration::$event_cart_name
+            )
+        );
+        $link .= '</a >';
+		return $link . $html;
 	}
 
 
@@ -674,10 +698,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 			foreach ( $ticket_quantities as $key => $ticket_quantity ) {
 				// if ANY qty was set, then don't redirect
 				$ticket_quantity = absint( $ticket_quantity );
-				if ( $ticket_quantity == 1 ) {
+				if ( $ticket_quantity === 1 ) {
 					$event = EEM_Event::instance()->get_one_by_ID( $EVT_ID );
 					if ( $event instanceof EE_Event ) {
-						if ( $event->additional_limit() == 1 && EED_Multi_Event_Registration::instance()->has_tickets_in_cart( $event ) ) {
+						if (
+						    $event->additional_limit() === 1
+                            && EED_Multi_Event_Registration::instance()->has_tickets_in_cart( $event )
+                        ) {
 							continue;
 						} else {
 							return;
@@ -689,13 +716,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 			}
 		}
 		$redirect_url = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
-		if ( EE_Registry::instance()->REQ->get( 'event_cart', '' ) == 'view' ) {
+		if ( EE_Registry::instance()->REQ->get( 'event_cart', '' ) === 'view' ) {
 			if ( EE_Registry::instance()->REQ->get( 'ee_front_ajax', false ) ) {
 				// just send the ajax
 				echo json_encode(
 					array_merge(
 						EE_Error::get_notices( false ),
-						array( 'redirect_url'  => $redirect_url )
+                        array(
+                            'redirect_url' => $redirect_url,
+                            'is_iframe'    => \EE_Registry::instance()->REQ->get('mer_in_iframe', false),
+                        )
 					)
 				);
 				exit();
@@ -708,18 +738,21 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *    process_ticket_selections
-	 *
-	 * @access 	public
-	 * @return 	void
-	 */
+    /**
+     *    process_ticket_selections
+     *
+     * @access    public
+     * @return    void
+     * @throws \EE_Error
+     */
 	public static function process_ticket_selections() {
-		//echo "\n\n " . __LINE__ . ") " . __METHOD__ . "() <br />";
-		$response = array( 'tickets_added' => false );
-		if ( EED_Ticket_Selector::instance()->process_ticket_selections() ) {
+        $in_iframe = \EE_Registry::instance()->REQ->get('mer_in_iframe', false);
+        $response = array(
+            'tickets_added' => false,
+            'in_iframe'     => $in_iframe,
+        );
+        if ( EED_Ticket_Selector::instance()->process_ticket_selections() ) {
 			$EVT_ID = absint( EE_Registry::instance()->REQ->get( 'tkt-slctr-event-id', 0 ) );
-			//$tickets = EE_Registry::instance()->REQ->get( 'tkt-slctr-qty-' . $EVT_ID, array() );
 			$ticket_count = EE_Registry::instance()->CART->all_ticket_quantity_count();
 			//$ticket_count = 0;
 			//// radio buttons send ticket info as a string like: "TKT_ID-QTY"
@@ -732,6 +765,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			//}
 			$response = array(
 				'tickets_added' 	=> true,
+				'in_iframe' 		=> $in_iframe,
 				'ticket_count' 		=> $ticket_count,
 				'btn_id' 			=> "#ticket-selector-submit-$EVT_ID-btn",
 				'btn_txt' 			=> EED_Multi_Event_Registration::filter_ticket_selector_submit_button( '', null, true ),
@@ -1746,17 +1780,20 @@ class EED_Multi_Event_Registration extends EED_Module {
 			echo json_encode(
 				array_merge(
 					EE_Error::get_notices( false ),
-					array(
-						'new_html' 	=> $new_html,
-						'mini_cart' 	=> EED_Multi_Event_Registration::get_mini_cart(),
-					)
+                    array(
+                        'new_html'  => $new_html,
+                        'mini_cart' => EED_Multi_Event_Registration::get_mini_cart(),
+                        'in_iframe' => \EE_Registry::instance()->REQ->get('mer_in_iframe', false)
+                    )
 				)
 			);
 			// to be... or...
 			die();
 		}
 		EE_Error::get_notices( false, true );
-		$redirect_url = ! empty( $redirect_url ) ? $redirect_url : add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
+		$redirect_url = ! empty( $redirect_url )
+            ? $redirect_url
+            : add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
 		wp_safe_redirect( $redirect_url );
 		exit;
 	}
