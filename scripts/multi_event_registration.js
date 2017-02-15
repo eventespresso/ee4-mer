@@ -319,6 +319,7 @@ jQuery( document ).ready( function( $ ) {
 			}
             MER.form_data.noheader = 1;
 			MER.form_data.ee_front_ajax = 1;
+			MER.form_data.mer_in_iframe = eei18n.is_iframe;
             // send AJAX
 			$.ajax( {
 
@@ -375,11 +376,15 @@ jQuery( document ).ready( function( $ ) {
 		 * @function process_response
 		 */
 		process_response : function() {
-			//console.log( MER.response );
+			console.log( MER.response );
 			if ( typeof MER.response === 'object' ) {
 				if ( typeof MER.response.redirect_url !== 'undefined' && MER.response.redirect_url !== '' ) {
 					// redirect browser
-					window.location.replace( MER.response.redirect_url );
+                    if(typeof MER.response.is_iframe !== 'undefined' && MER.response.is_iframe) {
+                        window.open(MER.response.redirect_url, '_blank');
+                    } else {
+                        window.location.replace(MER.response.redirect_url);
+                    }
 					return;
 				}
 				if ( typeof MER.response.new_html !== 'undefined' ) {
