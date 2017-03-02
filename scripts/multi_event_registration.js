@@ -70,6 +70,7 @@ jQuery( document ).ready( function( $ ) {
 		 *     mini_cart: string,
 		 *     cart_results: string,
 		 *     redirect_url: string,
+		 *     on_click: string,
 		 * }}
 		 */
 		response : {},
@@ -106,7 +107,7 @@ jQuery( document ).ready( function( $ ) {
 
 
 
-	/**
+	    /**
 		 *  @function set_listener_for_add_ticket_button
 		 */
 		set_listener_for_add_ticket_button : function() {
@@ -233,6 +234,10 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_ticket_selector_submit_btn : function() {
 			$( document ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
+			    // if an onClick event has been set on the link, then do not process
+			    if ($(this).attr('onClick') !== undefined){
+                    return;
+                }
 				MER.form_data = MER.get_form_data( $( this ), false );
 
                 // console.log(JSON.stringify('MER.form_data', null, 4));
@@ -427,9 +432,15 @@ jQuery( document ).ready( function( $ ) {
 			var btn_id = typeof MER.response.btn_id !== 'undefined' ? MER.response.btn_id : '';
 			var btn_txt = typeof MER.response.btn_txt !== 'undefined' ? MER.response.btn_txt : '';
 			var form_html = typeof MER.response.form_html !== 'undefined' ? MER.response.form_html : '';
+			var on_click = typeof MER.response.on_click !== 'undefined'
+                ? MER.response.on_click
+                : '';
 			var submit_button = $( btn_id );
 			if ( submit_button.length && btn_txt !== '' ) {
-				if ( submit_button.val() !== btn_txt ) {
+			    if (on_click !== '') {
+                    submit_button.attr('onClick', on_click);
+                }
+                if ( submit_button.val() !== btn_txt ) {
 					submit_button.val( btn_txt );
 					var ticket_form = submit_button.parents( 'form:first' );
 					if ( ticket_form.length && form_html !== '' ) {
@@ -505,7 +516,7 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
-		 *  @function get_form_data
+		 * @function
 		 * @param  {object} form_container
 		 * @param  {boolean} form_within - whether the form should be looked for above or within the indicated DOM
          * element
@@ -609,7 +620,17 @@ jQuery( document ).ready( function( $ ) {
 				}
 			} );
 			return json_object;
-		}
+		},
+
+        /**
+         * @function
+         * @param  {string} url
+         */
+        redirect_window : function(url)
+        {
+            var win = window.open(url, '_blank');
+            win.focus();
+        }
 
 
 
@@ -704,4 +725,6 @@ jQuery( document ).ready( function( $ ) {
 	MER.initialize();
 
 });
+
+
 
