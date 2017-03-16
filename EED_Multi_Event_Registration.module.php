@@ -1950,19 +1950,34 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 
 
-	/**
-	 *   remove_registration
-	 *
-	 * @access protected
-	 * @param EE_Transaction $transaction
-	 * @param EE_Registration $registration
-	 * @return bool
-	 */
+    /**
+     *   remove_registration
+     *
+     * @access protected
+     * @param EE_Transaction  $transaction
+     * @param EE_Registration $registration
+     * @return bool
+     * @throws \RuntimeException
+     * @throws \EE_Error
+     */
 	protected static function remove_registration( EE_Transaction $transaction, EE_Registration $registration ) {
 		if ( $registration instanceof EE_Registration ) {
-			$transaction->_remove_relation_to( $registration, 'Registration' );
-			$registration->delete();
-			return true;
+            add_filter(
+                'FHEE__EE_Transaction_Processor__update_transaction_after_canceled_or_declined_registration__cancel_ticket_line_item',
+                function(
+                    $cancel_ticket_line_item,
+                    EE_Registration $canceled_registration
+                ) use ($registration) {
+                    if($canceled_registration->ID() === $registration->ID()) {
+                        $cancel_ticket_line_item = false;
+                    }
+                    return $cancel_ticket_line_item;
+                },
+                10, 2
+            );
+            $registration->delete();
+            $transaction->_remove_relation_to($registration, 'Registration');
+            return true;
 		}
 		return false;
 	}
