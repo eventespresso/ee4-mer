@@ -387,14 +387,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public static function enqueue_styles_and_scripts() {
 		// only load on our pages plz
 		if ( EE_Registry::instance()->REQ->is_espresso_page() ) {
-			// just in case core js isn't registered
-			wp_register_script(
-			    'espresso_core',
-                EE_GLOBAL_ASSETS_URL . 'scripts' . DS . 'espresso_core.js',
-                array( 'jquery' ),
-                EVENT_ESPRESSO_VERSION,
-                true
-            );
 			// styles
 			wp_register_style(
 				'espresso_multi_event_registration',
