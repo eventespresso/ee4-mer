@@ -387,19 +387,25 @@ class EED_Multi_Event_Registration extends EED_Module {
 	public static function enqueue_styles_and_scripts() {
 		// only load on our pages plz
 		if ( EE_Registry::instance()->REQ->is_espresso_page() ) {
-			// just in case core js isn't registered
-			wp_register_script( 'espresso_core', EE_GLOBAL_ASSETS_URL . 'scripts' . DS . 'espresso_core.js', array( 'jquery' ), EVENT_ESPRESSO_VERSION, true );
 			// styles
 			wp_register_style(
 				'espresso_multi_event_registration',
 				apply_filters(
 					'FHEE__EED_Multi_Event_Registration__enqueue_scripts__event_cart_css',
 					EE_MER_URL . 'css' . DS . 'multi_event_registration.css'
-				)
+				),
+                array('espresso_default'),
+                EE_MER_VERSION
 			);
 			wp_enqueue_style( 'espresso_multi_event_registration' );
 			// scripts
-			wp_register_script( 'espresso_multi_event_registration', EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js', array( 'espresso_core' ), EE_MER_VERSION, true );
+			wp_register_script(
+			    'espresso_multi_event_registration',
+                EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js',
+                array( 'espresso_core' ),
+                EE_MER_VERSION,
+                true
+            );
 			wp_enqueue_script( 'espresso_multi_event_registration' );
 		}
 	}
