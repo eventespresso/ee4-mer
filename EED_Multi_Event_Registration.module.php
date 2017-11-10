@@ -779,10 +779,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( isset( $term_exists[ 'term_id' ] ) ) {
 			$term_id = intval( $term_exists[ 'term_id' ] );
 			$return_url = get_term_link( $term_id, 'espresso_event_categories' );
+			$close_modal = ' close-modal-js';
 			if ( $return_url != wp_get_referer() || is_wp_error( $return_url ) ){
 				$return_url = EE_EVENTS_LIST_URL;
+				$close_modal = '';
 			}
-			$close_modal = ' close-modal-js';
 		} else if ( $referer_uri == basename( EE_EVENTS_LIST_URL ) ) {
 			$return_url = EE_EVENTS_LIST_URL;
 			$close_modal = ' close-modal-js';
