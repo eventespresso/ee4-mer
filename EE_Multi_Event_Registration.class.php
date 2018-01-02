@@ -12,7 +12,7 @@ define( 'EE_MER_CORE', EE_MER_PATH . 'core' . DS);
  * @package 			Event Espresso
  * @subpackage 	core
  * @author 				Brent Christensen
- * @since 				$VID:$
+ * 
  *
  */
 
