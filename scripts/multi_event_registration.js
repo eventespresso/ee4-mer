@@ -443,6 +443,7 @@ jQuery( document ).ready( function( $ ) {
 				if ( $( this ).find( 'option[value="0"]' ).length > 0 ) {
 					$( this ).val( 0 );
 				}
+				$( this ).prop( 'checked', false );
 			} );
 		},
 
