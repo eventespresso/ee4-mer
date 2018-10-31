@@ -80,7 +80,16 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		display_debug : eei18n.wp_debug,
 		// is ticket selector in an iframe ?
-		ticket_selector_iframe : typeof( eei18n.ticket_selector_iframe ) !== 'undefined' ? eei18n.ticket_selector_iframe : false,
+		ticket_selector_iframe : typeof( eei18n.ticket_selector_iframe ) !== 'undefined' ?
+			eei18n.ticket_selector_iframe :
+			false,
+
+		/**
+		 * the last submit button to be clicked
+		 * @namespace ticket_selector_submit_btn
+		 * @type  Object
+		 */
+		ticket_selector_submit_btn : null,
 
 		/********** INITIAL SETUP **********/
 
@@ -234,6 +243,7 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_ticket_selector_submit_btn : function() {
 			$( document ).on( 'click', '.ticket-selector-submit-ajax', function( event ) {
+				MER.ticket_selector_submit_btn = $( this );
 				MER.form_data = MER.get_form_data( $( this ), false );
 
                 // console.log(JSON.stringify('MER.form_data', null, 4));
@@ -291,16 +301,28 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
+		 *  @function close_modal
+		 *  @param {Object} event
+		 */
+		close_modal: function( event ) {
+			var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
+			if ( cart_results_wrapper.length ) {
+				cart_results_wrapper.eeRemoveOverlay().hide();
+				event.preventDefault();
+				event.stopPropagation();
+				MER.ticket_selector_submit_btn.focus();
+				MER.ticket_selector_submit_btn = null;
+			}
+		},
+
+
+
+		/**
 		 *  @function set_listener_for_close_modal_btn
 		 */
 		set_listener_for_close_modal_btn : function() {
 			$( document ).on( 'click', '.close-modal-js', function( event ) {
-				var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
-				if ( cart_results_wrapper.length ) {
-					cart_results_wrapper.eeRemoveOverlay().hide();
-					event.preventDefault();
-					event.stopPropagation();
-				}
+				MER.close_modal( event );
 			} );
 		},
 
@@ -311,14 +333,8 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		set_listener_for_escape_modal : function() {
 			$( document ).keyup( function( event ) {
-				if ( event.keyCode == 27 ) {
-					var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
-					if ( cart_results_wrapper.length ) {
-						cart_results_wrapper.eeRemoveOverlay().hide();
-						$( '.ticket-selector-submit-ajax' ).focus();
-						event.preventDefault();
-						event.stopPropagation();
-					}
+				if ( event.keyCode === 27 ) {
+					MER.close_modal( event );
 				}
 			} );
 		},
@@ -528,8 +544,8 @@ jQuery( document ).ready( function( $ ) {
 		/**
 		 *  @function get_form_data
 		 * @param  {object} form_container
-		 * @param  {boolean} form_within - whether the form should be looked for above or within the indicated DOM
-         * element
+		 * @param  {boolean} form_within - whether the form should be looked for
+		 *   above or within the indicated DOM element
 		 */
 		get_form_data : function( form_container, form_within ) {
 			if ( form_container.length ) {
@@ -635,7 +651,8 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
-		*        retrieve available spaces updates from the server on a timed interval
+		*        retrieve available spaces updates from the server on a timed
+		* interval
 		*/
 		//poll_available_spaces :function( event_id, httpTimeout ) {
 		//
@@ -710,7 +727,8 @@ jQuery( document ).ready( function( $ ) {
 
 
 		/**
-		 *        loop thru events in event list and begin polling server re: available spaces
+		 *        loop thru events in event list and begin polling server re:
+		 * available spaces
 		 */
 		//event_list_polling : function( serialized_array ) {
 		//	if ( $( '#event-cart-poll-server' ).val() == 1 ) {
