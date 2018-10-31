@@ -10,7 +10,6 @@
     "src\/circle.yml",
     "src\/readme.txt"
   ],
-  "github": true,
   "awsbucket": "",
   "awsregion": "",
   "wpOrgRelease": "2.0.14.p",
