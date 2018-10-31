@@ -100,6 +100,7 @@ jQuery( document ).ready( function( $ ) {
 			} else {
 				MER.set_listener_for_ticket_selector_submit_btn();
 				MER.set_listener_for_close_modal_btn();
+				MER.set_listener_for_escape_modal();
 			}
 			//alert( 'initialized !' );
 		},
@@ -299,6 +300,25 @@ jQuery( document ).ready( function( $ ) {
 					cart_results_wrapper.eeRemoveOverlay().hide();
 					event.preventDefault();
 					event.stopPropagation();
+				}
+			} );
+		},
+
+
+
+		/**
+		 *  @function set_listener_for_escape_modal
+		 */
+		set_listener_for_escape_modal : function() {
+			$( document ).keyup( function( event ) {
+				if ( event.keyCode == 27 ) {
+					var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
+					if ( cart_results_wrapper.length ) {
+						cart_results_wrapper.eeRemoveOverlay().hide();
+						$( '.ticket-selector-submit-ajax' ).focus();
+						event.preventDefault();
+						event.stopPropagation();
+					}
 				}
 			} );
 		},
