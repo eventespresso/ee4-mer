@@ -35,14 +35,17 @@ jQuery( document ).ready( function( $ ) {
 		 * DOM element - main event cart container
 		 */
 		event_cart  : {},
+
 		/**
 		 * DOM element - event cart text input field
 		 */
 		form_input : {},
+
 		/**
 		 * DOM element - AJAX notices container
 		 */
 		ajax_notices : {},
+
 		/**
 		 * array of form data
 		 * @namespace form_data
@@ -55,6 +58,7 @@ jQuery( document ).ready( function( $ ) {
 		 * }}
 		 */
 		form_data : {},
+
 		/**
 		 * AJAX response
 		 * @namespace response
@@ -73,21 +77,27 @@ jQuery( document ).ready( function( $ ) {
 		 * }}
 		 */
 		response : {},
+
 		/**
 		 * display debugging info in console?
 		 * @namespace display_debug
-		 * @type  boolean
+		 * @type boolean
 		 */
 		display_debug : eei18n.wp_debug,
-		// is ticket selector in an iframe ?
-		ticket_selector_iframe : typeof( eei18n.ticket_selector_iframe ) !== 'undefined' ?
+
+		/**
+		 * is ticket selector in an iframe ?
+		 * @namespace ticket_selector_iframe
+		 * @type boolean
+		 */
+		ticket_selector_iframe : typeof eei18n.ticket_selector_iframe !== 'undefined' ?
 			eei18n.ticket_selector_iframe :
 			false,
 
 		/**
 		 * the last submit button to be clicked
 		 * @namespace ticket_selector_submit_btn
-		 * @type  Object
+		 * @type Object
 		 */
 		ticket_selector_submit_btn : null,
 
