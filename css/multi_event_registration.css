@@ -1,6 +1,6 @@
 /*****   Event Cart   *****/
 
-#event-cart { margin:2em 0 0;}
+#event-cart { margin-top:2em; }
 
 #event-cart-qty-frm .ui-widget-header { padding:0 1em; }
 #event-cart-qty-frm .event-cart-wrap-dv { margin:0!important; }
