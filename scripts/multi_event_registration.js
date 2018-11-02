@@ -91,10 +91,8 @@ jQuery( document ).ready( function( $ ) {
 		 * @type boolean
 		 */
 		ticket_selector_iframe: typeof eei18n.ticket_selector_iframe !== 'undefined'
-			?
-			eei18n.ticket_selector_iframe
-			:
-			false,
+			? eei18n.ticket_selector_iframe
+			: false,
 
 		/**
 		 * the last submit button to be clicked
