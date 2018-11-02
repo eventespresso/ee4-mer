@@ -738,55 +738,6 @@ jQuery( document ).ready( function( $ ) {
 		},
 
 
-
-		/**
-		 *        retrieve available spaces updates from the server on a timed
-		 * interval
-		 */
-		//poll_available_spaces :function( event_id, httpTimeout ) {
-		//
-		//	//alert( 'event_id : ' + event_id);
-		//
-		//	if ( httpTimeout == undefined ) {
-		//		httpTimeout = 30000;
-		//	}
-		//
-		//	if ( event_id ) {
-		//		$.ajax( {
-		//			type : "POST",
-		//			url : mer.ajax_url,
-		//			data : {
-		//				"action" : "espresso_get_available_spaces",
-		//				"event_id" : event_id,
-		//				"event_cart_ajax" : 1
-		//			},
-		//			dataType : "json",
-		//
-		//			success : function( response ) {
-		//
-		//				MER.response = response;
-		//				var availability = MER.response.spaces + ' <span
-		// class="available-spaces-last-update-spn">( last update: ' +
-		// MER.response.time + ' )</span>'; $( '#available-spaces-spn-' +
-		// MER.response.id ).fadeOut( 500, function() { $( '#available-spaces-spn-'
-		// + MER.response.id ).html( availability ).fadeIn( 500 ); } );  },  error
-		// : function( response ) {  MER.response = response; if (
-		// MER.response.error == undefined || MER.response.error == '' ) {
-		// MER.response.error = 'Available space polling failed. Please refresh the
-		// page and it try again and again.'; } show_event_cart_ajax_error_msg( 0,
-		// response );  }, //						complete: function(response) {
-		// //							setTimeout(function() { //								poll_available_spaces( event_id ); //							}, httpTimeout );  //						}, timeout : httpTimeout } ); } },    /** *        loop thru events in event list and begin polling server re: available spaces */ begin_polling_available_spaces : function() { var httpTimeout = 30000 * $( '.available-spaces-spn' ).size(); $( '.available-spaces-spn' ).each( function( index ) { var event_id = $( this ).attr( 'id' ); event_id = event_id.replace( 'available-spaces-spn-', '' ); setTimeout( function() { poll_available_spaces( event_id, httpTimeout ); }, 30000 * index ); } ); setTimeout( function() { begin_polling_available_spaces(); }, httpTimeout );  },
-
-		/**
-		 *        loop thru events in event list and begin polling server re:
-		 * available spaces
-		 */
-		//event_list_polling : function( serialized_array ) {
-		//	if ( $( '#event-cart-poll-server' ).val() == 1 ) {
-		//		setTimeout( MER.begin_polling_available_spaces(), 30000 );
-		//	}
-		//}
-
 	};
 
 	MER.initialize();
