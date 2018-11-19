@@ -146,7 +146,7 @@ jQuery( document ).ready( function( $ ) {
 					}
 					event.preventDefault();
 					event.stopPropagation();
-				},
+				}
 			);
 		},
 
@@ -177,7 +177,7 @@ jQuery( document ).ready( function( $ ) {
 							: '';
 						MER.submit_ajax_request();
 					}
-				},
+				}
 			);
 		},
 
@@ -208,7 +208,7 @@ jQuery( document ).ready( function( $ ) {
 							: '';
 						MER.submit_ajax_request();
 					}
-				},
+				}
 			);
 		},
 
@@ -251,7 +251,7 @@ jQuery( document ).ready( function( $ ) {
 					}
 					event.preventDefault();
 					event.stopPropagation();
-				},
+				}
 			);
 		},
 
@@ -271,7 +271,7 @@ jQuery( document ).ready( function( $ ) {
 					}
 					event.preventDefault();
 					event.stopPropagation();
-				},
+				}
 			);
 		},
 
@@ -599,7 +599,7 @@ jQuery( document ).ready( function( $ ) {
 			} else if ( MER.ticket_selector_iframe ) {
 				MER.show_event_cart_ajax_msg( 'success',
 					eei18n.iframe_tickets_added,
-					6000,
+					6000
 				);
 			}
 
