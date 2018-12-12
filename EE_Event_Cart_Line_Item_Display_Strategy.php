@@ -71,9 +71,15 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 				} else {
 					$html .= $this->_item_row( $line_item, $options );
 				}
-				// got any kids?
-				foreach( $line_item->children() as $child_line_item ) {
-					$this->display_line_item( $child_line_item, $options );
+				if (apply_filters(
+                    'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__display_sub_line_items',
+                    false
+                )
+                ) {
+					// got any kids?
+					foreach( $line_item->children() as $child_line_item ) {
+						$html .= $this->display_line_item( $child_line_item, $options );
+					}
 				}
 				break;
 
