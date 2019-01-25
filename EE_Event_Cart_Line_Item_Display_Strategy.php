@@ -188,7 +188,17 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-cart-event-row-' . $line_item->ID(), 'event-cart-event-row' );
 		// event name td
-		$html .= EEH_HTML::td( EEH_HTML::strong( $line_item->name() ), '', 'event-header', '', ' colspan="4"' );
+		$html .= EEH_HTML::td( 
+			EEH_HTML::strong( $line_item->name() ),
+			'',
+			'event-header',
+			'',
+			apply_filters(
+				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___event_row__other_attributes',
+				' colspan="4"',
+				$line_item
+			)
+		);
 		// end of row
 		$html .= EEH_HTML::trx();
 		return $html;
@@ -223,8 +233,20 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 			$name_and_desc .= $options['show_desc'] ? '<span class="line-item-desc-spn smaller-text"> : ' . $line_item->desc() . '</span>'  : '';
 			$name_and_desc = $line_item->is_taxable() ? $name_and_desc . ' * ' : $name_and_desc;
             $name_and_desc .= $required;
+            $name_and_desc = apply_filters(
+            	'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___ticket_row__name_and_desc',
+            	$name_and_desc,
+            	$line_item,
+            	$required
+            );
             // name td
 			$html .= EEH_HTML::td( $name_and_desc, '', 'ticket info' );
+			// action hook to allow for adding another td
+			$html .= do_action( 
+				'AHEE__EE_Event_Cart_Line_Item_Display_Strategy___ticket_row__before_price_td',
+            	$name_and_desc,
+            	$line_item				
+			);
 			// price td
 			$html .= EEH_HTML::td( $line_item->unit_price_no_code(), '',  'jst-rght' );
 			// quantity td
@@ -483,7 +505,17 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		// start of row
 		$html = EEH_HTML::tr( '', 'event-cart-total-row-' . $line_item->ID(), 'event-cart-total-row-' . $line_item->type() . ' event-cart-total-row total_tr' );
 		// total td
-		$html .= EEH_HTML::td( EEH_HTML::strong( $text ), '',  'total_currency total jst-rght', '', ' colspan="2"' );
+		$html .= EEH_HTML::td( 
+			EEH_HTML::strong( $text ),
+			'',
+			'total_currency total jst-rght',
+			'',
+			apply_filters(
+				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___total_row__other_attributes',
+				' colspan="2"',
+				$line_item
+			)
+		);
 		// total qty
 		$total_items = $total_items ? $total_items : '';
 		$html .= EEH_HTML::td( EEH_HTML::strong( '<span class="total">' . $total_items . '</span>' ), '', 'total jst-cntr' );
