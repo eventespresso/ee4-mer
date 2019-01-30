@@ -241,10 +241,10 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
             );
             // name td
 			$html .= EEH_HTML::td( $name_and_desc, '', 'ticket info' );
-			// action hook to allow for adding another td
-			$html .= do_action( 
-				'AHEE__EE_Event_Cart_Line_Item_Display_Strategy___ticket_row__before_price_td',
-            	$name_and_desc,
+			// filter hook to allow for adding another td
+			$html = apply_filters( 
+				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___ticket_row__html',
+				$html,
             	$line_item				
 			);
 			// price td
