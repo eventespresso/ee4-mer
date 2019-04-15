@@ -373,7 +373,6 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function close_modal_after_click
 		 */
 		close_modal_after_click: function( event ) {
-			console.log( '>>> CLICK <<<' );
 			MER.remove_listeners_for_modal();
 			MER.close_modal( event );
 		},
@@ -382,7 +381,6 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_close_modal_btn
 		 */
 		set_listener_for_close_modal_btn: function() {
-			console.log( 'set_listener_for_close_modal_btn' );
 			$( document ).on(
 				'click',
 				'.close-modal-js',
@@ -395,7 +393,6 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		close_modal_after_keyup: function( event ) {
 			if ( event.keyCode === 27 ) {
-				console.log( '>>> ESCAPE <<<' );
 				MER.remove_listeners_for_modal();
 				MER.close_modal( event );
 			}
@@ -405,7 +402,6 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_escape_modal
 		 */
 		set_listener_for_escape_modal: function() {
-			console.log( 'set_listener_for_escape_modal' );
 			$( document ).on( 'keyup', MER.close_modal_after_keyup );
 		},
 
@@ -413,7 +409,6 @@ jQuery( document ).ready( function( $ ) {
 		 *  @function set_listener_for_escape_modal
 		 */
 		remove_listeners_for_modal: function() {
-			console.log( 'remove_listeners_for_modal' );
 			$( document ).unbind( 'click', MER.close_modal_after_keyup );
 			$( document ).unbind( 'keyup', MER.close_modal_after_keyup );
 		},
@@ -585,7 +580,6 @@ jQuery( document ).ready( function( $ ) {
 		 */
 		process_cart_results: function() {
 			var cart_results_wrapper = $( '#cart-results-modal-wrap-dv' );
-			console.log( 'process_cart_results' );
 			//console.log( mini_cart );
 			if ( cart_results_wrapper.length ) {
 				cart_results_wrapper.html( MER.response.cart_results )
