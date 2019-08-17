@@ -270,7 +270,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 			return '';
 		}
 		// total td
-		$content = EEH_HTML::strong( $line_item->desc() . ' ' . $text );
+		$content = EEH_HTML::strong( $line_item->name() . ' ' . $text );
 		// total td
 		$content .= ' ' . EEH_HTML::strong( $line_item->total_no_code() );
 		return EEH_HTML::li( $content, '', 'event-cart-total-list total-list', 'text-align:right; width:100%;' );
