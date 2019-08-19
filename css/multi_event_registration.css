@@ -157,6 +157,14 @@
     text-align: right;
 }
 
+.event-cart-total-list {
+    margin: 1em 0 0;
+}
+
+.event-cart-total-list ~ .event-cart-total-list {
+    margin: 0;
+}
+
 /* Media Query for screens smaller then 768px (iPad portrait)
 ---------------------------------------------------------------------------------------------------- */
 
