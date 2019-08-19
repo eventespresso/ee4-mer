@@ -269,8 +269,11 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		if ( $tax_total && $this->_tax_count < 2 ) {
 			return '';
 		}
+		if ( $line_item->OBJ_type() === 'Event' ) {
+			return '';
+		}
 		// total td
-		$content = EEH_HTML::strong( $line_item->name() . ' ' . $text );
+		$content = EEH_HTML::strong( $text );
 		// total td
 		$content .= ' ' . EEH_HTML::strong( $line_item->total_no_code() );
 		return EEH_HTML::li( $content, '', 'event-cart-total-list total-list', 'text-align:right; width:100%;' );
