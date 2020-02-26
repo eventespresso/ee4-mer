@@ -271,45 +271,55 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
      * @return mixed
      */
 	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket, $required = '' ) {
-		if ( $ticket->remaining() - $line_item->quantity() ) {
-			$disabled = '';
-			$disabled_class = '';
-			$disabled_title = __( 'add one item', 'event_espresso' );
-			$query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
+        $input_disabled_class = '';
+        $input_disabled = '';
+
+		if ( !($ticket->remaining() - $line_item->quantity()) || ($line_item->quantity() >= $ticket->max()) ) {
+            $input_disabled = ' disabled';
+            $add_disabled_class = $input_disabled_class = ' disabled-event-cart-btn';
+            $add_disabled_title = __( 'there are no more items available', 'event_espresso' );
+            $add_query_args = array( 'event_cart' => 'view' );
 		} else {
-			$disabled = ' disabled';
-			$disabled_class = ' disabled-event-cart-btn';
-			$disabled_title = __( 'there are no more items available', 'event_espresso' );
-			$query_args = array( 'event_cart' => 'view' );
+            $add_disabled_class = '';
+            $add_disabled_title = __( 'add one item', 'event_espresso' );
+            $add_query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
 		}
+
+        if ( ($line_item->quantity() <= $ticket->min()) ) {
+            $input_disabled = ' disabled';
+            $remove_disabled_class = $input_disabled_class = ' disabled-event-cart-btn';
+            $remove_disabled_title = __( 'You cannot remove more items', 'event_espresso' );
+            $remove_query_args = array( 'event_cart' => 'view' );
+        } else {
+            $remove_disabled_class = '';
+            $remove_disabled_title = __( 'remove one item', 'event_espresso' );
+            $remove_query_args = array( 'event_cart' => 'remove_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code());
+        }
+
 		return '
 	<div class="event-cart-ticket-qty-dv">
 		<input type="text"
 					id="event-cart-update-txt-qty-' . $line_item->code() . '"
-					class="event-cart-update-txt-qty ' . $disabled_class . $required . '"
+					class="event-cart-update-txt-qty ' . $input_disabled_class . $required . '"
 					name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
 					rel="' . $line_item->code() . '"
 					value="' . $line_item->quantity() . '"
-					' . $disabled . '
+					' . $input_disabled . '
 					size="3"
 		/>
 		<span class="event-cart-update-buttons" >
-			<a	title="' . $disabled_title . '"
-				class="event-cart-add-ticket-button event-cart-button event-cart-icon-button button' . $disabled_class . '"
+			<a	title="' . $add_disabled_title . '"
+				class="event-cart-add-ticket-button event-cart-button event-cart-icon-button button' . $add_disabled_class . '"
 				rel="' . $line_item->code() . '"
-				href="' . add_query_arg( $query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
+				href="' . add_query_arg( $add_query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
 			>
 				<span class="dashicons dashicons-plus" ></span >
 			</a >
-			<a	title = "' . __( 'remove one item', 'event_espresso' ) . '"
-					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
+			<a	title = "' . $remove_disabled_title . '"
+					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button' . $required . $remove_disabled_class . '"
 					rel = "' . $line_item->code() . '"
 				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
-					href = "' . add_query_arg( array(
-						'event_cart' => 'remove_ticket',
-						'ticket'      => $ticket->ID(),
-						'line_item'   => $line_item->code()
-					), EE_EVENT_QUEUE_BASE_URL ) . '"
+					href = "' . add_query_arg( $remove_query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
 			>
 				<span class="dashicons dashicons-minus" ></span >
 			</a >

@@ -1043,8 +1043,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 			$ticket = $this->get_ticket( $TKT_ID );
 			if ( $ticket instanceof EE_Ticket ) {
 				foreach ( $ticket_quantity as $line_item_id => $quantity ) {
-					if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, true ) ) {
-						$line_item = $this->get_line_item( $line_item_id );
+                    $line_item = $this->get_line_item( $line_item_id );
+                    if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, $line_item, 'update' ) ) {
 						$line_item = $this->adjust_line_item_quantity( $line_item, $quantity, 'update' );
 						if ( $line_item instanceof EE_Line_Item ) {
 							$this->_adjust_ticket_reserves( $ticket, $line_item->quantity() - $quantity );
@@ -1084,9 +1084,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$line_item = null;
 		// check the request
 		$ticket = $this->_validate_request();
-		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, false ) ) {
+        $line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
+
+		if ( $this->can_purchase_ticket_quantity( $ticket, $quantity, $line_item ) ) {
 			// you can DO IT !!!
-			$line_item = $this->get_line_item( $_REQUEST[ 'line_item' ] );
 			$line_item = $this->adjust_line_item_quantity( $line_item, $quantity, 'add' );
 			if ( $line_item instanceof EE_Line_Item ) {
 				$this->_adjust_ticket_reserves( $ticket, $quantity );
@@ -1172,15 +1173,16 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 *    adjust_ticket_quantity
 	 *
 	 * @access    protected
-	 * @param EE_Ticket $ticket
-	 * @param int       $quantity
-	 * @param bool      $cart_update
+	 * @param EE_Ticket    $ticket
+	 * @param int          $quantity
+	 * @param EE_Line_Item $line_item
+	 * @param string       $action
 	 * @return bool
 	 */
-	protected function can_purchase_ticket_quantity( $ticket = null, $quantity = 1, $cart_update = false ) {
+	protected function can_purchase_ticket_quantity( $ticket = null, $quantity = 1, $line_item = null, $action = 'add' ) {
 		// any tickets left at all?
 		$tickets_remaining = $ticket instanceof EE_Ticket ? $ticket->remaining() : 0;
-		if ( ! $tickets_remaining ) {
+		if ( ! $tickets_remaining && $action != 'remove') {
 			// event is full
 			EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			return false;
@@ -1195,7 +1197,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		);
 		$limit_error_1 = sprintf( $total_tickets_string, $quantity );
 		// is there enough tickets left to satisfy request?
-		if ( $tickets_remaining < $quantity ) {
+		if ( $tickets_remaining < $quantity && $action != 'remove') {
 			// translate and possibly pluralize the error
 			$tickets_remaining_string = _n(
 				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
@@ -1208,9 +1210,53 @@ class EED_Multi_Event_Registration extends EED_Module {
 			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
 			return false;
 		}
+
+		// is the quantity allowed based on ticket max?
+		if( $line_item instanceof EE_Line_Item && $ticket instanceof EE_Ticket )
+        {
+            if($action == 'add') $new_quantity = ($line_item->quantity() + $quantity);
+            else if($action == 'remove') $new_quantity = ($line_item->quantity() - $quantity);
+            else $new_quantity = $quantity;
+
+            // can purchase more tickets based on ticket max?
+            $ticket_maximum = $ticket->max();
+            if( $new_quantity > $ticket_maximum )
+            {
+                // translate and possibly pluralize the error
+                $tickets_maximum_string = _n(
+                    'The registration limit for this ticket is %1$d ticket per transaction, therefore the total number of tickets you may purchase at this time can not exceed %1$d.',
+                    'The registration limit for this ticket is %1$d tickets per transaction, therefore the total number of tickets you may purchase at this time can not exceed %1$d.',
+                    $ticket_maximum,
+                    'event_espresso'
+                );
+
+                $max_error = sprintf( $tickets_maximum_string, $ticket_maximum );
+                EE_Error::add_error( $max_error, __FILE__, __FUNCTION__, __LINE__ );
+                return false;
+            }
+
+            $ticket_minimum = $ticket->min();
+            if( $ticket_minimum > 0 && ( $new_quantity < $ticket_minimum ) )
+            {
+                // translate and possibly pluralize the error
+                $tickets_minimum_string = _n(
+                    'The registration minimum for this ticket is %1$d ticket per transaction, therefore the total number of tickets you may purchase at this time can not be less than %1$d.',
+                    'The registration minimum for this ticket is %1$d tickets per transaction, therefore the total number of tickets you may purchase at this time can not be less than %1$d.',
+                    $ticket_minimum,
+                    'event_espresso'
+                );
+
+                $min_error = sprintf( $tickets_minimum_string, $ticket_minimum );
+                EE_Error::add_error( $min_error, __FILE__, __FUNCTION__, __LINE__ );
+                return false;
+            }
+        }
+
 		// check event
-		$total_ticket_quantity_within_event_additional_limit = $this->_total_ticket_quantity_within_event_additional_limit( $ticket, $quantity, $cart_update );
-		if ( ! $total_ticket_quantity_within_event_additional_limit ) {
+		$total_ticket_quantity_within_event_additional_limit = $this->_total_ticket_quantity_within_event_additional_limit( $ticket, $quantity, ($action === 'update') );
+		if ( ! $total_ticket_quantity_within_event_additional_limit && $action != 'remove') {
+		    // New Quantity
+		    if($action == 'update') $quantity = $quantity - $line_item->quantity();
 			// get some details from the ticket
 			$additional_limit = $ticket->first_datetime()->event()->additional_limit();
 			// can't register anymore attendees
@@ -1236,8 +1282,6 @@ class EED_Multi_Event_Registration extends EED_Module {
 		// YEAH !!!
 		return true;
 	}
-
-
 
 	/**
 	 * _total_ticket_quantity_within_event_additional_limit
@@ -1449,11 +1493,16 @@ class EED_Multi_Event_Registration extends EED_Module {
             if ($line_item instanceof EE_Line_Item && $quantity) {
                 // if there will still be tickets in cart after this request
                 // then just remove the requested quantity, else update the entire event cart
-                if ($line_item->quantity() - $quantity > 0) {
-                    $line_item = $this->adjust_line_item_quantity($line_item, $quantity * -1, 'remove');
-					if ( $line_item instanceof EE_Line_Item ) {
-						$this->_adjust_ticket_reserves( $ticket, $quantity * -1 );
-					}
+                if (($line_item->quantity() - $quantity > 0) ) {
+                    // If allowed to remove
+
+                    if( $this->can_purchase_ticket_quantity( $ticket, $quantity, $line_item, 'remove') )
+                    {
+                        $line_item = $this->adjust_line_item_quantity($line_item, $quantity * -1, 'remove');
+                        if ( $line_item instanceof EE_Line_Item ) {
+                            $this->_adjust_ticket_reserves( $ticket, $quantity * -1 );
+                        }
+                    }
                 } else {
                     // just empty the cart if removing a required ticket
                     if ($ticket->required()) {
