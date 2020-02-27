@@ -143,6 +143,12 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 			$html .= EEH_HTML::tr( '', 'event-cart-item-row-' . $line_item->code() );
 			$this->_show_taxes = $line_item->is_taxable() ? true : $this->_show_taxes;
 			$line_item_name = $line_item->is_taxable() ? $line_item->name() . ' * ' : $line_item->name();
+			$line_item_name = apply_filters(
+				'FHEE__EE_Mini_Cart_Table_Line_Item_Display_Strategy___ticket_row__line_item_name',
+				$line_item_name,
+				$line_item
+			);
+
 			// name td
 			$html .= EEH_HTML::td( $line_item_name, '', 'ticket info' );
 			// price td
@@ -172,6 +178,12 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 		$name_and_desc = $line_item->name();
 		$name_and_desc .= $line_item->desc() != '' ? '<span class="line-item-desc-spn smaller-text"> : ' . $line_item->desc() . '</span>' : '';
 		$name_and_desc = $line_item->is_taxable() ? $name_and_desc . ' * ' : $name_and_desc;
+		$name_and_desc = apply_filters(
+			'FHEE__EE_Mini_Cart_Table_Line_Item_Display_Strategy___item_row__name_and_desc',
+			$name_and_desc,
+			$line_item
+		);
+		
 		// name td
 		$html .= EEH_HTML::td( $name_and_desc );
 		// amount
