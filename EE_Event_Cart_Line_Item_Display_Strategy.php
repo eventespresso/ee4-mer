@@ -346,6 +346,13 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		$name_and_desc = $line_item->name();
 		$name_and_desc .= $options['show_desc'] ? '<span class="line-item-desc-spn smaller-text"> : ' . $line_item->desc() . '</span>'  : '';
 		$name_and_desc = $line_item->is_taxable() ? $name_and_desc . ' * ' : $name_and_desc;
+		$name_and_desc = apply_filters(
+			'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___item_row__name_and_desc',
+			$name_and_desc,
+			$line_item,
+			$options
+		);
+
 		// name td
 		$html .= EEH_HTML::td( $name_and_desc );
 		// amount
