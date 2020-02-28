@@ -798,12 +798,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'results' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_results_message',
 				sprintf(
-					_n(
+                    esc_html(_n(
 						'1 item was successfully added for this event.',
 						'%1$s items were successfully added for this event.',
 						$ticket_count,
 						'event_espresso'
-					),
+					)),
 					$ticket_count
 				),
 				$ticket_count
@@ -811,12 +811,12 @@ class EED_Multi_Event_Registration extends EED_Module {
 			'current_cart' => apply_filters(
 				'FHEE__EED_Multi_Event_Registration__get_cart_results_current_cart_message',
 				sprintf(
-					_n(
+                    esc_html(_n(
 						'There is currently 1 item in the %2$s.',
 						'There are currently %1$d items in the %2$s.',
 						$total_tickets,
 						'event_espresso'
-					 ),
+					)),
 					$total_tickets,
 					EED_Multi_Event_Registration::event_cart_name()
 				),
@@ -1179,72 +1179,81 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @param string       $action
 	 * @return bool
 	 */
-	protected function can_purchase_ticket_quantity( $ticket = null, $quantity = 1, $line_item = null, $action = 'add' ) {
+    protected function can_purchase_ticket_quantity(
+        EE_Ticket $ticket = null,
+        $quantity = 1,
+        EE_Line_Item $line_item = null,
+        $action = 'add'
+    ) {
 		// any tickets left at all?
 		$tickets_remaining = $ticket instanceof EE_Ticket ? $ticket->remaining() : 0;
-		if ( ! $tickets_remaining && $action != 'remove') {
+		if ( ! $tickets_remaining && $action !== 'remove') {
 			// event is full
-			EE_Error::add_error( __( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+			EE_Error::add_error( esc_html(__( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' )), __FILE__, __FUNCTION__, __LINE__ );
 			return false;
 		}
 		$quantity = absint( $quantity );
 		// can't register anymore attendees
-		$total_tickets_string = _n(
+		$total_tickets_string = esc_html(_n(
 			'You have attempted to purchase %d ticket.',
 			'You have attempted to purchase %d tickets.',
 			$quantity,
 			'event_espresso'
-		);
+		));
 		$limit_error_1 = sprintf( $total_tickets_string, $quantity );
 		// is there enough tickets left to satisfy request?
-		if ( $tickets_remaining < $quantity && $action != 'remove') {
+		if ( $tickets_remaining < $quantity && $action !== 'remove') {
 			// translate and possibly pluralize the error
-			$tickets_remaining_string = _n(
+			$tickets_remaining_string = esc_html(_n(
 				'There is only %1$d ticket remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
 				'There are only %1$d tickets remaining for this event, therefore the total number of tickets you may purchase is %1$d.',
 				$tickets_remaining,
 				'event_espresso'
-			);
+			));
 
 			$limit_error_2 = sprintf( $tickets_remaining_string, $tickets_remaining );
 			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );
 			return false;
 		}
 
-		// is the quantity allowed based on ticket max?
+		// is the quantity allowed based on ticket min & max?
 		if( $line_item instanceof EE_Line_Item && $ticket instanceof EE_Ticket )
         {
-            if($action == 'add') $new_quantity = ($line_item->quantity() + $quantity);
-            else if($action == 'remove') $new_quantity = ($line_item->quantity() - $quantity);
-            else $new_quantity = $quantity;
+            $new_quantity = $quantity;
+            if($action == 'add') {
+                $new_quantity = ($line_item->quantity() + $quantity);
+            } else if($action == 'remove') {
+                $new_quantity = ($line_item->quantity() - $quantity);
+            }
 
             // can purchase more tickets based on ticket max?
             $ticket_maximum = $ticket->max();
             if( $new_quantity > $ticket_maximum )
             {
                 // translate and possibly pluralize the error
-                $tickets_maximum_string = _n(
+                $tickets_maximum_string = esc_html(_n(
                     'The registration limit for this ticket is %1$d ticket per transaction, therefore the total number of tickets you may purchase at this time can not exceed %1$d.',
                     'The registration limit for this ticket is %1$d tickets per transaction, therefore the total number of tickets you may purchase at this time can not exceed %1$d.',
                     $ticket_maximum,
                     'event_espresso'
-                );
+                ));
 
                 $max_error = sprintf( $tickets_maximum_string, $ticket_maximum );
                 EE_Error::add_error( $max_error, __FILE__, __FUNCTION__, __LINE__ );
                 return false;
             }
 
+            // can purchase less tickets based on ticket min?
             $ticket_minimum = $ticket->min();
             if( $ticket_minimum > 0 && ( $new_quantity < $ticket_minimum ) )
             {
                 // translate and possibly pluralize the error
-                $tickets_minimum_string = _n(
+                $tickets_minimum_string = esc_html(_n(
                     'The registration minimum for this ticket is %1$d ticket per transaction, therefore the total number of tickets you may purchase at this time can not be less than %1$d.',
                     'The registration minimum for this ticket is %1$d tickets per transaction, therefore the total number of tickets you may purchase at this time can not be less than %1$d.',
                     $ticket_minimum,
                     'event_espresso'
-                );
+                ));
 
                 $min_error = sprintf( $tickets_minimum_string, $ticket_minimum );
                 EE_Error::add_error( $min_error, __FILE__, __FUNCTION__, __LINE__ );
@@ -1260,20 +1269,20 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// get some details from the ticket
 			$additional_limit = $ticket->first_datetime()->event()->additional_limit();
 			// can't register anymore attendees
-			$limit_error_1_string = _n(
+			$limit_error_1_string = esc_html(_n(
 				'You have attempted to purchase %1$d ticket but that would result in too many tickets in the %2$s for this event.',
 				'You have attempted to purchase %1$d tickets but that would result in too many tickets in the %2$s for this event.',
 				$quantity,
 				'event_espresso'
-			);
+			));
 			$limit_error_1 = sprintf( $limit_error_1_string, $quantity, EED_Multi_Event_Registration::$event_cart_name );
 			// translate and possibly pluralize the error
-			$limit_error_2_string = _n(
+			$limit_error_2_string = esc_html(_n(
 				'The registration limit for this event is %1$d ticket per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
 				'The registration limit for this event is %1$d tickets per transaction, therefore the total number of tickets you may purchase at any time can not exceed %1$d.',
 				$additional_limit,
 				'event_espresso'
-			);
+			));
 			$limit_error_2 = sprintf( $limit_error_2_string, $additional_limit );
 
 			EE_Error::add_error( $limit_error_1 . '<br/>' . $limit_error_2, __FILE__, __FUNCTION__, __LINE__ );

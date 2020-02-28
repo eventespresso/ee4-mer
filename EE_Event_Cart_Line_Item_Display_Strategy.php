@@ -273,8 +273,9 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket, $required = '' ) {
         $input_disabled_class = '';
         $input_disabled = '';
+        $line_item_quantity = $line_item->quantity();
 
-		if ( !($ticket->remaining() - $line_item->quantity()) || ($line_item->quantity() >= $ticket->max()) ) {
+		if ( !($ticket->remaining() - $line_item_quantity) || ($line_item_quantity >= $ticket->max()) ) {
             $input_disabled = ' disabled';
             $add_disabled_class = $input_disabled_class = ' disabled-event-cart-btn';
             $add_disabled_title = __( 'there are no more items available', 'event_espresso' );
@@ -285,7 +286,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
             $add_query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
 		}
 
-        if ( ($line_item->quantity() <= $ticket->min()) ) {
+        if ( ($line_item_quantity <= $ticket->min()) ) {
             $input_disabled = ' disabled';
             $remove_disabled_class = $input_disabled_class = ' disabled-event-cart-btn';
             $remove_disabled_title = __( 'You cannot remove more items', 'event_espresso' );
@@ -303,7 +304,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 					class="event-cart-update-txt-qty ' . $input_disabled_class . $required . '"
 					name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
 					rel="' . $line_item->code() . '"
-					value="' . $line_item->quantity() . '"
+					value="' . $line_item_quantity . '"
 					' . $input_disabled . '
 					size="3"
 		/>
