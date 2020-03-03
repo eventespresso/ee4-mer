@@ -253,10 +253,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 		);
 		EED_Multi_Event_Registration::$event_cart_name = apply_filters(
 			'FHEE__EED_Multi_Event_Registration__set_definitions__event_cart_name',
-			__( 'Event Cart', 'event_espresso' )
+            esc_html__( 'Event Cart', 'event_espresso' )
 		);
 		EE_Registry::$i18n_js_strings[ 'iframe_tickets_added' ] = sprintf(
-			__( 'Success! Please click "View %s" to proceed with your registration.', 'event_espresso' ),
+            esc_html__( 'Success! Please click "View %s" to proceed with your registration.', 'event_espresso' ),
 			EED_Multi_Event_Registration::$event_cart_name
 		);
 	}
@@ -344,8 +344,8 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * @return        void
 	 */
 	public function translate_js_strings() {
-		EE_Registry::$i18n_js_strings[ 'server_error' ] = __( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
-		EE_Registry::$i18n_js_strings[ 'confirm_delete_state' ] = __("This item is required. Removing it will also remove any related items from the event cart!\nClick OK to continue or Cancel to keep this item.", 'event_espresso' );
+		EE_Registry::$i18n_js_strings[ 'server_error' ] = esc_html__( 'An unknown error occurred on the server while attempting to process your request. Please refresh the page and try again or contact support.', 'event_espresso' );
+		EE_Registry::$i18n_js_strings[ 'confirm_delete_state' ] = esc_html__("This item is required. Removing it will also remove any related items from the event cart!\nClick OK to continue or Cancel to keep this item.", 'event_espresso' );
 	}
 
 
@@ -440,7 +440,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( ! $event instanceof EE_Event ) {
 			if ( WP_DEBUG ) {
 				EE_Error::add_error(
-					__( 'An invalid event object was received.', 'event_espresso' ),
+                    esc_html__( 'An invalid event object was received.', 'event_espresso' ),
 					__FILE__,
 					__FUNCTION__,
 					__LINE__
@@ -468,7 +468,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if ( ! $event instanceof EE_Event && ! $tickets_in_cart ) {
 			if ( WP_DEBUG ) {
 				EE_Error::add_error(
-					__( 'An invalid event object was received.', 'event_espresso' ),
+                    esc_html__( 'An invalid event object was received.', 'event_espresso' ),
 					__FILE__,
 					__FUNCTION__,
 					__LINE__
@@ -483,9 +483,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 		) {
 			return $btn_text;
 		} else if ( $tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart( $event ) ) {
-			$btn_text = sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
+			$btn_text = sprintf( esc_html__( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
 		} else {
-			$btn_text = sprintf( __( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
+			$btn_text = sprintf( esc_html__( 'Add to %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name );
 		}
 		return $btn_text;
 	}
@@ -606,7 +606,7 @@ class EED_Multi_Event_Registration extends EED_Module {
      */
 	public static function filter_ticket_selector_button_txt( $button_txt, \EE_Event $event ) {
         return \EED_Multi_Event_Registration::_filter_ticket_selector_button($event)
-            ? sprintf( __( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name )
+            ? sprintf( esc_html__( 'View %s', 'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name )
             : $button_txt;
 	}
 
@@ -661,7 +661,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$html = '<a class="return-to-event-cart-mini-cart-lnk mini-cart-view-cart-lnk view-cart-lnk mini-cart-button hide-me-after-successful-payment-js button" href = "' . add_query_arg(
 				array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL ) . '" ><span class="dashicons
 				dashicons-cart" ></span >' . apply_filters(
-				'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( __( 'return to %s',
+				'FHEE__EED_Multi_Event_Registration__view_event_cart_btn_txt', sprintf( esc_html__( 'return to %s',
 				'event_espresso' ), EED_Multi_Event_Registration::$event_cart_name ) )  . '</a >' . $html;
 		return $html;
 	}
@@ -946,7 +946,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		EEH_Autoloader::register_line_item_display_autoloaders();
 		$Line_Item_Display = new EE_Line_Item_Display( 'event_cart', 'EE_Event_Cart_Line_Item_Display_Strategy' );
 		if ( ! $Line_Item_Display instanceof EE_Line_Item_Display && WP_DEBUG ) {
-			throw new EE_Error( __( 'A valid instance of EE_Event_Cart_Line_Item_Display_Strategy could not be obtained.','event_espresso' ));
+			throw new EE_Error( esc_html__( 'A valid instance of EE_Event_Cart_Line_Item_Display_Strategy could not be obtained.','event_espresso' ));
 		}
 		return $Line_Item_Display->display_line_item( $line_item );
 	}
@@ -984,7 +984,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			// no ticket or line item !?!?!
 			EE_Error::add_error(
 				sprintf(
-					__( 'Either the ticket or %1$s line item was not specified or invalid, therefore the %1$s could not be updated. Please refresh the page and try again.', 'event_espresso' ),
+                    esc_html__( 'Either the ticket or %1$s line item was not specified or invalid, therefore the %1$s could not be updated. Please refresh the page and try again.', 'event_espresso' ),
 					EED_Multi_Event_Registration::$event_cart_name
 				),
 				__FILE__, __FUNCTION__, __LINE__
@@ -1008,7 +1008,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			return $ticket;
 		} else {
 			// no ticket found
-			EE_Error::add_error( __( 'The Ticket information could not be retrieved from the database. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+			EE_Error::add_error( esc_html__( 'The Ticket information could not be retrieved from the database. Please refresh the page and try again.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			return null;
 		}
 	}
@@ -1153,7 +1153,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 					return $additional_info . apply_filters(
 						'FHEE__EED_Multi_Event_Registration__display_availability_error__additional_info',
 						sprintf(
-							__(
+                            esc_html__(
 								'%sYour request could not be completely fulfilled due to lack of availability.%s',
 								'event_espresso'
 							),
@@ -1189,7 +1189,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$tickets_remaining = $ticket instanceof EE_Ticket ? $ticket->remaining() : 0;
 		if ( ! $tickets_remaining && $action !== 'remove') {
 			// event is full
-			EE_Error::add_error( esc_html(__( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' )), __FILE__, __FUNCTION__, __LINE__ );
+			EE_Error::add_error( esc_html__( 'We\'re sorry, but there are no available spaces left for this event. No additional attendees can be added.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			return false;
 		}
 		$quantity = absint( $quantity );
@@ -1220,9 +1220,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 		if( $line_item instanceof EE_Line_Item && $ticket instanceof EE_Ticket )
         {
             $new_quantity = $quantity;
-            if($action == 'add') {
+            if($action === 'add') {
                 $new_quantity = ($line_item->quantity() + $quantity);
-            } else if($action == 'remove') {
+            } else if($action === 'remove') {
                 $new_quantity = ($line_item->quantity() - $quantity);
             }
 
@@ -1263,9 +1263,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 
 		// check event
 		$total_ticket_quantity_within_event_additional_limit = $this->_total_ticket_quantity_within_event_additional_limit( $ticket, $quantity, ($action === 'update') );
-		if ( ! $total_ticket_quantity_within_event_additional_limit && $action != 'remove') {
+		if ( ! $total_ticket_quantity_within_event_additional_limit && $action !== 'remove') {
 		    // New Quantity
-		    if($action == 'update') $quantity = $quantity - $line_item->quantity();
+		    if($action === 'update') {
+                $quantity = $quantity - $line_item->quantity();
+            }
 			// get some details from the ticket
 			$additional_limit = $ticket->first_datetime()->event()->additional_limit();
 			// can't register anymore attendees
@@ -1402,11 +1404,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 				);
 				if ( $action !== 'update' ) {
 					$msg = sprintf(
-						__( '%1$s item was successfully %2$s for this event.', 'event_espresso' ),
+						esc_html__( '%1$s item was successfully %2$s for this event.', 'event_espresso' ),
 						$additional, $added_or_removed
 					);
 				} else {
-					$msg = __( 'The quantities were successfully updated for this event.', 'event_espresso' );
+					$msg = esc_html__( 'The quantities were successfully updated for this event.', 'event_espresso' );
 				}
 				// something got added
 				if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
@@ -1415,7 +1417,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			} else if ( $line_item->quantity() !== $new_quantity ) {
 				// nothing added
 				EE_Error::add_error(
-					sprintf( __( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
+					sprintf( esc_html__( '%1$s item was not %2$s for this event. Please refresh the page and try it again.', 'event_espresso' ), $additional, $added_or_removed ),
 					__FILE__, __FUNCTION__, __LINE__
 				);
 				return null;
@@ -1462,7 +1464,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 		// couldn't find the line item !?!?!
 		EE_Error::add_error(
-			__( 'The specified item could not be found in the cart, therefore the quantity could not be adjusted. Please refresh the page and try again.', 'event_espresso' ),
+            esc_html__( 'The specified item could not be found in the cart, therefore the quantity could not be adjusted. Please refresh the page and try again.', 'event_espresso' ),
 			__FILE__, __FUNCTION__, __LINE__
 		);
 		return null;
@@ -1525,7 +1527,7 @@ class EED_Multi_Event_Registration extends EED_Module {
             } else {
                 // no ticket or line item !?!?!
                 EE_Error::add_error(
-                    __(
+                    esc_html__(
                         'The cart line item was not specified, therefore a ticket could not be removed. Please refresh the page and try again.',
                         'event_espresso'
                     ),
@@ -1588,13 +1590,13 @@ class EED_Multi_Event_Registration extends EED_Module {
 				if ( $deleted && apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false ) ) {
 					if ( $quantity_deleted === 1 ) {
 						$msg = sprintf(
-							__( '%1$s item was successfully removed from the %2$s', 'event_espresso' ),
+                            esc_html__( '%1$s item was successfully removed from the %2$s', 'event_espresso' ),
 							$quantity_deleted,
 							EED_Multi_Event_Registration::$event_cart_name
 						);
 					} else {
 						$msg = sprintf(
-							__( '%1$s items were successfully removed from the %2$s', 'event_espresso' ),
+                            esc_html__( '%1$s items were successfully removed from the %2$s', 'event_espresso' ),
 							$quantity_deleted,
 							EED_Multi_Event_Registration::$event_cart_name
 						);
@@ -1604,7 +1606,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 					// nothing removed
 					EE_Error::add_error(
 						sprintf(
-							__( 'The item was not removed from the %1$s', 'event_espresso' ),
+                            esc_html__( 'The item was not removed from the %1$s', 'event_espresso' ),
 							EED_Multi_Event_Registration::$event_cart_name
 						),
 						__FILE__, __FUNCTION__, __LINE__
@@ -1698,7 +1700,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 			if ( apply_filters( 'FHEE__EED_Multi_Event_Registration__display_success_messages', false )) {
 				EE_Error::add_success(
 					sprintf(
-						__( 'The %1$s was successfully emptied!', 'event_espresso' ),
+                        esc_html__( 'The %1$s was successfully emptied!', 'event_espresso' ),
 						EED_Multi_Event_Registration::$event_cart_name
 					),
 					__FILE__, __FUNCTION__, __LINE__
@@ -1707,7 +1709,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		} else {
 			EE_Error::add_error(
 				sprintf(
-					__( 'The %1$s could not be emptied!', 'event_espresso' ),
+                    esc_html__( 'The %1$s could not be emptied!', 'event_espresso' ),
 					EED_Multi_Event_Registration::$event_cart_name
 				),
 				__FILE__, __FUNCTION__, __LINE__
@@ -1739,7 +1741,7 @@ class EED_Multi_Event_Registration extends EED_Module {
             if ( ! $deleted){
                 EE_Error::add_error(
                     sprintf(
-                        __('Event line item (ID:%1d$) deletion failed.', 'event_espresso'),
+                        esc_html__('Event line item (ID:%1d$) deletion failed.', 'event_espresso'),
                         $event_line_item->ID()
                     ),
                     __FILE__, __FUNCTION__, __LINE__
@@ -1748,7 +1750,7 @@ class EED_Multi_Event_Registration extends EED_Module {
         } else {
             EE_Error::add_error(
                 sprintf(
-                    __('A valid line item for the event (ID:%1d$) could not be found.', 'event_espresso'),
+                    esc_html__('A valid line item for the event (ID:%1d$) could not be found.', 'event_espresso'),
                     $event->ID()
                 ),
                 __FILE__, __FUNCTION__, __LINE__
@@ -1777,10 +1779,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 				// to be... or...
 				exit();
 			} else {
-				EE_Error::add_error( __( 'Available space polling via ajax failed. Event not found.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+				EE_Error::add_error( esc_html__( 'Available space polling via ajax failed. Event not found.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 			}
 		} else {
-			EE_Error::add_error( __( 'Available space polling via ajax failed. No event id.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
+			EE_Error::add_error( esc_html__( 'Available space polling via ajax failed. No event id.', 'event_espresso' ), __FILE__, __FUNCTION__, __LINE__ );
 		}
 		// just send the ajax
 		echo json_encode( EE_Error::get_notices() );
