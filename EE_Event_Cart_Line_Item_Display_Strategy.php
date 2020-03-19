@@ -108,7 +108,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
                     || ( $line_item->code() === 'pre-tax-subtotal' &&  count( $child_line_items ) )
                 ) {
 					$count = $line_item->code() === 'pre-tax-subtotal' ? $total_count : $count;
-					$text = __( 'Subtotal', 'event_espresso' );
+					$text = esc_html__( 'Subtotal', 'event_espresso' );
 					$text = $line_item->code() === 'pre-tax-subtotal'
 						? EED_Multi_Event_Registration::$event_cart_name . ' ' . $text
 						: $text;
@@ -136,7 +136,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 						$html .= $this->display_line_item( $child_line_item, $options );
 					}
 					if ( count( $child_line_items ) > 1 ) {
-						$this->_taxes_html .= $this->_total_tax_row( $line_item, __('Tax Total', 'event_espresso') );
+						$this->_taxes_html .= $this->_total_tax_row( $line_item, esc_html__('Tax Total', 'event_espresso') );
 					}
 				}
 				break;
@@ -159,7 +159,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 					$line_item,
 					apply_filters(
 						'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__grand_total_text',
-						EED_Multi_Event_Registration::$event_cart_name . ' ' . __( 'Total', 'event_espresso' )
+						EED_Multi_Event_Registration::$event_cart_name . ' ' . esc_html__( 'Total', 'event_espresso' )
 					),
 					EE_Registry::instance()->CART->all_ticket_quantity_count()
 				);
@@ -271,49 +271,60 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
      * @return mixed
      */
 	private function _ticket_qty_input( EE_Line_Item $line_item, EE_Ticket $ticket, $required = '' ) {
-		if ( $ticket->remaining() - $line_item->quantity() ) {
-			$disabled = '';
-			$disabled_class = '';
-			$disabled_title = __( 'add one item', 'event_espresso' );
-			$query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
+        $input_disabled_class = '';
+        $input_disabled = '';
+        $line_item_quantity = $line_item->quantity();
+
+		if ( !($ticket->remaining() - $line_item_quantity) || ($line_item_quantity >= $ticket->max()) ) {
+            $input_disabled = ' disabled';
+            $add_disabled_class = $input_disabled_class = ' disabled-event-cart-btn';
+            $add_disabled_title = esc_html__( 'there are no more items available', 'event_espresso' );
+            $add_query_args = array( 'event_cart' => 'view' );
 		} else {
-			$disabled = ' disabled';
-			$disabled_class = ' disabled-event-cart-btn';
-			$disabled_title = __( 'there are no more items available', 'event_espresso' );
-			$query_args = array( 'event_cart' => 'view' );
+            $add_disabled_class = '';
+            $add_disabled_title = esc_html__( 'add one item', 'event_espresso' );
+            $add_query_args = array( 'event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code() );
 		}
+
+        if ( ($line_item_quantity <= $ticket->min()) ) {
+            $input_disabled = ' disabled';
+            $remove_disabled_class = $input_disabled_class = ' disabled-event-cart-btn';
+            $remove_disabled_title = esc_html__( 'You cannot remove more items', 'event_espresso' );
+            $remove_query_args = array( 'event_cart' => 'view' );
+        } else {
+            $remove_disabled_class = '';
+            $remove_disabled_title = esc_html__( 'remove one item', 'event_espresso' );
+            $remove_query_args = array( 'event_cart' => 'remove_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code());
+        }
+
 		return '
 	<div class="event-cart-ticket-qty-dv">
 		<input type="text"
 					id="event-cart-update-txt-qty-' . $line_item->code() . '"
-					class="event-cart-update-txt-qty ' . $disabled_class . $required . '"
+					class="event-cart-update-txt-qty ' . $input_disabled_class . $required . '"
 					name="event_cart_update_txt_qty[' . $ticket->ID() . '][' . $line_item->code() . ']"
 					rel="' . $line_item->code() . '"
-					value="' . $line_item->quantity() . '"
-					' . $disabled . '
+					value="' . $line_item_quantity . '"
+					' . $input_disabled . '
 					size="3"
 		/>
 		<span class="event-cart-update-buttons" >
-			<a	title="' . $disabled_title . '"
-				class="event-cart-add-ticket-button event-cart-button event-cart-icon-button button' . $disabled_class . '"
+			<a	title="' . $add_disabled_title . '"
+				class="event-cart-add-ticket-button event-cart-button event-cart-icon-button button' . $add_disabled_class . '"
 				rel="' . $line_item->code() . '"
-				href="' . add_query_arg( $query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
+				href="' . add_query_arg( $add_query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
 			>
 				<span class="dashicons dashicons-plus" ></span >
 			</a >
-			<a	title = "' . __( 'remove one item', 'event_espresso' ) . '"
-					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
+			<a	title = "' . $remove_disabled_title . '"
+					class="event-cart-remove-ticket-button event-cart-button event-cart-icon-button button' . $required . $remove_disabled_class . '"
 					rel = "' . $line_item->code() . '"
 				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
-					href = "' . add_query_arg( array(
-						'event_cart' => 'remove_ticket',
-						'ticket'      => $ticket->ID(),
-						'line_item'   => $line_item->code()
-					), EE_EVENT_QUEUE_BASE_URL ) . '"
+					href = "' . add_query_arg( $remove_query_args, EE_EVENT_QUEUE_BASE_URL ) . '"
 			>
 				<span class="dashicons dashicons-minus" ></span >
 			</a >
-			<a	title="' . __(/** @lang text */'delete item from event cart', 'event_espresso' ) . '"
+			<a	title="' . esc_html__(/** @lang text */'delete item from event cart', 'event_espresso' ) . '"
 					class="event-cart-delete-ticket-button event-cart-button event-cart-icon-button button' . $required . '"
 					rel="' . $line_item->code() . '"
 				    data-target="event-cart-update-txt-qty-' . $line_item->code() . '"
@@ -387,7 +398,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		$html .= EEH_HTML::td(
 			apply_filters(
 				'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___empty_msg_row',
-				__('The Event Cart is empty', 'event_espresso' )
+                esc_html__('The Event Cart is empty', 'event_espresso' )
 			),
 			'',  '', '', ' colspan="4"'
 		);
@@ -441,7 +452,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
 		$html = EEH_HTML::tr( '', 'event-cart-tax-row-' . $line_item->ID(), 'event-cart-tax-row item sub-item tax-total' );
 		// name && desc
 		$name_and_desc = $line_item->name();
-		$name_and_desc .= '<span class="smaller-text" style="margin:0 0 0 2em;">' . __( ' * taxable items', 'event_espresso' ) . '</span>';
+		$name_and_desc .= '<span class="smaller-text" style="margin:0 0 0 2em;">' . esc_html__( ' * taxable items', 'event_espresso' ) . '</span>';
 		$name_and_desc .= $options['show_desc'] ? '<br/>' . $line_item->desc() : '';
 		// name td
 		$html .= EEH_HTML::td( $name_and_desc, '',  'sub-item' );
@@ -538,7 +549,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display 
     public function after_event_cart_table()
     {
         echo EEH_HTML::p(
-            __(' ** indicates an item that is required and must be purchased.', 'event_espresso'),
+            esc_html__(' ** indicates an item that is required and must be purchased.', 'event_espresso'),
             '', 'event-cart-required-items-notice important-notice'
         );
 	}
