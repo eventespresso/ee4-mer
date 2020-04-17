@@ -230,6 +230,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			array( 'EED_Multi_Event_Registration', 'display_availability_error' ),
 			10, 1
 		);
+		add_filter(
+			'FHEE__EE_SPCO_Reg_Step__reg_step_submit_button__sbmt_btn_html',
+			array(  'EED_Multi_Event_Registration', 'return_to_event_cart_button' ),
+			10, 2
+		);
 		// update cart in session
 		add_action( 'shutdown', array( 'EED_Multi_Event_Registration', 'save_cart' ), 10 );
 	}
