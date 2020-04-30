@@ -156,6 +156,11 @@ class EED_Multi_Event_Registration extends EED_Module {
 			array( 'EED_Multi_Event_Registration', 'toggle_registration_status_if_no_monies_owing' ),
 			10, 2
 		);
+		// setup reCaptcha
+		add_filter( 'FHEE__EventEspresso_caffeinated_modules_recaptcha_invisible_InvisibleRecaptcha__getLocalizedVars__localized_vars',
+			array( 'EED_Multi_Event_Registration', 'setInvisiblerecaptchaLocalizedVars' ),
+			10, 1
+		);
 		// display errors
 		add_action( 'wp_footer', array( 'EED_Multi_Event_Registration', 'cart_results_modal_div' ), 1 );
 		// update cart in session
@@ -2211,6 +2216,20 @@ class EED_Multi_Event_Registration extends EED_Module {
 		}
 	}
 
+
+	/**
+	 * setInvisiblerecaptchaLocalizedVars
+	 * This filters \EventEspresso\caffeinated\modules\recaptcha_invisible\InvisibleRecaptcha::getLocalizedVars() 
+	 * to set disable_submit to true.
+	 *
+	 * @access public
+	 * @param array $localizedVars
+	 * @return array
+	 */
+	public static function setInvisiblerecaptchaLocalizedVars($localizedVars) {
+		$localizedVars['disable_submit'] = true;
+		return $localizedVars;
+	}
 
 
 }
