@@ -2222,11 +2222,10 @@ class EED_Multi_Event_Registration extends EED_Module {
 	 * This filters \EventEspresso\caffeinated\modules\recaptcha_invisible\InvisibleRecaptcha::getLocalizedVars() 
 	 * to set disable_submit to true.
 	 *
-	 * @access public
 	 * @param array $localizedVars
 	 * @return array
 	 */
-	public static function setInvisiblerecaptchaLocalizedVars($localizedVars) {
+	public static function setInvisiblerecaptchaLocalizedVars(array $localizedVars) {
 		$localizedVars['disable_submit'] = true;
 		return $localizedVars;
 	}
