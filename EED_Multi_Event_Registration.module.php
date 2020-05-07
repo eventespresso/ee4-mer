@@ -916,7 +916,7 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$grand_total = EE_Registry::instance()->CART->get_grand_total();
 		$grand_total->recalculate_total_including_taxes();
 
-		//Set the SPCO_active filter to false to pevent assests that rely on single_page_checkout from loading.
+		// Set the SPCO_active filter to false to pevent assests that rely on single_page_checkout from loading.
 		add_filter('EED_Single_Page_Checkout__SPCO_active', '__return_false', 20);
 
 		// autoload Line_Item_Display classes
