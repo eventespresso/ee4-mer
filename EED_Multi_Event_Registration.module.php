@@ -916,6 +916,9 @@ class EED_Multi_Event_Registration extends EED_Module {
 		$grand_total = EE_Registry::instance()->CART->get_grand_total();
 		$grand_total->recalculate_total_including_taxes();
 
+		//Set the SPCO_active filter to false as this is view is technically not SPCO.
+		add_filter('EED_Single_Page_Checkout__SPCO_active', '__return_false', 20);
+
 		// autoload Line_Item_Display classes
 		$template_args[ 'event_cart_heading' ] = apply_filters(
 			'FHEE__EED_Multi_Event_Registration__view_event_cart__event_cart_heading',
