@@ -159,8 +159,8 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 	private function _item_row( EE_Line_Item $line_item ) {
 		// start of row
 		$content = $line_item->name();
-		if ( $line_item->percent() ) {
-			$content .= ' ' . $line_item->percent() . ' %';
+		if ( $line_item->is_percent() ) {
+			$content .= ' ' . apply_filters('FHEE__format_percentage_value', $line_item->percent());
 		} else {
 			$content .= ' ' . $line_item->unit_price_no_code();
 		}
@@ -207,7 +207,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		$content = $line_item->name();
 		// discount/surcharge td
 		if ( $line_item->is_percent() ) {
-			$content .= ' ' . $line_item->percent() . '%';
+			$content .= ' ' . apply_filters('FHEE__format_percentage_value', $line_item->percent());
 		} else {
 			$content .= ' ' . $line_item->unit_price_no_code();
 		}
@@ -233,7 +233,7 @@ class EE_Mini_Cart_List_Line_Item_Display_Strategy implements EEI_Line_Item_Disp
 		$content = $line_item->name();
 		$content .= '<span class="tiny-text" style="margin:0 0 0 2em;">' . __( ' * taxable items', 'event_espresso' ) . '</span>';
 		// percent td
-		$content .= ' ' . $line_item->percent() . '%';
+		$content .= ' ' . apply_filters('FHEE__format_percentage_value', $line_item->percent());
 		// total td
 		$content .= ' ' . $line_item->total_no_code();
 		return EEH_HTML::li( $content, '', 'event-cart-tax-list tax-list', 'text-align:right; width:100%;' );

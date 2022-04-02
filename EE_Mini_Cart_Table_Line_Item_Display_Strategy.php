@@ -187,9 +187,13 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 		// name td
 		$html .= EEH_HTML::td( $name_and_desc );
 		// amount
-		if ( $line_item->percent() ) {
+		if ( $line_item->is_percent() ) {
 			// percent td
-			$html .= EEH_HTML::td( $line_item->percent() . ' %', '',  'jst-rght' );
+			$html .= EEH_HTML::td(
+			apply_filters('FHEE__format_percentage_value', $line_item->percent()),
+            '',
+            'jst-rght'
+            );
 		} else {
 			// price td
 			$html .= EEH_HTML::td( $line_item->unit_price_no_code(), '',  'jst-rght' );
@@ -245,7 +249,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 		$html .= EEH_HTML::td( $line_item->name(), '',  'sub-item', '', ' colspan="2"' );
 		// discount/surcharge td
 		if ( $line_item->is_percent() ) {
-			$html .= EEH_HTML::td( $line_item->percent() . '%', '', 'jst-rght' );
+			$html .= EEH_HTML::td(apply_filters('FHEE__format_percentage_value', $line_item->percent()), '', 'jst-rght' );
 		} else {
 			$html .= EEH_HTML::td( $line_item->unit_price_no_code(), '',  'jst-rght' );
 		}
@@ -274,7 +278,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 		// name td
 		$html .= EEH_HTML::td( $name_and_desc, '',  'sub-item' );
 		// percent td
-		$html .= EEH_HTML::td( $line_item->percent() . '%', '', 'mini-cart-tbl-qty-td jst-rght' );
+		$html .= EEH_HTML::td(apply_filters('FHEE__format_percentage_value', $line_item->percent()), '', 'mini-cart-tbl-qty-td jst-rght' );
 		// empty td (price)
 		$html .= EEH_HTML::td( EEH_HTML::nbsp() );
 		// total td
@@ -302,8 +306,7 @@ class EE_Mini_Cart_Table_Line_Item_Display_Strategy implements EEI_Line_Item_Dis
 				// total td
 			$html .= EEH_HTML::td( $text, '', 'total_currency total jst-rght', '', ' colspan="3"' );
 			// total td
-			$total = $line_item->total();
-			$html .= EEH_HTML::td( EEH_Template::format_currency( $total, false, false ), '', 'total jst-rght' );
+			$html .= EEH_HTML::td($line_item->total_no_code(), '', 'total jst-rght' );
 			// end of row
 			$html .= EEH_HTML::trx();
 		}
