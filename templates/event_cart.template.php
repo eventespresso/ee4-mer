@@ -12,8 +12,8 @@
 				<thead>
 					<tr id="event-cart-tbl-row-hdr" class="event-cart-tbl-row">
 						<td class="jst-left"><?php echo __('Details', 'event_espresso');?></td>
-						<td class="jst-cntr"><?php echo __( 'Price', 'event_espresso' ); ?></td>
 						<td class="jst-cntr"><?php echo __( 'Quantity', 'event_espresso' ); ?></td>
+						<td class="jst-cntr"><?php echo __( 'Price', 'event_espresso' ); ?></td>
 						<td class="jst-cntr"><?php echo __('Total', 'event_espresso');?></td>
 					</tr>
 				</thead>

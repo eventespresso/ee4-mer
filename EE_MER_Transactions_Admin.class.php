@@ -84,12 +84,6 @@ class EE_MER_Transactions_Admin {
 		}
 		return $new_columns;
 	}
-
-
-
 }
-
-
-
 // End of file EE_MER_Transactions_Admin.class.php
 // Location: /EE_MER_Transactions_Admin.class.php

@@ -1,4 +1,10 @@
-<?php if (!defined('EVENT_ESPRESSO_VERSION')) exit('No direct script access allowed');
+<?php
+
+use EventEspresso\core\services\loaders\LoaderFactory;
+use EventEspresso\core\services\request\CurrentPage;
+use EventEspresso\core\services\request\Request;
+
+if (!defined('EVENT_ESPRESSO_VERSION')) exit('No direct script access allowed');
 /**
  * Event Espresso
  *
@@ -112,8 +118,7 @@ class EEW_Mini_Cart extends WP_Widget {
 		$instance[ 'template' ] = ! empty( $instance[ 'template' ] ) ? $instance[ 'template' ] : EE_MER_PATH . 'templates' . DS . 'widget_minicart_table.template.php';
 		// autoload Line_Item_Display classes
 		EE_Registry::instance()->load_core( 'Cart' );
-		EE_Registry::instance()->load_helper( 'Line_Item' );
-		EE_Registry::instance()->load_core( 'Request_Handler' );
+
 		extract($args);
 		/** @type string $before_widget */
 		/** @type string $after_widget */
@@ -121,9 +126,11 @@ class EEW_Mini_Cart extends WP_Widget {
 		/** @type string $after_title */
 
 		$checkout_page = false;
+        $current_page = LoaderFactory::getLoader()->getShared(CurrentPage::class);
+        $request = LoaderFactory::getLoader()->getShared(Request::class);
 		if (
-			EE_Registry::instance()->REQ->get_post_name_from_request() == basename( EE_Registry::instance()->CFG->core->reg_page_url() )
-			&& EE_Registry::instance()->REQ->get( 'event_cart', '' ) !== 'view'
+            $current_page->postName() == basename( EE_Registry::instance()->CFG->core->reg_page_url() )
+			&& $request->getRequestParam('event_cart', '') !== 'view'
 		) {
 			$checkout_page = true;
 		}
@@ -140,7 +147,9 @@ class EEW_Mini_Cart extends WP_Widget {
 		$template_args[ 'register_url' ] = EE_EVENT_QUEUE_BASE_URL;
 		$template_args[ 'view_event_cart_url' ] = add_query_arg( array( 'event_cart' => 'view' ), EE_EVENT_QUEUE_BASE_URL );
 		$template_args[ 'btn_class' ] = apply_filters( 'FHEE__EEW_Mini_Cart__event_cart_template__btn_class', '' );
-		$template_args[ 'mini_cart_display' ] = EE_Registry::instance()->CART->all_ticket_quantity_count() > 0 ? '' 	: ' 	style="display:none;"';
+		$template_args[ 'mini_cart_display' ] = EE_Registry::instance()->CART->all_ticket_quantity_count() > 0
+            ? ''
+            : ' style="display:none;"';
 		$template_args[ 'event_cart' ] = $this->get_mini_cart( $instance[ 'template' ] );
 		// ugh... inline css... well... better than loading another stylesheet on every page
 		// and at least it's filterable...
