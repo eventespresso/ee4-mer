@@ -43,7 +43,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
     /**
      * @param EE_Line_Item $line_item
      * @param array        $options
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
@@ -52,23 +52,21 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
         $html = '';
         // set some default options and merge with incoming
         $default_options = [
-        'show_desc'   => true,  // 	TRUE 		FALSE
-        'event_count' => 0,
+            'show_desc'   => true,  // 	TRUE 		FALSE
+            'event_count' => 0,
         ];
         $options         = array_merge($default_options, (array) $options);
         $options         = (array) apply_filters(
-        'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__options',
-        $options
+            'FHEE__EE_Event_Cart_Line_Item_Display_Strategy__display_line_item__options',
+            $options
         );
 
         switch ($line_item->type()) {
             case EEM_Line_Item::type_line_item:
                 // item row
-                if ($line_item->OBJ_type() === 'Ticket') {
-                    $html .= $this->_ticket_row($line_item, $options);
-                } else {
-                    $html .= $this->_item_row($line_item, $options);
-                }
+                $html .= $line_item->OBJ_type() === 'Ticket'
+                    ? $this->_ticket_row($line_item, $options)
+                    : $this->_item_row($line_item, $options);
                 // got any kids?
                 foreach ($line_item->children() as $child_line_item) {
                     $this->display_line_item($child_line_item, $options);
@@ -81,16 +79,13 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
             case EEM_Line_Item::type_sub_total:
 
-                if ($line_item->OBJ_type() === 'Event') {
-                    if (! isset($this->_events[ $line_item->OBJ_ID() ])) {
-                        $html .= $this->_event_row($line_item);
-                    }
+                if ($line_item->OBJ_type() === 'Event' && ! isset($this->_events[$line_item->OBJ_ID()])) {
+                    $html .= $this->_event_row($line_item);
                 }
                 // loop thru children
                 $child_line_items = $line_item->children();
                 $count            = 0;
                 static $total_count = 0;
-                /** @var EE_Line_Item $child_line_item */
                 foreach ($child_line_items as $child_line_item) {
                     // recursively feed children back into this method
                     $html  .= $this->display_line_item($child_line_item, $options);
@@ -101,7 +96,8 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
                 //echo "<br>count: "  . $count;
                 //echo "<br>total_count: "  . $total_count;
                 // only display subtotal if there are multiple child line items
-                if (($line_item->total() > 0 && $count > 1)
+                if (
+                    ($count > 1 && $line_item->total() > 0)
                     || ($line_item->code() === 'pre-tax-subtotal' && count($child_line_items))
                 ) {
                     $count = $line_item->code() === 'pre-tax-subtotal' ? $total_count : $count;
@@ -177,29 +173,27 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _ticket_row
-     *
      * @param EE_Line_Item $line_item
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
     private function _event_row(EE_Line_Item $line_item)
     {
-        $this->_events[ $line_item->OBJ_ID() ] = $line_item;
+        $this->_events[$line_item->OBJ_ID()] = $line_item;
         // start of row
         $html = EEH_HTML::tr('', 'event-cart-event-row-' . $line_item->ID(), 'event-cart-event-row');
         // event name td
         $html .= EEH_HTML::td(
-        EEH_HTML::strong($line_item->name()),
-        '',
-        'event-header',
-        '',
-        apply_filters(
-            'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___event_row__other_attributes',
-            ' colspan="4"',
-            $line_item
-        )
+            EEH_HTML::strong($line_item->name()),
+            '',
+            'event-header',
+            '',
+            apply_filters(
+                'FHEE__EE_Event_Cart_Line_Item_Display_Strategy___event_row__other_attributes',
+                ' colspan="4"',
+                $line_item
+            )
         );
         // end of row
         $html .= EEH_HTML::trx();
@@ -208,15 +202,13 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _ticket_row
-     *
      * @param EE_Line_Item $line_item
      * @param array        $options
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
-    private function _ticket_row(EE_Line_Item $line_item, $options = [])
+    private function _ticket_row(EE_Line_Item $line_item, array $options = [])
     {
         $ticket = EEM_Ticket::instance()->get_one_by_ID($line_item->OBJ_ID());
         if ($ticket instanceof EE_Ticket) {
@@ -231,7 +223,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
             $html = EEH_HTML::tr(
                 '',
                 'event-cart-ticket-row-' . $line_item->ID(),
-                "event-cart-ticket-row item{$required_class}"
+                "event-cart-ticket-row item$required_class"
             );
             // name && desc
             $name_and_desc = $line_item->name();
@@ -269,12 +261,10 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _ticket_qty_input
-     *
      * @param EE_Line_Item $line_item
      * @param EE_Ticket    $ticket
      * @param string       $required
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
@@ -292,8 +282,11 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
         } else {
             $add_disabled_class = '';
             $add_disabled_title = esc_html__('add one item', 'event_espresso');
-            $add_query_args     =
-            ['event_cart' => 'add_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code()];
+            $add_query_args     = [
+                'event_cart' => 'add_ticket',
+                'ticket'     => $ticket->ID(),
+                'line_item'  => $line_item->code(),
+            ];
         }
 
         if (($line_item_quantity <= $ticket->min())) {
@@ -304,8 +297,11 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
         } else {
             $remove_disabled_class = '';
             $remove_disabled_title = esc_html__('remove one item', 'event_espresso');
-            $remove_query_args     =
-            ['event_cart' => 'remove_ticket', 'ticket' => $ticket->ID(), 'line_item' => $line_item->code()];
+            $remove_query_args     = [
+                'event_cart' => 'remove_ticket',
+                'ticket'     => $ticket->ID(),
+                'line_item'  => $line_item->code(),
+            ];
         }
 
         return '
@@ -360,11 +356,9 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _item_row
-     *
      * @param EE_Line_Item $line_item
      * @param array        $options
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
@@ -406,8 +400,6 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _empty_msg_row
-     *
      * @return string
      */
     private function _empty_msg_row()
@@ -432,19 +424,20 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _sub_item_row
-     *
      * @param EE_Line_Item $line_item
      * @param array        $options
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
-    private function _sub_item_row(EE_Line_Item $line_item, $options = [])
+    private function _sub_item_row(EE_Line_Item $line_item, array $options = [])
     {
         // start of row
-        $html =
-        EEH_HTML::tr('', 'event-cart-sub-item-row-' . $line_item->ID(), 'event-cart-sub-item-row item sub-item-row');
+        $html = EEH_HTML::tr(
+            '',
+            'event-cart-sub-item-row-' . $line_item->ID(),
+            'event-cart-sub-item-row item sub-item-row'
+        );
         // name && desc
         $name_and_desc = $line_item->name();
         $name_and_desc .= $options['show_desc']
@@ -467,19 +460,20 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _tax_row
-     *
      * @param EE_Line_Item $line_item
      * @param array        $options
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
-    private function _tax_row(EE_Line_Item $line_item, $options = [])
+    private function _tax_row(EE_Line_Item $line_item, array $options = [])
     {
         // start of row
-        $html =
-        EEH_HTML::tr('', 'event-cart-tax-row-' . $line_item->ID(), 'event-cart-tax-row item sub-item tax-total');
+        $html = EEH_HTML::tr(
+            '',
+            'event-cart-tax-row-' . $line_item->ID(),
+            'event-cart-tax-row item sub-item tax-total'
+        );
         // name && desc
         $name_and_desc = $line_item->name();
         $name_and_desc .= '<span class="smaller-text" style="margin:0 0 0 2em;">'
@@ -504,7 +498,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
      * @param EE_Line_Item $line_item
      * @param string       $text
      * @param int          $qty
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
@@ -517,7 +511,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
     /**
      * @param EE_Line_Item $line_item
      * @param string       $text
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
@@ -526,8 +520,11 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
         $html = '';
         if ($line_item->total()) {
             // start of row
-            $html =
-            EEH_HTML::tr('', 'event-cart-total-tax-row-' . $line_item->ID(), 'event-cart-total-tax-row total_tr');
+            $html = EEH_HTML::tr(
+                '',
+                'event-cart-total-tax-row-' . $line_item->ID(),
+                'event-cart-total-tax-row total_tr'
+            );
             // total td
             $html .= EEH_HTML::td($text, '', 'total_currency total jst-rght');
             $html .= EEH_HTML::td('', '', 'total jst-cntr');
@@ -543,12 +540,10 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
 
 
     /**
-     *    _total_row
-     *
      * @param EE_Line_Item $line_item
      * @param string       $text
      * @param int|string   $total_items
-     * @return mixed
+     * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
@@ -556,8 +551,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
     {
         //EE_Registry::instance()->load_helper('Money');
         // start of row
-        $html =
-        EEH_HTML::tr(
+        $html = EEH_HTML::tr(
             '',
             'event-cart-total-row-' . $line_item->ID(),
             'event-cart-total-row-' . $line_item->type() . ' event-cart-total-row total_tr'
@@ -575,7 +569,7 @@ class EE_Event_Cart_Line_Item_Display_Strategy implements EEI_Line_Item_Display
             )
         );
         // total qty
-        $total_items = $total_items ? $total_items : '';
+        $total_items = $total_items ?: '';
         $html        .= EEH_HTML::td(
             EEH_HTML::strong('<span class="total">' . $total_items . '</span>'),
             '',

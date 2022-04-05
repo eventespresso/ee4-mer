@@ -44,7 +44,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function instance(): EED_Multi_Event_Registration
+    public static function instance()
     {
         return parent::get_instance(__CLASS__);
     }
@@ -53,14 +53,14 @@ class EED_Multi_Event_Registration extends EED_Module
     /**
      * @return string
      */
-    public static function event_cart_name(): string
+    public static function event_cart_name()
     {
         return self::$event_cart_name;
     }
 
 
     /**
-     *    set_hooks - for hooking into EE Core, other modules, etc
+     * set_hooks - for hooking into EE Core, other modules, etc
      *
      * @return    void
      */
@@ -174,7 +174,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    set_hooks_admin - for hooking into EE Admin Core, other modules, etc
+     * set_hooks_admin - for hooking into EE Admin Core, other modules, etc
      *
      * @return    void
      */
@@ -286,8 +286,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *set_definitions
-     *
      * @return void
      */
     public static function set_definitions()
@@ -313,7 +311,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    route_admin_page_requests
      * loads additional classes for modifying admin pages
      *
      * @return void
@@ -340,7 +337,7 @@ class EED_Multi_Event_Registration extends EED_Module
      *
      * @return EE_Multi_Event_Registration_Config
      */
-    public function set_config(): EE_Multi_Event_Registration_Config
+    public function set_config()
     {
         $this->set_config_section('addons');
         $this->set_config_class('EE_Multi_Event_Registration_Config');
@@ -402,12 +399,12 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    mer_style_sheets
+     * mer_style_sheets
      *
      * @param array $style_sheet_URLs
      * @return array
      */
-    public static function style_sheet_URLs(array $style_sheet_URLs = []): array
+    public static function style_sheet_URLs(array $style_sheet_URLs = [])
     {
         $style_sheet_URLs[] = EE_MER_URL . 'css' . DS . 'multi_event_registration.css';
         return $style_sheet_URLs;
@@ -415,12 +412,10 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    javascript_URLs
-     *
      * @param array $javascript_URLs
      * @return array
      */
-    public static function javascript_URLs(array $javascript_URLs = []): array
+    public static function javascript_URLs(array $javascript_URLs = [])
     {
         $javascript_URLs[] = EE_MER_URL . 'scripts' . DS . 'multi_event_registration.js';
         return $javascript_URLs;
@@ -428,7 +423,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    enqueue_styles_and_scripts - Load the scripts and css
+     * Load the scripts and css
      *
      * @return    void
      */
@@ -463,7 +458,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    run - initial module setup
+     * run - initial module setup
      *
      * @param WP $WP
      * @return    void
@@ -487,7 +482,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function no_tickets_but_display_register_now_button($display = false, $event = null): bool
+    public static function no_tickets_but_display_register_now_button($display = false, $event = null)
     {
         // verify event
         if (! $event instanceof EE_Event) {
@@ -506,7 +501,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * filter_ticket_selector_submit_button
      * changes the default "Register Now" text based on event's inclusion in the cart
      *
      * @param string        $btn_text
@@ -517,10 +511,10 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws ReflectionException
      */
     public static function filter_ticket_selector_submit_button(
-        string $btn_text = '',
+        $btn_text = '',
         EE_Event $event = null,
-        bool $tickets_in_cart = false
-    ): string {
+        $tickets_in_cart = false
+    ) {
         // verify event
         if (! $event instanceof EE_Event && ! $tickets_in_cart) {
             if (WP_DEBUG) {
@@ -555,14 +549,12 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    get_all_event_tickets
-     *
      * @param EE_Event $event
      * @return array
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function get_all_event_tickets(EE_Event $event): array
+    protected static function get_all_event_tickets(EE_Event $event)
     {
         $tickets = [];
         // get active events
@@ -579,14 +571,12 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    get_all_event_tickets
-     *
      * @param EE_Event|null $event
      * @return bool
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function has_tickets_in_cart(EE_Event $event = null): bool
+    protected static function has_tickets_in_cart(EE_Event $event = null)
     {
         if (! $event instanceof EE_Event) {
             return false;
@@ -608,7 +598,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    adds a hidden input to the Ticket Selector form
+     * adds a hidden input to the Ticket Selector form
      *
      * @param string        $html
      * @param EE_Event|null $event
@@ -618,10 +608,10 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws ReflectionException
      */
     public static function filter_ticket_selector_form_html(
-        string $html = '',
+        $html = '',
         EE_Event $event = null,
-        bool $tickets_in_cart = false
-    ): string {
+        $tickets_in_cart = false
+    ) {
         if ($tickets_in_cart || EED_Multi_Event_Registration::has_tickets_in_cart($event)) {
             $html .= '<input type="hidden" value="view" name="event_cart">';
         }
@@ -630,15 +620,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * filter_ticket_selector_button_url
-     *
      * @param string   $button_url
      * @param EE_Event $event
      * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function filter_ticket_selector_button_url(string $button_url, EE_Event $event): string
+    public static function filter_ticket_selector_button_url($button_url, EE_Event $event)
     {
         return EED_Multi_Event_Registration::_filter_ticket_selector_button($event)
             ? add_query_arg(['event_cart' => 'view'], EE_EVENT_QUEUE_BASE_URL)
@@ -647,7 +635,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * filter_ticket_selector_button
      * If the Ticket Selector should be displayed
      * and the event is NOT sold out
      * (unless it's sold out because we just added the last tickets to the cart)
@@ -658,7 +645,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function _filter_ticket_selector_button(EE_Event $event): bool
+    protected static function _filter_ticket_selector_button(EE_Event $event)
     {
         return $event->display_ticket_selector()
                && EE_Config::instance()->template_settings->EED_Events_Archive->display_ticket_selector
@@ -670,15 +657,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * filter_ticket_selector_button_txt
-     *
      * @param string   $button_txt
      * @param EE_Event $event
      * @return string
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function filter_ticket_selector_button_txt(string $button_txt, EE_Event $event): string
+    public static function filter_ticket_selector_button_txt($button_txt, EE_Event $event)
     {
         return EED_Multi_Event_Registration::_filter_ticket_selector_button($event)
             ? sprintf(esc_html__('View %s', 'event_espresso'), EED_Multi_Event_Registration::$event_cart_name)
@@ -691,7 +676,7 @@ class EED_Multi_Event_Registration extends EED_Module
      *
      * @return    string
      */
-    public static function filter_ticket_selector_redirect_url(): string
+    public static function filter_ticket_selector_redirect_url()
     {
         if (
             apply_filters(
@@ -715,7 +700,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    creates button for going back to the Event Cart
+     * creates button for going back to the Event Cart
      *
      * @param string           $html
      * @param EE_SPCO_Reg_Step $reg_step
@@ -723,7 +708,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function return_to_event_cart_button(string $html, EE_SPCO_Reg_Step $reg_step): string
+    public static function return_to_event_cart_button($html, EE_SPCO_Reg_Step $reg_step)
     {
         // returning to SPCO ?
         if ($reg_step->checkout->revisit) {
@@ -820,8 +805,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    process_ticket_selections
-     *
      * @return    void
      * @throws EE_Error
      * @throws ReflectionException
@@ -868,13 +851,11 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    get_cart_results
-     *
      * @param int $ticket_count
      * @return string
      * @throws EE_Error
      */
-    public static function get_cart_results(int $ticket_count = 0): string
+    public static function get_cart_results($ticket_count = 0)
     {
         // total tickets in cart
         $total_tickets = EE_Registry::instance()->CART->all_ticket_quantity_count();
@@ -951,8 +932,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    cart_results_modal_div
-     *
      * @return    void
      */
     public static function cart_results_modal_div()
@@ -962,12 +941,10 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    get_mini_cart
-     *
      * @return    string
      * @throws EE_Error
      */
-    public static function get_mini_cart(): string
+    public static function get_mini_cart()
     {
         global $wp_widget_factory;
         $mini_cart = $wp_widget_factory->widgets['EEW_Mini_Cart'];
@@ -1009,7 +986,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *        load and display Event Cart contents prior to completing registration
+     * load and display Event Cart contents prior to completing registration
      *
      * @return        void
      * @throws EE_Error
@@ -1065,7 +1042,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @return string
      * @throws EE_Error
      */
-    protected function _get_event_cart(?EE_Line_Item $line_item = null): string
+    protected function _get_event_cart(EE_Line_Item $line_item = null)
     {
         $line_item = $line_item instanceof EE_Line_Item ? $line_item : EE_Registry::instance()->CART->get_grand_total();
         // autoload Line_Item_Display classes
@@ -1094,7 +1071,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function _get_additional_limit(int $event_id): int
+    protected function _get_additional_limit($event_id)
     {
         do_action('AHEE_log', __FILE__, __FUNCTION__, '');
         $event = EEM_Event::instance()->get_one_by_ID($event_id);
@@ -1103,13 +1080,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    increment or decrement a ticket's quantity in the event cart
+     * increment or decrement a ticket's quantity in the event cart
      *
      * @return EE_Ticket|null
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function _validate_request(): ?EE_Ticket
+    protected function _validate_request()
     {
         $this->init();
         EED_Multi_Event_Registration::load_classes();
@@ -1137,14 +1114,14 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    retrieves a valid EE_Ticket from the db
+     * retrieves a valid EE_Ticket from the db
      *
      * @param int $TKT_ID
      * @return EE_Ticket|null
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function get_ticket(int $TKT_ID = 0): ?EE_Ticket
+    protected function get_ticket($TKT_ID = 0)
     {
         $ticket = EEM_Ticket::instance()->get_one_by_ID(absint($TKT_ID));
         if ($ticket instanceof EE_Ticket) {
@@ -1166,8 +1143,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * ajax_update_event_cart
-     *    call update_event_cart() via AJAX
+     * call update_event_cart() via AJAX
      *
      * @return void
      * @throws EE_Error
@@ -1180,7 +1156,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    increment or decrement all ticket quantities in the event cart
+     * increment or decrement all ticket quantities in the event cart
      *
      * @return void
      * @throws EE_Error
@@ -1233,7 +1209,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public function add_ticket(int $quantity = 1)
+    public function add_ticket($quantity = 1)
     {
         // check the request
         $ticket    = $this->_validate_request();
@@ -1259,7 +1235,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function _adjust_ticket_reserves(EE_Ticket $ticket, int $quantity = 1)
+    protected function _adjust_ticket_reserves(EE_Ticket $ticket, $quantity = 1)
     {
         if ($quantity > 0) {
             $ticket->increaseReserved($quantity);
@@ -1271,8 +1247,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    allow_ticket_selector_add_to_cart
-     *
      * @param bool      $allow
      * @param EE_Ticket $ticket
      * @param int       $quantity
@@ -1280,7 +1254,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function allow_ticket_selector_add_to_cart(bool $allow, EE_Ticket $ticket, int $quantity = 1): bool
+    public static function allow_ticket_selector_add_to_cart($allow, EE_Ticket $ticket, $quantity = 1)
     {
         // if already toggled toggled to false by something else then don't bother processing
         if (filter_var($allow, FILTER_VALIDATE_BOOLEAN)) {
@@ -1291,13 +1265,11 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    allow_display_availability_error
-     *
      * @param bool $allow
      * @return bool
      * @throws EE_Error
      */
-    public static function display_availability_error(bool $allow = true): bool
+    public static function display_availability_error($allow = true)
     {
         // if already toggled toggled to false by something else then don't bother processing
         if (EE_Registry::instance()->CART->all_ticket_quantity_count()) {
@@ -1306,16 +1278,16 @@ class EED_Multi_Event_Registration extends EED_Module
                 'FHEE__EED_Multi_Event_Registration__event_cart_template__additional_info',
                 function ($additional_info) {
                     return $additional_info . apply_filters(
-                            'FHEE__EED_Multi_Event_Registration__display_availability_error__additional_info',
-                            sprintf(
-                                esc_html__(
-                                    '%sYour request could not be completely fulfilled due to lack of availability.%s',
-                                    'event_espresso'
-                                ),
-                                '<div class="important-notice small-text">',
-                                '</div><br />'
-                            )
-                        );
+                        'FHEE__EED_Multi_Event_Registration__display_availability_error__additional_info',
+                        sprintf(
+                            esc_html__(
+                                '%sYour request could not be completely fulfilled due to lack of availability.%s',
+                                'event_espresso'
+                            ),
+                            '<div class="important-notice small-text">',
+                            '</div><br />'
+                        )
+                    );
                 }
             );
         }
@@ -1324,8 +1296,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    adjust_ticket_quantity
-     *
      * @param EE_Ticket|null    $ticket
      * @param int               $quantity
      * @param EE_Line_Item|null $line_item
@@ -1336,10 +1306,10 @@ class EED_Multi_Event_Registration extends EED_Module
      */
     protected function can_purchase_ticket_quantity(
         EE_Ticket $ticket = null,
-        int $quantity = 1,
+        $quantity = 1,
         EE_Line_Item $line_item = null,
-        string $action = 'add'
-    ): bool {
+        $action = 'add'
+    ) {
         // any tickets left at all?
         $tickets_remaining = $ticket instanceof EE_Ticket ? $ticket->remaining() : 0;
         if (! $tickets_remaining && $action !== 'remove') {
@@ -1474,8 +1444,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * _total_ticket_quantity_within_event_additional_limit
-     *
      * returns true if the requested ticket quantity
      * does not exceed the event's additional limit
      * when combined with the tickets for the same event
@@ -1490,9 +1458,9 @@ class EED_Multi_Event_Registration extends EED_Module
      */
     protected function _total_ticket_quantity_within_event_additional_limit(
         EE_Ticket $ticket,
-        int $quantity = 1,
-        bool $cart_update = false
-    ): bool {
+        $quantity = 1,
+        $cart_update = false
+    ) {
         $event = $ticket->first_datetime()->event();
         // we want to exclude this ticket from the count if this is a cart update,
         // because we are not simply incrementing the cart count
@@ -1508,7 +1476,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    _event_tickets
      * generates a multidimensional array of tickets grouped by event
      * where the event ids are the keys for the outer array
      *
@@ -1517,7 +1484,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function _event_tickets(int $TKT_ID = 0): array
+    protected function _event_tickets($TKT_ID = 0)
     {
         $event_tickets     = [];
         $ticket_line_items = EE_Registry::instance()->CART->get_tickets();
@@ -1537,8 +1504,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    _adjust_line_item_quantity
-     *
      * @param EE_Line_Item|null $line_item
      * @param int               $quantity
      * @param string            $action
@@ -1546,8 +1511,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function adjust_line_item_quantity(?EE_Line_Item $line_item, int $quantity = 1, string $action = 'add'):
-    ?EE_Line_Item {
+    protected function adjust_line_item_quantity(EE_Line_Item $line_item = null, $quantity = 1, $action = 'add') {
         if ($line_item instanceof EE_Line_Item) {
             if ($quantity === 0 && $action === 'update') {
                 self::getRequest()->setRequestParam('ticket', $line_item->OBJ_ID());
@@ -1616,14 +1580,12 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * remove an attendee from event in the event cart
-     *
      * @param int $line_item_id
      * @return EE_Line_Item|null
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function get_line_item(int $line_item_id = 0): ?EE_Line_Item
+    protected function get_line_item($line_item_id = 0)
     {
         $line_item = null;
         if (is_int($line_item_id)) {
@@ -1658,7 +1620,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * ajax_remove_ticket
      * call remove_ticket() via AJAX
      *
      * @return void
@@ -1679,7 +1640,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public function remove_ticket(int $quantity = 1)
+    public function remove_ticket($quantity = 1)
     {
         // check the request
         $ticket = $this->_validate_request();
@@ -1725,7 +1686,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * ajax_delete_ticket
      * call delete_ticket() via AJAX
      *
      * @return void
@@ -1739,13 +1699,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * delete_ticket - removes ticket completely
+     * removes ticket completely
      *
      * @param bool $send_ajax_response
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public function delete_ticket(bool $send_ajax_response = true)
+    public function delete_ticket($send_ajax_response = true)
     {
         // check the request
         $ticket = $this->_validate_request();
@@ -1807,14 +1767,12 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * _delete_line_item
-     *
      * @param EE_Line_Item $line_item
      * @return boolean
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function _delete_line_item(EE_Line_Item $line_item): bool
+    public static function _delete_line_item(EE_Line_Item $line_item)
     {
         if ($line_item->ID()) {
             return $line_item->delete();
@@ -1825,7 +1783,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * maybe_delete_event_line_item
      * checks if an event line item still has any tickets associated with it,and
      * and if not, then deletes the event plus any other non-ticket items,
      * which may be things like promotion codes
@@ -1856,8 +1813,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * ajax_empty_event_cart
-     *    call empty_event_cart() via AJAX
+     * call empty_event_cart() via AJAX
      *
      * @return void
      * @throws EE_Error
@@ -1870,7 +1826,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *        remove all events from the event cart
+     * remove all events from the event cart
      *
      * @return        void
      * @throws EE_Error
@@ -1962,8 +1918,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *    ajax_get_available_spaces
-     *    get number of available spaces for event via ajax
+     * get number of available spaces for event via ajax
      *
      * @return void
      * @throws EE_Error
@@ -2014,7 +1969,7 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   handle ajax message responses
+     * handle ajax message responses
      *
      * @param bool   $empty_cart
      * @param string $redirect_url
@@ -2022,7 +1977,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected function send_ajax_response(bool $empty_cart = false, string $redirect_url = '')
+    protected function send_ajax_response($empty_cart = false, $redirect_url = '')
     {
         //echo "\n\n " . __LINE__ . ") " . __METHOD__ . "() <br />";
         $grand_total = EE_Registry::instance()->CART->get_grand_total();
@@ -2062,7 +2017,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   verify_tickets_in_cart
      * compares the current tickets in the cart with the current registrations for the checkout's transaction.
      * if any difference between the type of ticket or their associated quantities exist,
      * then registrations will be added or removed accordingly.
@@ -2072,7 +2026,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    public static function verify_tickets_in_cart(EE_Checkout $checkout): EE_Checkout
+    public static function verify_tickets_in_cart(EE_Checkout $checkout)
     {
         // verify transaction
         if ($checkout->transaction instanceof EE_Transaction) {
@@ -2126,7 +2080,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   get_tickets_in_cart
      * returns a multi array of EE_Ticket objects
      * indexed by:    [ ticket ID ][ auto-numerical ]
      * is an accurate representation of total tickets in cart
@@ -2136,7 +2089,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function get_tickets_in_cart(EE_Checkout $checkout): array
+    protected static function get_tickets_in_cart(EE_Checkout $checkout)
     {
         // arrays for tracking ticket counts
         $cart_tickets = [];
@@ -2154,7 +2107,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   get_registration_tickets
      * returns a multi array of EE_Ticket objects
      * indexed by:    [ ticket ID ][ registration ID ]
      * is an accurate representation of total tickets in checkout
@@ -2164,7 +2116,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function get_registration_tickets(array $registrations = []): array
+    protected static function get_registration_tickets(array $registrations = [])
     {
         $reg_tickets = [];
         // now we need to get an accurate count of registration tickets
@@ -2181,7 +2133,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   adjust_registration_quantities
      * will either add registrations for NEW tickets
      * or adjust quantities for existing tickets
      *
@@ -2195,10 +2146,10 @@ class EED_Multi_Event_Registration extends EED_Module
      */
     protected static function adjust_registration_quantities(
         EE_Transaction $transaction,
-        int $TKT_ID = 0,
+        $TKT_ID = 0,
         array $ticket_line_items = [],
         array $reg_tickets = []
-    ): bool {
+    ) {
         $changes = false;
         // are there any corresponding registrations for this ticket?
         if (isset($reg_tickets[$TKT_ID])) {
@@ -2248,15 +2199,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   add_registration
-     *
      * @param EE_Line_Item|null $ticket_line_item
      * @param EE_Transaction    $transaction
      * @return bool
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function add_registration(?EE_Line_Item $ticket_line_item, EE_Transaction $transaction): bool
+    protected static function add_registration(EE_Line_Item $ticket_line_item = null, EE_Transaction $transaction = null)
     {
         $registration = null;
         if ($ticket_line_item instanceof EE_Line_Item) {
@@ -2278,15 +2227,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   remove_registration
-     *
      * @param EE_Transaction       $transaction
      * @param EE_Registration|null $registration
      * @return bool
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function remove_registration(EE_Transaction $transaction, ?EE_Registration $registration): bool
+    protected static function remove_registration(EE_Transaction $transaction, EE_Registration $registration = null)
     {
         if ($registration instanceof EE_Registration) {
             add_filter(
@@ -2318,7 +2265,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function reset_registration_details(EE_Transaction $transaction, int $total_ticket_count = 0)
+    protected static function reset_registration_details(EE_Transaction $transaction, $total_ticket_count = 0)
     {
         $attendee_number = 0;
         $registrations   = $transaction->registrations();
@@ -2345,8 +2292,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     * sort_registrations_by_reg_count_callback
-     *
      * @param EE_Registration $registration_A
      * @param EE_Registration $registration_B
      * @return int
@@ -2354,7 +2299,7 @@ class EED_Multi_Event_Registration extends EED_Module
     protected static function sort_registrations_by_reg_count_callback(
         EE_Registration $registration_A,
         EE_Registration $registration_B
-    ): int {
+    ) {
         // send any registrations that don't already have the count set to the end of the array
         if (! $registration_A->count()) {
             return 1;
@@ -2367,15 +2312,13 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   update_checkout
-     *
      * @param EE_Checkout $checkout
      * @param int         $new_ticket_count
      * @return void
      * @throws EE_Error
      * @throws ReflectionException
      */
-    protected static function update_checkout_and_transaction(EE_Checkout $checkout, int $new_ticket_count = 0)
+    protected static function update_checkout_and_transaction(EE_Checkout $checkout, $new_ticket_count = 0)
     {
         $checkout->total_ticket_count = $new_ticket_count;
         $checkout->generate_reg_form  = true;
@@ -2401,8 +2344,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   update_cart
-     *
      * @param EE_Checkout $checkout
      * @return void
      * @throws EE_Error
@@ -2416,7 +2357,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   toggle_registration_status_if_no_monies_owing
      * determine whether to toggle free tickets to "Approved" based on payment status (kinda sorta) of other tickets for
      * the same event. So if more than one ticket for the same event is in the cart, and one or more tickets are NOT
      * free, then free tickets will NOT be automatically toggled to "Approved"
@@ -2428,9 +2368,9 @@ class EED_Multi_Event_Registration extends EED_Module
      * @throws ReflectionException
      */
     public static function toggle_registration_status_if_no_monies_owing(
-        bool $toggle_registration_status = false,
+        $toggle_registration_status = false,
         EE_Registration $registration = null
-    ): bool {
+    ) {
         $reg_tickets = [];
         if ($registration instanceof EE_Registration && $registration->transaction() instanceof EE_Transaction) {
             // now we need to get an accurate count of registration tickets
@@ -2455,8 +2395,6 @@ class EED_Multi_Event_Registration extends EED_Module
 
 
     /**
-     *   shutdown
-     *
      * @return void
      * @throws EE_Error
      */
