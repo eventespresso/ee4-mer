@@ -179,12 +179,22 @@
 }
 
 .cart-results-button {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
     margin: 1em;
 }
 
-.cart-results-button-spn + .cart-results-button-spn {
-    /*margin-left: 2em;*/
+.cart-results-button .dashicons {
+    top: unset;
 }
+
+.cart-results-register-button.cart-results-button .dashicons {
+    margin-inline-start: .5em;
+    margin-inline-end: 0;
+}
+
+
 
 
 .espresso-ajax-modal-notices {
