@@ -814,8 +814,8 @@ class EED_Multi_Event_Registration extends EED_Module
         //echo "\n\n " . __LINE__ . ") " . __METHOD__ . "() <br />";
         $response = ['tickets_added' => false];
         if (EED_Ticket_Selector::instance()->process_ticket_selections()) {
-            $EVT_ID       = self::getRequest()->getRequestParam('tkt-slctr-event-id', 0, 'int');
-            $tickets      = self::getRequest()->getRequestParam('tkt-slctr-qty-' . $EVT_ID, [], 'arrayOf|int');
+            $EVT_ID       = self::getRequest()->getRequestParam('tkt-slctr-event-id', 0, DataType::INT);
+            $tickets      = self::getRequest()->getRequestParam('tkt-slctr-qty-' . $EVT_ID, [], DataType::INT, true);
             $ticket_count = 0;
             // radio buttons send ticket info as a string like: "TKT_ID-QTY"
             if (! is_array($tickets)) {
@@ -1167,7 +1167,7 @@ class EED_Multi_Event_Registration extends EED_Module
         $this->init();
         EED_Multi_Event_Registration::load_classes();
         $request           = self::getRequest();
-        $ticket_quantities = $request->getRequestParam('event_cart_update_txt_qty', []);
+        $ticket_quantities = $request->getRequestParam('event_cart_update_txt_qty', [], DataType::INT, true);
         foreach ($ticket_quantities as $TKT_ID => $ticket_quantity) {
             $ticket = $this->get_ticket($TKT_ID);
             if ($ticket instanceof EE_Ticket) {
