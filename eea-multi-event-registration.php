@@ -3,7 +3,7 @@
 Plugin Name: Event Espresso - Event Cart (Multi Event Registration)
 Plugin URI: https://www.eventespresso.com
 Description: Multi Events Registration addon for Event Espresso. - Lots of events to register for? Now you can add events to a registration Event Cart ( shopping cart ), then register for them all at once.
-Version: 2.0.21.rc.011
+Version: 2.0.21.rc.012
 Author: Event Espresso
 Author URI: https://www.eventespresso.com
 Copyright 2015 Event Espresso (email : support@eventespresso.com)
@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA02110-1301USA
 */
 
 define('EE_MER_CORE_VERSION_REQUIRED', '4.9.23.rc.001');
-define('EE_MER_VERSION', '2.0.21.rc.011');
+define('EE_MER_VERSION', '2.0.21.rc.012');
 define('EE_MER_PLUGIN_FILE', __FILE__);
 
 
