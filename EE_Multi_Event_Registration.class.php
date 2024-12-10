@@ -1,7 +1,5 @@
 <?php
-if (! defined('EVENT_ESPRESSO_VERSION')) {
-    exit('No direct script access allowed');
-}
+
 // define the plugin directory path and URL
 define('EE_MER_BASENAME', plugin_basename(EE_MER_PLUGIN_FILE));
 define('EE_MER_PATH', plugin_dir_path(__FILE__));
@@ -47,6 +45,16 @@ class EE_Multi_Event_Registration extends EE_Addon
                     'EE_MER_Transactions_Admin' => EE_MER_PATH . 'EE_MER_Transactions_Admin.class.php',
                     'EE_MER_Events_Admin' => EE_MER_PATH . 'EE_MER_Events_Admin.class.php',
                 ],
+                'license'              => [
+                    'beta'             => false,
+                    'main_file_path'   => EE_MER_PLUGIN_FILE,
+                    'min_core_version' => EE_MER_CORE_VERSION_REQUIRED,
+                    'plugin_id'        => 0,
+                    'plugin_name'      => 'Event Cart',
+                    'plugin_slug'      => 'eea-multi-event-registration',
+                    'version'          => EE_MER_VERSION,
+                    'wp_override'      => false,
+                ],
                 'pue_options'      => [
                     'pue_plugin_slug' => 'eea-multi-event-registration',
                     'checkPeriod'     => '24',
@@ -55,8 +63,6 @@ class EE_Multi_Event_Registration extends EE_Addon
             ]
         );
     }
-
-
 }
 // End of file EE_Multi_Event_Registration.php
 // Location: /EE_Multi_Event_Registration.php
