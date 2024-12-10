@@ -2401,7 +2401,7 @@ class EED_Multi_Event_Registration extends EED_Module
      * @return void
      * @throws EE_Error
      * @throws ReflectionException
-     * @deprecated $VID:$
+     * @deprecated 2.0.21.p
      */
     public function maybe_delete_event_line_item(EE_Line_Item $parent_line_item)
     {
